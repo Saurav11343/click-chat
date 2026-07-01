@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import api from "./api/axios";
+import Register from "./pages/Register";
 
 function App() {
   const [name, setName] = useState("");
@@ -19,25 +20,29 @@ function App() {
   };
 
   return (
-    <div
-      style={{
-        width: "400px",
-        margin: "100px auto",
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-      }}
-    >
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Enter Name"
-      />
+    <>
+      <div
+        style={{
+          width: "400px",
+          margin: "100px auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+        }}
+      >
+        <h1 className="text-3xl font-bold underline">Hello world!</h1>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter Name"
+        />
 
-      <button onClick={submit}>Send</button>
+        <button onClick={submit}>Send</button>
 
-      <h2>{message}</h2>
-    </div>
+        <h2>{message}</h2>
+      </div>
+      <Register />
+    </>
   );
 }
 
