@@ -133,6 +133,47 @@ RealTimeChatWebApp
 
 ---
 
+# 🔐 Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant MongoDB
+
+    User->>Frontend: Enter login details
+    Frontend->>Backend: POST /api/auth/login
+    Backend->>MongoDB: Find user by email
+    MongoDB-->>Backend: Return user
+    Backend->>Backend: Compare password with bcrypt
+    Backend->>Backend: Generate JWT
+    Backend-->>Frontend: Set HTTP-only cookie
+    Frontend-->>User: Redirect to Chat
+```
+
+# 🏗 Architecture Diagram
+
+```mermaid
+flowchart LR
+    User[User] --> Frontend[React + Vite Frontend]
+    Frontend --> API[Express REST API]
+    API --> DB[(MongoDB Atlas)]
+    API --> Auth[JWT + HTTP-only Cookie]
+```
+
+# ☁️ Deployment Flow
+
+```mermaid
+flowchart TD
+    Dev[Developer Pushes Code] --> GitHub[GitHub Repository]
+    GitHub --> Vercel[Vercel Frontend Deploy]
+    GitHub --> Railway[Railway Backend Deploy]
+    Railway --> MongoDB[(MongoDB Atlas)]
+    Vercel --> User[User Opens App]
+```
+
+
 # ✨ Features
 
 ## Authentication
@@ -190,14 +231,14 @@ Validation is performed on both the frontend and backend using **Zod**.
 Field Rule
 
 ---
-
+```
 First Name 2--30 characters, letters only
 Last Name 2--30 characters, letters only
 Email Valid email
 Date of Birth Minimum age 13
 Password Minimum 8 characters
 Confirm Password Must match password
-
+```
 ---
 
 # 🌐 Environment Variables
