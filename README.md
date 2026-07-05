@@ -18,12 +18,20 @@ A modern **WhatsApp-inspired Real-Time Chat Application** built using the **MERN
 ### ✅ Frontend
 
 - React 19
+- Vite
 - Tailwind CSS v4
 - shadcn/ui
 - React Router DOM
 - Axios Instance
 - Welcome Page
-- Register Page (UI)
+- Register Page
+- React Hook Form Integration
+- Zod Client-side Validation
+- Zustand Authentication Store
+- Sonner Toast Notifications
+- Loading Spinner
+- Register API Integration
+- Modular Validation Structure
 - Routing Structure
 
 ### ✅ Backend
@@ -33,11 +41,14 @@ A modern **WhatsApp-inspired Real-Time Chat Application** built using the **MERN
 - MongoDB Atlas Connection
 - Environment Configuration
 - MVC Architecture
+- Authentication Module
 - User Model
-- Authentication Routes
-- Register Controller
-- Zod Validation Middleware
-- Password Hashing with bcrypt
+- Register API
+- Validation Middleware
+- Zod Server-side Validation
+- Password Hashing (bcrypt)
+- MongoDB Integration (Mongoose)
+- Standardized API Responses
 
 ### ✅ Deployment
 
@@ -48,6 +59,10 @@ A modern **WhatsApp-inspired Real-Time Chat Application** built using the **MERN
 ---
 
 # 🛠 Tech Stack
+
+- React Hook Form
+- Zod
+- Lucide React
 
 ## Frontend
 
@@ -87,29 +102,34 @@ A modern **WhatsApp-inspired Real-Time Chat Application** built using the **MERN
 RealTimeChatWebApp/
 │
 ├── frontend/
+│
+├── src/
+│   ├── api/
+│   │   └── axios.js
 │   │
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── axios.js
-│   │   │
-│   │   ├── components/
-│   │   │   └── ui/
-│   │   │
-│   │   ├── pages/
-│   │   │   ├── Welcome.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   └── Chat.jsx
-│   │   │
-│   │   ├── routes/
-│   │   │   └── AppRoutes.jsx
-│   │   │
-│   │   ├── validations/
-│   │   │   └── auth.validation.js
-│   │   │
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
+│   ├── assets/
+│   │
+│   ├── components/
+│   │   └── ui/
+│   │
+│   ├── lib/
+│   │   └── utils.js
+│   │
+│   ├── pages/
+│   │   ├── Welcome.jsx
+│   │   ├── Login.jsx
+│   │   ├── Register.jsx
+│   │   └── Chat.jsx
+│   │
+│   ├── routes/
+│   │   └── AppRoutes.jsx
+│   │
+│   ├── validations/
+│   │   └── auth.validation.js
+│   │
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
 │   │
 │   ├── .env
 │   └── package.json
@@ -146,16 +166,44 @@ RealTimeChatWebApp/
 
 ---
 
+# 🏗 Architecture
+
+The project follows a modular architecture to keep the codebase scalable and maintainable.
+
+### Backend
+
+- Config
+- Models
+- Controllers
+- Routes
+- Middlewares
+- Validations
+
+### Frontend
+
+- Pages
+- Components
+- API Layer
+- Routes
+- Validation Schemas
+
+Validation is performed on both the client and server to ensure a secure and consistent user experience.
+
 # ✨ Current Features
 
-- Express API setup
-- MongoDB Atlas connection
+- Responsive React frontend
+- Welcome page
+- Register page
+- Client-side form validation using React Hook Form + Zod
+- Express REST API
+- MongoDB Atlas integration
 - User Registration API
-- Zod request validation
+- Validation middleware
+- Server-side validation using Zod
 - Password hashing using bcrypt
-- Modular backend architecture
-- Frontend to backend communication using Axios
+- Modular MVC architecture
 - Environment-based configuration
+- Axios API communication
 - Automatic deployment pipeline
 
 ---
@@ -210,7 +258,19 @@ Successful Response
 
 # 🔒 Validation
 
-Current backend validation uses **Zod**.
+Current validation is implemented using **Zod** on both the frontend and backend.
+
+### Frontend
+
+- React Hook Form
+- Zod Resolver
+- Instant validation feedback
+
+### Backend
+
+- Zod Validation Middleware
+- Request sanitization
+- Centralized validation logic
 
 ### Register Rules
 
@@ -316,10 +376,16 @@ Every push to the **main** branch automatically redeploys the latest version.
 ## Phase 1
 
 - ✅ Project Setup
+- ✅ MongoDB Setup
 - ✅ Register API
-- 🔄 Register UI
+- ✅ React Hook Form Setup
+- ✅ Zod Validation
+- ✅ Register Page
+- ✅ Register API Integration
+- ✅ Zustand Authentication Store
+- ✅ Toast Notifications
 - 🔄 Login API
-- 🔄 Login UI
+- 🔄 Login Page
 - 🔄 JWT Authentication
 
 ## Phase 2
