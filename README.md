@@ -1,81 +1,61 @@
 # 💬 RealTime Chat Web App
 
-A modern **WhatsApp-inspired Real-Time Chat Application** built using the **MERN Stack**. The project focuses on scalable architecture, clean code practices, real-time communication, and modern UI/UX. It is being developed as a **Master's Project** while following production-level development workflows.
+> A modern **WhatsApp-inspired Real-Time Chat Application** built with
+> the **MERN Stack**, following production-inspired architecture, secure
+> authentication, scalable backend design, and modern React development
+> practices.
+
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js)
+![Express](https://img.shields.io/badge/Express.js-5-black?logo=express)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb)
+![Vercel](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)
+![Railway](https://img.shields.io/badge/Backend-Railway-0B0D0E)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
-## 🚀 Current Progress
+# 🚀 Current Status
 
-### ✅ Project Setup
+### ✅ Completed
 
-- React + Vite frontend
-- Express.js backend
-- Modular folder structure
-- Environment variable management
-- GitHub repository
-- CI/CD setup
+- User Registration
+- User Login
+- JWT Authentication
+- HTTP-only Cookie Authentication
+- Client-side Validation (React Hook Form + Zod)
+- Server-side Validation (Zod)
+- Zustand Authentication Store
+- Axios API Integration
+- Toast Notifications (Sonner)
+- Loading Spinner
+- MongoDB Atlas Integration
+- Automatic Deployment (Vercel + Railway)
 
-### ✅ Frontend
+### 🚧 In Progress
+
+- Protected Routes
+- Authentication Persistence (`checkAuth`)
+- Chat UI
+- Socket.io Integration
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
 
 - React 19
 - Vite
 - Tailwind CSS v4
 - shadcn/ui
 - React Router DOM
-- Axios Instance
-- Welcome Page
-- Register Page
-- React Hook Form Integration
-- Zod Client-side Validation
-- Zustand Authentication Store
-- Sonner Toast Notifications
-- Loading Spinner
-- Register API Integration
-- Modular Validation Structure
-- Routing Structure
-
-### ✅ Backend
-
-- Express Server
-- Modular Express App
-- MongoDB Atlas Connection
-- Environment Configuration
-- MVC Architecture
-- Authentication Module
-- User Model
-- Register API
-- Validation Middleware
-- Zod Server-side Validation
-- Password Hashing (bcrypt)
-- MongoDB Integration (Mongoose)
-- Standardized API Responses
-
-### ✅ Deployment
-
-- Frontend deployed on Vercel
-- Backend deployed on Railway
-- Automatic deployment on every GitHub push
-
----
-
-# 🛠 Tech Stack
-
+- Axios
+- Zustand
 - React Hook Form
 - Zod
+- Sonner
 - Lucide React
-
-## Frontend
-
-- React
-- Vite
-- Tailwind CSS v4
-- shadcn/ui
-- React Router DOM
-- Axios
-- React Hook Form _(In Progress)_
-- Zod _(In Progress)_
-- Lucide React
-- Sonner _(Planned)_
 
 ## Backend
 
@@ -83,7 +63,9 @@ A modern **WhatsApp-inspired Real-Time Chat Application** built using the **MERN
 - Express.js
 - MongoDB Atlas
 - Mongoose
+- JWT
 - bcryptjs
+- Cookie Parser
 - Zod
 - dotenv
 - CORS
@@ -92,6 +74,7 @@ A modern **WhatsApp-inspired Real-Time Chat Application** built using the **MERN
 
 - Vercel
 - Railway
+- MongoDB Atlas
 - GitHub
 
 ---
@@ -99,68 +82,29 @@ A modern **WhatsApp-inspired Real-Time Chat Application** built using the **MERN
 # 📂 Project Structure
 
 ```text
-RealTimeChatWebApp/
-│
-├── frontend/
-│
-├── src/
-│   ├── api/
-│   │   └── axios.js
-│   │
-│   ├── assets/
-│   │
-│   ├── components/
-│   │   └── ui/
-│   │
-│   ├── lib/
-│   │   └── utils.js
-│   │
-│   ├── pages/
-│   │   ├── Welcome.jsx
-│   │   ├── Login.jsx
-│   │   ├── Register.jsx
-│   │   └── Chat.jsx
-│   │
-│   ├── routes/
-│   │   └── AppRoutes.jsx
-│   │
-│   ├── validations/
-│   │   └── auth.validation.js
-│   │
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
-│   │
-│   ├── .env
+RealTimeChatWebApp
+├── frontend
+│   ├── src
+│   │   ├── api
+│   │   ├── components
+│   │   ├── pages
+│   │   ├── routes
+│   │   ├── store
+│   │   ├── validations
+│   │   └── ...
 │   └── package.json
 │
-└── backend/
-    │
-    ├── src/
-    │   │
-    │   ├── config/
-    │   │   ├── db.js
-    │   │   └── env.js
-    │   │
-    │   ├── controllers/
-    │   │   └── auth.controller.js
-    │   │
-    │   ├── middlewares/
-    │   │   └── validate.middleware.js
-    │   │
-    │   ├── models/
-    │   │   └── user.model.js
-    │   │
-    │   ├── routes/
-    │   │   └── auth.route.js
-    │   │
-    │   ├── validations/
-    │   │   └── auth.validation.js
-    │   │
+└── backend
+    ├── src
+    │   ├── config
+    │   ├── controllers
+    │   ├── middlewares
+    │   ├── models
+    │   ├── routes
+    │   ├── utils
+    │   ├── validations
     │   ├── app.js
     │   └── server.js
-    │
-    ├── .env
     └── package.json
 ```
 
@@ -168,120 +112,91 @@ RealTimeChatWebApp/
 
 # 🏗 Architecture
 
-The project follows a modular architecture to keep the codebase scalable and maintainable.
-
-### Backend
+## Backend
 
 - Config
-- Models
 - Controllers
+- Models
 - Routes
 - Middlewares
-- Validations
+- Validation
+- Utilities
 
-### Frontend
+## Frontend
 
 - Pages
 - Components
 - API Layer
+- Zustand Store
 - Routes
 - Validation Schemas
 
-Validation is performed on both the client and server to ensure a secure and consistent user experience.
+---
 
-# ✨ Current Features
+# ✨ Features
 
-- Responsive React frontend
-- Welcome page
-- Register page
-- Client-side form validation using React Hook Form + Zod
-- Express REST API
-- MongoDB Atlas integration
-- User Registration API
-- Validation middleware
-- Server-side validation using Zod
-- Password hashing using bcrypt
-- Modular MVC architecture
-- Environment-based configuration
-- Axios API communication
-- Automatic deployment pipeline
+## Authentication
+
+- User Registration
+- User Login
+- JWT Authentication
+- HTTP-only Cookies
+- Password Hashing
+
+## Frontend
+
+- Responsive UI
+- Form Validation
+- Toast Notifications
+- Loading Indicators
+- Zustand State Management
+
+## Backend
+
+- REST APIs
+- MVC Architecture
+- Secure Authentication
+- MongoDB Atlas
+- Standardized API Responses
 
 ---
 
 # 📡 API Endpoints
 
-## Test API
+## Health Check
 
 ```http
 GET /
 ```
 
-Response
-
-```json
-{
-  "message": "Backend is running"
-}
-```
-
----
-
-## Register User
+## Register
 
 ```http
 POST /api/auth/register
 ```
 
-Request
+## Login
 
-```json
-{
-  "firstName": "Saurav",
-  "lastName": "Rajput",
-  "email": "saurav@example.com",
-  "dateOfBirth": "2002-06-15",
-  "password": "Password@123",
-  "confirmPassword": "Password@123"
-}
-```
-
-Successful Response
-
-```json
-{
-  "success": true,
-  "message": "Registration successful. Please log in."
-}
+```http
+POST /api/auth/login
 ```
 
 ---
 
 # 🔒 Validation
 
-Current validation is implemented using **Zod** on both the frontend and backend.
+Validation is performed on both the frontend and backend using **Zod**.
 
-### Frontend
+Field Rule
 
-- React Hook Form
-- Zod Resolver
-- Instant validation feedback
+---
 
-### Backend
-
-- Zod Validation Middleware
-- Request sanitization
-- Centralized validation logic
-
-### Register Rules
-
-| Field            | Validation                                |
-| ---------------- | ----------------------------------------- |
-| First Name       | Required • 2-30 Characters • Letters Only |
-| Last Name        | Required • 2-30 Characters • Letters Only |
-| Email            | Valid Email                               |
-| Date of Birth    | Required • Minimum Age 13                 |
-| Password         | Minimum 8 Characters                      |
-| Confirm Password | Must Match Password                       |
+First Name 2--30 characters, letters only
+Last Name 2--30 characters, letters only
+Email Valid email
+Date of Birth Minimum age 13
+Password Minimum 8 characters
+Confirm Password Must match password
 
 ---
 
@@ -291,13 +206,9 @@ Current validation is implemented using **Zod** on both the frontend and backend
 
 ```env
 PORT=5000
-
-MONGO_URI=your_mongodb_uri
-
+MONGO_URI=mongodb_uri
 CLIENT_URL=http://localhost:5173
-
-JWT_SECRET=your_secret
-
+JWT_SECRET=something
 JWT_EXPIRE=7d
 ```
 
@@ -311,118 +222,79 @@ VITE_API_URL=http://localhost:5000
 
 # ▶️ Running Locally
 
-## Clone Repository
-
 ```bash
 git clone <repository-url>
-
 cd RealTimeChatWebApp
 ```
 
----
-
-## Backend
+### Backend
 
 ```bash
 cd backend
-
 npm install
-
 npm run dev
 ```
 
-Server
-
-```
-http://localhost:5000
-```
-
----
-
-## Frontend
+### Frontend
 
 ```bash
 cd frontend
-
 npm install
-
 npm run dev
-```
-
-Frontend
-
-```
-http://localhost:5173
 ```
 
 ---
 
-# 🚀 Deployment
+# ☁️ Deployment
 
-| Service  | Platform      |
-| -------- | ------------- |
-| Frontend | Vercel        |
-| Backend  | Railway       |
-| Database | MongoDB Atlas |
+Service Platform
 
-The application is configured for **continuous deployment**.
+---
 
-Every push to the **main** branch automatically redeploys the latest version.
+Frontend Vercel
+Backend Railway
+Database MongoDB Atlas
+
+Every push to the `main` branch automatically deploys the latest
+version.
 
 ---
 
 # 🗺 Roadmap
 
-## Phase 1
+## Phase 1 -- Authentication
 
-- ✅ Project Setup
-- ✅ MongoDB Setup
-- ✅ Register API
-- ✅ React Hook Form Setup
-- ✅ Zod Validation
-- ✅ Register Page
-- ✅ Register API Integration
-- ✅ Zustand Authentication Store
-- ✅ Toast Notifications
-- 🔄 Login API
-- 🔄 Login Page
-- 🔄 JWT Authentication
+- ✅ Register
+- ✅ Login
+- ✅ JWT Authentication
+- ✅ Cookie Authentication
+- 🔄 Protected Routes
+- 🔄 Authentication Persistence
 
-## Phase 2
+## Phase 2 -- User Management
 
-- Protected Routes
-- Authentication Middleware
-- User Session
-- Logout
-
-## Phase 3
-
-- User Search
-- Profile Page
+- Profile
 - Edit Profile
 - Profile Picture Upload
 
-## Phase 4
+## Phase 3 -- Messaging
 
 - One-to-One Chat
-- Message Storage
-- Chat Sidebar
 - Recent Conversations
+- Message Persistence
 
-## Phase 5
+## Phase 4 -- Real-Time
 
-- Socket.io Integration
-- Real-Time Messaging
-- Online Status
+- Socket.io
 - Typing Indicator
+- Online Status
 - Read Receipts
 
-## Phase 6
+## Phase 5 -- Advanced
 
 - Group Chats
-- Image Sharing
-- File Sharing
-- Cloudinary Integration
+- Image & File Sharing
+- Cloudinary
 - Emoji Picker
 - Notifications
 
@@ -430,41 +302,45 @@ Every push to the **main** branch automatically redeploys the latest version.
 
 # 📖 Development Workflow
 
-Each feature follows a structured workflow:
-
-```
+```text
 Planning
-        ↓
+   ↓
 Database Design
-        ↓
+   ↓
 API Design
-        ↓
+   ↓
 Backend Development
-        ↓
+   ↓
 Postman Testing
-        ↓
+   ↓
 Frontend Development
-        ↓
+   ↓
 Integration Testing
-        ↓
+   ↓
 Git Commit
-        ↓
+   ↓
 Automatic Deployment
 ```
 
 ---
 
+# 📸 Screenshots
+
+> Screenshots and GIFs will be added as development progresses.
+
+---
+
 # 🎯 Project Goal
 
-The objective of this project is to build a **production-inspired real-time chat application** using the MERN Stack that demonstrates:
+Build a production-inspired real-time chat application demonstrating:
 
 - Clean Architecture
 - REST API Design
-- Authentication & Authorization
-- Real-Time Communication with Socket.io
+- Secure Authentication & Authorization
 - Modern React Development
-- Responsive UI Design
-- Secure Backend Practices
+- Socket.io Real-Time Communication
+- Responsive UI/UX
 - CI/CD Deployment Workflow
 
-This project serves as both a **Master's Project** and a **portfolio-ready application** for software engineering placements.
+This project serves as both a **Master's Project** and a
+**portfolio-ready application**.
