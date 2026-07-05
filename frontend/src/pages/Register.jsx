@@ -21,7 +21,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 
+import { useAuthStore } from "@/store/useAuthStore";
+import { Spinner } from "@/components/ui/spinner";
+import { useNavigate } from "react-router-dom";
+
 function Register() {
+  const { register, isRegisteringUp } = useAuthStore();
+  const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(registerSchema),
     mode: "onChange",
@@ -35,8 +41,11 @@ function Register() {
     },
   });
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    const res = await register(data);
+    if (res) {
+      navigate("/login");
+    }
   };
 
   return (
@@ -184,11 +193,13 @@ function Register() {
               <Button
                 className="w-full"
                 type="submit"
-                disabled={form.formState.isSubmitting}
+                disabled={isRegisteringUp}
               >
-                {form.formState.isSubmitting
-                  ? "Creating Account..."
-                  : "Create Account"}
+                {isRegisteringUp ? (
+                  <Spinner className="h-5 w-5" />
+                ) : (
+                  "Create Account"
+                )}
               </Button>
             </FieldGroup>
           </form>
