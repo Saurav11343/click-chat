@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
+import { success } from "zod";
+import { generateToken } from "../utils/generateToken.js";
 
 export const register = async (req, res) => {
   try {
@@ -31,6 +33,42 @@ export const register = async (req, res) => {
   } catch (error) {
     console.log("Register Error:", error.message);
     res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    generateToken(user._id, res);
+
+    return res.status(200).json({
+      success: true,
+      message: "Login Successful",
+    });
+  } catch (error) {
+    console.log("Login error:", error.message);
+
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
