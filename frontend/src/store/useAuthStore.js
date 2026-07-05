@@ -5,6 +5,7 @@ import { toast } from "sonner";
 export const useAuthStore = create((set) => ({
   authUser: false,
   isRegisteringUp: false,
+  isLoggingIn: false,
 
   register: async (data) => {
     set({ isRegisteringUp: true });
@@ -22,6 +23,25 @@ export const useAuthStore = create((set) => ({
       toast.error(error.response?.data?.message || "Registration failed");
     } finally {
       set({ isRegisteringUp: false });
+    }
+  },
+
+  login: async (data) => {
+    set({ isLoggingIn: true });
+
+    try {
+      const res = await axiosInstance.post("/auth/login", data);
+
+      if (res.data.success) {
+        toast.success(res.data.message || "Login successful");
+        return true;
+      } else {
+        toast.error(res.data.message || "Login Failed");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Login failed");
+    } finally {
+      set({ isLoggingIn: false });
     }
   },
 }));
