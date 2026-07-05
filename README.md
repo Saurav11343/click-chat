@@ -1,20 +1,30 @@
 # 💬 RealTime Chat Web App
 
-> A modern **WhatsApp-inspired Real-Time Chat Application** built with
-> the **MERN Stack**, following production-inspired architecture, secure
-> authentication, scalable backend design, and modern React development
-> practices.
+This project is a modern real-time chat application designed to demonstrate production-style full-stack engineering practices:
+- clean modular architecture
+- frontend and backend separation
+- validation on both client and server
+- secure authentication with JWT + cookie
+- deployable monorepo workflow
+- cloud-ready configuration
+-roadmap toward Socket.IO, messaging, media sharing, and profile features
 
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js)
-![Express](https://img.shields.io/badge/Express.js-5-black?logo=express)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb)
-![Vercel](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)
-![Railway](https://img.shields.io/badge/Backend-Railway-0B0D0E)
-![License](https://img.shields.io/badge/License-MIT-green)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?logo=vite&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-API-000000?logo=express&logoColor=white)
+![MongoDB Atlas](https://img.shields.io/badge/MongoDB%20Atlas-Database-47A248?logo=mongodb&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-Frontend%20Hosting-000000?logo=vercel&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-Backend%20Hosting-0B0D0E?logo=railway&logoColor=white)
+![License](https://img.shields.io/badge/License-Add%20LICENSE%20file-blue)
 
 ---
 
+#Live links
+**Frontend:** `https://chatapp-ldrp.vercel.app/`  
+**Backend:** `realtimechatwebapp-production-51a2.up.railway.app`
+
+---
 # 🚀 Current Status
 
 ### ✅ Completed
@@ -82,30 +92,53 @@
 # 📂 Project Structure
 
 ```text
-RealTimeChatWebApp
-├── frontend
-│   ├── src
-│   │   ├── api
-│   │   ├── components
-│   │   ├── pages
-│   │   ├── routes
-│   │   ├── store
-│   │   ├── validations
-│   │   └── ...
+RealTimeChatWebApp/
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── axios.js
+│   │   ├── assets/
+│   │   ├── components/
+│   │   │   └── ui/
+│   │   ├── lib/
+│   │   ├── pages/
+│   │   │   ├── Welcome.jsx
+│   │   │   ├── Register.jsx
+│   │   │   ├── Login.jsx
+│   │   │   └── Chat.jsx
+│   │   ├── routes/
+│   │   │   └── AppRoutes.jsx
+│   │   ├── store/
+│   │   │   └── useAuthStore.js
+│   │   ├── validations/
+│   │   │   └── auth.validation.js
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── .env
 │   └── package.json
-│
-└── backend
-    ├── src
-    │   ├── config
-    │   ├── controllers
-    │   ├── middlewares
-    │   ├── models
-    │   ├── routes
-    │   ├── utils
-    │   ├── validations
-    │   ├── app.js
-    │   └── server.js
-    └── package.json
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── db.js
+│   │   │   └── env.js
+│   │   ├── controllers/
+│   │   │   └── auth.controller.js
+│   │   ├── middlewares/
+│   │   │   └── validate.middleware.js
+│   │   ├── models/
+│   │   │   └── user.model.js
+│   │   ├── routes/
+│   │   │   └── auth.route.js
+│   │   ├── utils/
+│   │   │   └── generateToken.js
+│   │   ├── validations/
+│   │   │   └── auth.validation.js
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── .env
+│   └── package.json
+└── README.md
 ```
 
 ---
@@ -142,35 +175,40 @@ sequenceDiagram
     participant Backend
     participant MongoDB
 
-    User->>Frontend: Enter login details
+    User->>Frontend: Enter email + password
     Frontend->>Backend: POST /api/auth/login
     Backend->>MongoDB: Find user by email
-    MongoDB-->>Backend: Return user
+    MongoDB-->>Backend: Return user document
     Backend->>Backend: Compare password with bcrypt
-    Backend->>Backend: Generate JWT
-    Backend-->>Frontend: Set HTTP-only cookie
-    Frontend-->>User: Redirect to Chat
+    Backend->>Backend: Create JWT
+    Backend-->>Frontend: Set HttpOnly cookie
+    Frontend-->>User: Navigate to authenticated area
 ```
 
 # 🏗 Architecture Diagram
 
 ```mermaid
 flowchart LR
-    User[User] --> Frontend[React + Vite Frontend]
-    Frontend --> API[Express REST API]
-    API --> DB[(MongoDB Atlas)]
-    API --> Auth[JWT + HTTP-only Cookie]
+    U[User Browser] --> F[Frontend<br/>React + Vite on Vercel]
+    F -->|HTTPS /api requests| B[Backend<br/>Express on Railway]
+    B -->|Mongoose| D[(MongoDB Atlas)]
+    B -->|Set-Cookie: jwt| U
+    G[GitHub Repository] --> V[Vercel Deploy]
+    G --> R[Railway Deploy]
 ```
 
 # ☁️ Deployment Flow
 
 ```mermaid
 flowchart TD
-    Dev[Developer Pushes Code] --> GitHub[GitHub Repository]
-    GitHub --> Vercel[Vercel Frontend Deploy]
-    GitHub --> Railway[Railway Backend Deploy]
-    Railway --> MongoDB[(MongoDB Atlas)]
-    Vercel --> User[User Opens App]
+    A[Developer pushes to GitHub] --> B[Vercel project]
+    A --> C[Railway service]
+    B --> D[Preview or Production Frontend Deploy]
+    C --> E[Backend Build and Start]
+    E --> F[Public Railway Domain]
+    E --> G[(MongoDB Atlas)]
+    D --> H[Browser]
+    H --> F
 ```
 
 
