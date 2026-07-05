@@ -126,6 +126,7 @@ function Register() {
                     <Input
                       {...field}
                       id="dateOfBirth"
+                      placeholder="dd-mm-yyyy"
                       type="date"
                       aria-invalid={fieldState.invalid}
                     />
