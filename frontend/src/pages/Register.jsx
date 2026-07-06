@@ -23,7 +23,7 @@ import {
 
 import { useAuthStore } from "@/store/useAuthStore";
 import { Spinner } from "@/components/ui/spinner";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Register() {
   const { register, isRegisteringUp } = useAuthStore();
@@ -52,9 +52,11 @@ function Register() {
     <div className="flex min-h-screen items-center justify-center bg-muted px-4 py-9">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
-          <div className="bg-primary text-primary-foreground mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-            <MessageCircle />
-          </div>
+          <Link to="/" className="mx-auto mb-3">
+            <div className="bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-full transition-opacity hover:opacity-80">
+              <MessageCircle />
+            </div>
+          </Link>
 
           <CardTitle>Create Account</CardTitle>
           <CardDescription>
@@ -201,6 +203,15 @@ function Register() {
                   "Create Account"
                 )}
               </Button>
+              <p className="text-muted-foreground text-center text-sm">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="text-primary font-medium hover:underline"
+                >
+                  Login
+                </Link>
+              </p>
             </FieldGroup>
           </form>
         </CardContent>
