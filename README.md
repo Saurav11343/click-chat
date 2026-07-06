@@ -1,13 +1,14 @@
 # 💬 RealTime Chat Web App
 
 This project is a modern real-time chat application designed to demonstrate production-style full-stack engineering practices:
+
 - clean modular architecture
 - frontend and backend separation
 - validation on both client and server
 - secure authentication with JWT + cookie
 - deployable monorepo workflow
 - cloud-ready configuration
--roadmap toward Socket.IO, messaging, media sharing, and profile features
+  -roadmap toward Socket.IO, messaging, media sharing, and profile features
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?logo=vite&logoColor=white)
@@ -25,14 +26,18 @@ This project is a modern real-time chat application designed to demonstrate prod
 **Backend:** `realtimechatwebapp-production-51a2.up.railway.app`
 
 ---
+
 # 🚀 Current Status
 
 ### ✅ Completed
 
 - User Registration
 - User Login
+- User Logout
 - JWT Authentication
 - HTTP-only Cookie Authentication
+- Authentication Persistence (`checkAuth`)
+- Protected Routes
 - Client-side Validation (React Hook Form + Zod)
 - Server-side Validation (Zod)
 - Zustand Authentication Store
@@ -44,10 +49,10 @@ This project is a modern real-time chat application designed to demonstrate prod
 
 ### 🚧 In Progress
 
-- Protected Routes
-- Authentication Persistence (`checkAuth`)
-- Chat UI
-- Socket.io Integration
+- Chat Dashboard
+- User Profile Menu
+- Socket.IO Integration
+- Real-time Messaging
 
 ---
 
@@ -131,7 +136,7 @@ RealTimeChatWebApp/
 │   │   ├── routes/
 │   │   │   └── auth.route.js
 │   │   ├── utils/
-│   │   │   └── generateToken.js
+│   │   │   └── token.js
 │   │   ├── validations/
 │   │   │   └── auth.validation.js
 │   │   ├── app.js
@@ -170,19 +175,24 @@ RealTimeChatWebApp/
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Frontend
-    participant Backend
-    participant MongoDB
+    participant U as User
+    participant F as React Frontend
+    participant B as Express Backend
+    participant DB as MongoDB
 
-    User->>Frontend: Enter email + password
-    Frontend->>Backend: POST /api/auth/login
-    Backend->>MongoDB: Find user by email
-    MongoDB-->>Backend: Return user document
-    Backend->>Backend: Compare password with bcrypt
-    Backend->>Backend: Create JWT
-    Backend-->>Frontend: Set HttpOnly cookie
-    Frontend-->>User: Navigate to authenticated area
+    U->>F: Login Credentials
+    F->>B: POST /api/auth/login
+    B->>DB: Find User
+    DB-->>B: User Document
+    B->>B: Verify Password
+    B->>B: Generate JWT
+    B-->>F: Set HttpOnly Cookie
+
+    F->>B: GET /api/auth/check
+    B->>B: Verify JWT
+    B-->>F: Authenticated User
+
+    F-->>U: Redirect to Chat Dashboard
 ```
 
 # 🏗 Architecture Diagram
@@ -211,6 +221,52 @@ flowchart TD
     H --> F
 ```
 
+# 🏛 Project Architecture
+
+```mermaid
+flowchart LR
+
+A[React + Vite]
+B[React Router]
+C[Zustand]
+D[Axios]
+
+E[Express API]
+F[JWT Middleware]
+G[Controllers]
+H[MongoDB]
+
+A --> B
+A --> C
+A --> D
+
+D --> E
+
+E --> F
+F --> G
+G --> H
+```
+
+# 🔒 Authentication Lifecycle
+
+```mermaid
+flowchart TD
+
+A[User Login]
+B[Generate JWT]
+C[Store HttpOnly Cookie]
+D[Frontend Calls /check]
+E[JWT Verification]
+F[User Loaded]
+G[Protected Route Access]
+
+A --> B
+B --> C
+C --> D
+D --> E
+E --> F
+F --> G
+```
 
 # ✨ Features
 
@@ -218,25 +274,34 @@ flowchart TD
 
 - User Registration
 - User Login
+- User Logout
 - JWT Authentication
-- HTTP-only Cookies
-- Password Hashing
+- HTTP-only Cookie Authentication
+- Protected Routes
+- Authentication Persistence
+- Secure Password Hashing
 
 ## Frontend
 
 - Responsive UI
-- Form Validation
-- Toast Notifications
-- Loading Indicators
-- Zustand State Management
+- React Router Protected Navigation
+- React Hook Form
+- Zod Validation
+- Zustand Global Authentication Store
+- Axios API Integration
+- Sonner Toast Notifications
+- Loading States
+- shadcn/ui Components
 
 ## Backend
 
-- REST APIs
+- RESTful APIs
 - MVC Architecture
-- Secure Authentication
-- MongoDB Atlas
+- JWT Authentication
+- Cookie-based Session Handling
+- Authentication Middleware
 - Standardized API Responses
+- MongoDB Atlas Integration
 
 ---
 
@@ -260,6 +325,18 @@ POST /api/auth/register
 POST /api/auth/login
 ```
 
+## Logout
+
+```http
+GET /api/auth/logout
+```
+
+## checkAuth
+
+```http
+GET /api/auth/check
+```
+
 ---
 
 # 🔒 Validation
@@ -269,6 +346,7 @@ Validation is performed on both the frontend and backend using **Zod**.
 Field Rule
 
 ---
+
 ```
 First Name 2--30 characters, letters only
 Last Name 2--30 characters, letters only
@@ -277,6 +355,7 @@ Date of Birth Minimum age 13
 Password Minimum 8 characters
 Confirm Password Must match password
 ```
+
 ---
 
 # 🌐 Environment Variables
@@ -341,41 +420,44 @@ version.
 
 # 🗺 Roadmap
 
-## Phase 1 -- Authentication
+## ✅ Phase 1 — Authentication
 
-- ✅ Register
-- ✅ Login
+- ✅ User Registration
+- ✅ User Login
+- ✅ User Logout
 - ✅ JWT Authentication
-- ✅ Cookie Authentication
-- 🔄 Protected Routes
-- 🔄 Authentication Persistence
+- ✅ HTTP-only Cookies
+- ✅ Protected Routes
+- ✅ Authentication Persistence
 
-## Phase 2 -- User Management
+## 🚧 Phase 2 — Chat Interface
 
-- Profile
-- Edit Profile
-- Profile Picture Upload
+- Chat Dashboard
+- Conversation Sidebar
+- User Menu
+- Responsive Layout
 
-## Phase 3 -- Messaging
+## 📨 Phase 3 — Messaging
 
 - One-to-One Chat
 - Recent Conversations
-- Message Persistence
+- MongoDB Message Storage
 
-## Phase 4 -- Real-Time
+## ⚡ Phase 4 — Real-Time Communication
 
-- Socket.io
-- Typing Indicator
+- Socket.IO
 - Online Status
+- Typing Indicator
 - Read Receipts
 
-## Phase 5 -- Advanced
+## 🚀 Phase 5 — Advanced Features
 
 - Group Chats
-- Image & File Sharing
-- Cloudinary
+- Media Sharing
+- Cloudinary Integration
 - Emoji Picker
 - Notifications
+- Message Search
 
 ---
 
@@ -383,22 +465,36 @@ version.
 
 ```text
 Planning
-   ↓
+   │
+   ▼
 Database Design
-   ↓
-API Design
-   ↓
-Backend Development
-   ↓
-Postman Testing
-   ↓
+   │
+   ▼
+Backend API Development
+   │
+   ▼
+Authentication & Security
+   │
+   ▼
+Postman API Testing
+   │
+   ▼
 Frontend Development
-   ↓
-Integration Testing
-   ↓
+   │
+   ▼
+API Integration
+   │
+   ▼
+Authentication Persistence
+   │
+   ▼
+UI Testing
+   │
+   ▼
 Git Commit
-   ↓
-Automatic Deployment
+   │
+   ▼
+Automatic CI/CD Deployment
 ```
 
 ---
