@@ -1,7 +1,8 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
 import { success } from "zod";
-import { generateToken } from "../utils/generateToken.js";
+import { generateToken, clearToken } from "../utils/token.js";
+import ENV from "../config/env.js";
 
 export const register = async (req, res) => {
   try {
@@ -87,6 +88,23 @@ export const checkAuth = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error",
+    });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    clearToken(res);
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.log("Error in logout controller:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server Error",
     });
   }
 };

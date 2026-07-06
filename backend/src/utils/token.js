@@ -15,3 +15,11 @@ export const generateToken = (userId, res) => {
 
   return token;
 };
+
+export const clearToken = (res) => {
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: ENV.NODE_ENV === "production" ? "none" : "lax",
+    secure: ENV.NODE_ENV === "production",
+  });
+};
