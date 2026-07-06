@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/validations/auth.validation";
 import { MessageCircle } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "@/store/useAuthStore";
 import { Spinner } from "@/components/ui/spinner";
@@ -50,9 +50,11 @@ function Login() {
     <div className="flex min-h-screen items-center justify-center bg-muted px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="bg-primary text-primary-foreground mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-            <MessageCircle />
-          </div>
+          <Link to="/" className="mx-auto mb-3">
+            <div className="bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-full transition-opacity hover:opacity-80">
+              <MessageCircle />
+            </div>
+          </Link>
 
           <CardTitle>Welcome Back</CardTitle>
           <CardDescription>
@@ -83,7 +85,6 @@ function Login() {
                   </Field>
                 )}
               />
-
               <Controller
                 name="password"
                 control={form.control}
@@ -104,10 +105,18 @@ function Login() {
                   </Field>
                 )}
               />
-
               <Button className="w-full" type="submit" disabled={isLoggingIn}>
                 {isLoggingIn ? <Spinner className="h-5 w-5" /> : "Login"}
               </Button>
+              <p className="text-muted-foreground text-center text-sm">
+                Don't have an account?{" "}
+                <Link
+                  to="/register"
+                  className="text-primary font-medium hover:underline"
+                >
+                  Register
+                </Link>
+              </p>
             </FieldGroup>
           </form>
         </CardContent>

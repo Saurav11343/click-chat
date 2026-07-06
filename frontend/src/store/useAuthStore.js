@@ -2,11 +2,12 @@ import { create } from "zustand";
 import { axiosInstance } from "@/api/axios";
 import { toast } from "sonner";
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   authUser: null,
   isCheckingAuth: false,
   isRegisteringUp: false,
   isLoggingIn: false,
+  isLoggingOut: false,
 
   register: async (data) => {
     set({ isRegisteringUp: true });
@@ -34,6 +35,7 @@ export const useAuthStore = create((set) => ({
       const res = await axiosInstance.post("/auth/login", data);
 
       if (res.data.success) {
+        await get().checkAuth();
         toast.success(res.data.message || "Login successful");
         return true;
       } else {
@@ -43,6 +45,28 @@ export const useAuthStore = create((set) => ({
       toast.error(error.response?.data?.message || "Login failed");
     } finally {
       set({ isLoggingIn: false });
+    }
+  },
+
+  logout: async () => {
+    set({ isLoggingOut: true });
+
+    try {
+      const res = await axiosInstance.get("/auth/logout");
+      set({
+        authUser: null,
+      });
+
+      if (res.data.success) {
+        toast.success(res.data.message || "Logout successful");
+        return true;
+      } else {
+        toast.error(res.data.message || "Logout Failed");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Logout failed");
+    } finally {
+      set({ isLoggingOut: false });
     }
   },
 
@@ -63,7 +87,7 @@ export const useAuthStore = create((set) => ({
       set({
         authUser: null,
       });
-      
+
       return false;
     } finally {
       set({
