@@ -1,5 +1,10 @@
 import express from "express";
-import { checkAuth, login, register } from "../controllers/auth.controller.js";
+import {
+  checkAuth,
+  login,
+  logout,
+  register,
+} from "../controllers/auth.controller.js";
 
 import { registerSchema, loginSchema } from "../validations/auth.validation.js";
 
@@ -11,5 +16,5 @@ const router = express.Router();
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
 router.get("/check", protectRoute, checkAuth);
-
+router.get("/logout", logout);
 export default router;
