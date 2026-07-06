@@ -3,7 +3,8 @@ import { axiosInstance } from "@/api/axios";
 import { toast } from "sonner";
 
 export const useAuthStore = create((set) => ({
-  authUser: false,
+  authUser: null,
+  isCheckingAuth: false,
   isRegisteringUp: false,
   isLoggingIn: false,
 
@@ -42,6 +43,32 @@ export const useAuthStore = create((set) => ({
       toast.error(error.response?.data?.message || "Login failed");
     } finally {
       set({ isLoggingIn: false });
+    }
+  },
+
+  checkAuth: async () => {
+    set({
+      isCheckingAuth: true,
+    });
+
+    try {
+      const res = await axiosInstance.get("/auth/check");
+
+      set({
+        authUser: res.data.user,
+      });
+
+      return true;
+    } catch (error) {
+      set({
+        authUser: null,
+      });
+      
+      return false;
+    } finally {
+      set({
+        isCheckingAuth: false,
+      });
     }
   },
 }));
