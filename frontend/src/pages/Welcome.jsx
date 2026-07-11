@@ -18,7 +18,7 @@ function Welcome() {
             <MessageCircle size={32} />
           </div>
 
-          <CardTitle className="text-3xl">Welcome to ChatApp</CardTitle>
+          <CardTitle className="text-3xl">Welcome to ClickChat</CardTitle>
 
           <CardDescription>
             Connect with friends through real-time messaging.

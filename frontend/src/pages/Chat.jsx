@@ -63,7 +63,7 @@ function Chat() {
             className="text-xl font-bold"
             onClick={() => navigate("/chat")}
           >
-            RealTime Chat
+            CLickChat
           </button>
 
           <div className="flex items-center gap-3">
