@@ -1,35 +1,67 @@
-# 💬 RealTime Chat Web App
+# 💬 ClickChat
 
-This project is a modern real-time chat application designed to demonstrate production-style full-stack engineering practices:
+> **ClickChat** is a modern **WhatsApp-inspired Real-Time Chat
+> Application** built using the **MERN Stack**, designed with
+> production-level architecture, secure authentication, and cloud-native
+> media management.
 
-- clean modular architecture
-- frontend and backend separation
-- validation on both client and server
-- secure authentication with JWT + cookie
-- deployable monorepo workflow
-- cloud-ready configuration
-  -roadmap toward Socket.IO, messaging, media sharing, and profile features
+Developed as a **Master's Project**, ClickChat demonstrates
+industry-standard full-stack development practices while providing a
+scalable foundation for real-time communication, media sharing, and
+collaborative messaging.
+
+### ✨ Highlights
+
+- 🏗 Modular full-stack architecture (Frontend & Backend separation)
+- 🔐 Secure JWT Authentication with HTTP-only Cookies
+- ☁️ Cloudinary integration for profile image management
+- 🛡 Client-side & Server-side validation using Zod
+- ⚡ Global state management with Zustand
+- 🎨 Modern UI built with React, Tailwind CSS & shadcn/ui
+- 📦 RESTful API design following MVC architecture
+- 🚀 Automatic CI/CD deployment with GitHub, Vercel & Railway
+- 📱 Fully responsive user interface
+- 🔄 Designed for future Socket.IO real-time communication
+- 📈 Built with scalability and maintainability in mind
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?logo=vite&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-API-000000?logo=express&logoColor=white)
-![MongoDB Atlas](https://img.shields.io/badge/MongoDB%20Atlas-Database-47A248?logo=mongodb&logoColor=white)
+![MongoDB
+Atlas](https://img.shields.io/badge/MongoDB%20Atlas-Database-47A248?logo=mongodb&logoColor=white)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-Media-3448C5?logo=cloudinary&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-Frontend%20Hosting-000000?logo=vercel&logoColor=white)
 ![Railway](https://img.shields.io/badge/Railway-Backend%20Hosting-0B0D0E?logo=railway&logoColor=white)
-![License](https://img.shields.io/badge/License-Add%20LICENSE%20file-blue)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
 ---
 
-#Live links
-**Frontend:** `https://chatapp-ldrp.vercel.app/`  
-**Backend:** `realtimechatwebapp-production-51a2.up.railway.app`
+# 🌐 Live Demo
+
+---
+
+Service URL
+
+---
+
+🌍 Frontend https://chatapp-ldrp.vercel.app
+
+🚀 Backend https://realtimechatwebapp-production-51a2.up.railway.app
+API
+
+---
+
+> **Note:** The backend is hosted on Railway's free tier and may take a
+> few seconds to respond after periods of inactivity.
 
 ---
 
 # 🚀 Current Status
 
-### ✅ Completed
+## ✅ Completed
+
+### Authentication
 
 - User Registration
 - User Login
@@ -38,83 +70,93 @@ This project is a modern real-time chat application designed to demonstrate prod
 - HTTP-only Cookie Authentication
 - Authentication Persistence (`checkAuth`)
 - Protected Routes
-- Client-side Validation (React Hook Form + Zod)
-- Server-side Validation (Zod)
+
+### User Management
+
+- User Profile Page
+- Profile Picture Upload
+- Cloudinary Image Storage
+- Avatar Preview
+- Online Status
+- Last Seen Tracking
+
+### Frontend
+
+- React Router DOM
+- React Hook Form
+- Zod Client Validation
 - Zustand Authentication Store
-- Axios API Integration
+- Zustand User Store
+- Axios API Layer
+- shadcn/ui Components
+- Responsive UI
 - Toast Notifications (Sonner)
-- Loading Spinner
+- Loading States
+
+### Backend
+
+- RESTful API
+- MVC Architecture
 - MongoDB Atlas Integration
+- JWT Middleware
+- Cookie-based Authentication
+- Multer File Upload
+- Cloudinary Integration
+- Server-side Validation (Zod)
+
+### DevOps
+
 - Automatic Deployment (Vercel + Railway)
-
-### 🚧 In Progress
-
-- Chat Dashboard
-- User Profile Menu
-- Socket.IO Integration
-- Real-time Messaging
+- GitHub Version Control
 
 ---
 
-# 🛠 Tech Stack
+## 🚧 In Progress
 
-## Frontend
+- Chat Dashboard
+- Conversation Sidebar
+- User Search
+- Chat Layout
 
-- React 19
-- Vite
-- Tailwind CSS v4
-- shadcn/ui
-- React Router DOM
-- Axios
-- Zustand
-- React Hook Form
-- Zod
-- Sonner
-- Lucide React
+---
 
-## Backend
+## 📅 Planned
 
-- Node.js
-- Express.js
-- MongoDB Atlas
-- Mongoose
-- JWT
-- bcryptjs
-- Cookie Parser
-- Zod
-- dotenv
-- CORS
-
-## Deployment
-
-- Vercel
-- Railway
-- MongoDB Atlas
-- GitHub
+- Socket.IO Integration
+- One-to-One Messaging
+- Group Chats
+- Media & Document Sharing
+- Typing Indicators
+- Read Receipts
+- Notifications
+- Message Search
 
 ---
 
 # 📂 Project Structure
 
 ```text
-RealTimeChatWebApp/
+ClickChat/
 ├── frontend/
 │   ├── src/
 │   │   ├── api/
 │   │   │   └── axios.js
 │   │   ├── assets/
 │   │   ├── components/
+│   │   │   ├── profile/
 │   │   │   └── ui/
 │   │   ├── lib/
 │   │   ├── pages/
 │   │   │   ├── Welcome.jsx
 │   │   │   ├── Register.jsx
 │   │   │   ├── Login.jsx
-│   │   │   └── Chat.jsx
+│   │   │   ├── Chat.jsx
+│   │   │   └── Profile.jsx
 │   │   ├── routes/
 │   │   │   └── AppRoutes.jsx
 │   │   ├── store/
-│   │   │   └── useAuthStore.js
+│   │   │   ├── useAuthStore.js
+│   │   │   └── useUserStore.js
 │   │   ├── validations/
 │   │   │   └── auth.validation.js
 │   │   ├── App.jsx
@@ -126,15 +168,23 @@ RealTimeChatWebApp/
 │   ├── src/
 │   │   ├── config/
 │   │   │   ├── db.js
-│   │   │   └── env.js
+│   │   │   ├── db.js
+│   │   │   ├── env.js
+│   │   │   └── cloudinary.js
 │   │   ├── controllers/
-│   │   │   └── auth.controller.js
+│   │   │   ├── auth.controller.js
+│   │   │   └── user.controller.js
 │   │   ├── middlewares/
+│   │   │   ├── auth.middleware.js
+│   │   │   ├── upload.middleware.js
 │   │   │   └── validate.middleware.js
 │   │   ├── models/
 │   │   │   └── user.model.js
 │   │   ├── routes/
-│   │   │   └── auth.route.js
+│   │   │   ├── auth.route.js
+│   │   │   └── user.route.js
+│   │   ├── services/
+│   │   │   └── cloudinary.service.js
 │   │   ├── utils/
 │   │   │   └── token.js
 │   │   ├── validations/
@@ -193,6 +243,18 @@ sequenceDiagram
     B-->>F: Authenticated User
 
     F-->>U: Redirect to Chat Dashboard
+```
+
+# ☁️ Profile Picture Upload Flow
+
+```mermaid
+flowchart LR
+A[User Selects Image] --> B[React Frontend]
+B --> C[Express API]
+C --> D[Multer Middleware]
+D --> E[Cloudinary]
+E --> F[(MongoDB)]
+F --> B
 ```
 
 # 🏗 Architecture Diagram
@@ -337,6 +399,12 @@ GET /api/auth/logout
 GET /api/auth/check
 ```
 
+## Upload Profile Picture
+
+```http
+PATCH /api/users/profile-picture
+```
+
 ---
 
 # 🔒 Validation
@@ -347,14 +415,12 @@ Field Rule
 
 ---
 
-```
-First Name 2--30 characters, letters only
-Last Name 2--30 characters, letters only
-Email Valid email
-Date of Birth Minimum age 13
-Password Minimum 8 characters
-Confirm Password Must match password
-```
+    First Name 2--30 characters, letters only
+    Last Name 2--30 characters, letters only
+    Email Valid email
+    Date of Birth Minimum age 13
+    Password Minimum 8 characters
+    Confirm Password Must match password
 
 ---
 
@@ -368,12 +434,15 @@ MONGO_URI=mongodb_uri
 CLIENT_URL=http://localhost:5173
 JWT_SECRET=something
 JWT_EXPIRE=7d
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
 ## Frontend
 
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5000/api
 ```
 
 ---
@@ -409,9 +478,7 @@ Service Platform
 
 ---
 
-Frontend Vercel
-Backend Railway
-Database MongoDB Atlas
+Frontend Vercel Backend Railway Database MongoDB Atlas
 
 Every push to the `main` branch automatically deploys the latest
 version.
@@ -420,7 +487,7 @@ version.
 
 # 🗺 Roadmap
 
-## ✅ Phase 1 — Authentication
+## ✅ Phase 1 --- Authentication
 
 - ✅ User Registration
 - ✅ User Login
@@ -430,31 +497,32 @@ version.
 - ✅ Protected Routes
 - ✅ Authentication Persistence
 
-## 🚧 Phase 2 — Chat Interface
+## 🚧 Phase 2 --- Chat Interface
 
 - Chat Dashboard
 - Conversation Sidebar
 - User Menu
 - Responsive Layout
 
-## 📨 Phase 3 — Messaging
+## 📨 Phase 3 --- Messaging
 
 - One-to-One Chat
 - Recent Conversations
 - MongoDB Message Storage
 
-## ⚡ Phase 4 — Real-Time Communication
+## ⚡ Phase 4 --- Real-Time Communication
 
 - Socket.IO
 - Online Status
 - Typing Indicator
 - Read Receipts
 
-## 🚀 Phase 5 — Advanced Features
+## 🚀 Phase 5 --- Advanced Features
 
 - Group Chats
 - Media Sharing
-- Cloudinary Integration
+- Voice Messages
+- Video Calling
 - Emoji Picker
 - Notifications
 - Message Search
