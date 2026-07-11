@@ -8,6 +8,7 @@ import Chat from "../pages/Chat";
 
 import { useAuthStore } from "@/store/useAuthStore";
 import { Spinner } from "@/components/ui/spinner";
+import Profile from "@/pages/Profile";
 
 function AppRoutes() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -44,6 +45,11 @@ function AppRoutes() {
       <Route
         path="/chat"
         element={authUser ? <Chat /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/profile"
+        element={authUser ? <Profile /> : <Navigate to="/login" replace />}
       />
     </Routes>
   );
