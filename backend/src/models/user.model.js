@@ -38,12 +38,28 @@ const userSchema = new mongoose.Schema(
     },
 
     profilePic: {
-      type: String,
-      default: "",
+      url: {
+        type: String,
+        default: "",
+      },
+
+      publicId: {
+        type: String,
+        default: "",
+        select: false,
+      },
+
+      resourceType: {
+        type: String,
+        default: "image",
+        select: false,
+      },
     },
 
     bio: {
       type: String,
+      trim: true,
+      maxlength: [150, "Bio cannot exceed 150 characters"],
       default: "Hey there! I am using ChatApp.",
     },
 
@@ -57,7 +73,9 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
 
 const User = mongoose.model("User", userSchema);
