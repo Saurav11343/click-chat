@@ -5,6 +5,8 @@ import {
   deleteCloudinaryFile,
   uploadProfilePicture,
 } from "../services/cloudinary.service.js";
+import { searchUsersValidation } from "../validations/user.validation.js";
+import { searchUsersService } from "../services/user.service.js";
 
 export const updateProfilePicture = async (req, res) => {
   let newUpload = null;
@@ -81,6 +83,30 @@ export const updateProfilePicture = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to upload profile picture",
+    });
+  }
+};
+
+export const searchUsers = async (req, res) => {
+  try {
+    const users = await searchUsersService({
+      query: req.query.q,
+      currentUserId: req.user._id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message:
+        users.length > 0 ? "Users found successfully." : "No users found.",
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    console.error("Search users error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to search users.",
     });
   }
 };

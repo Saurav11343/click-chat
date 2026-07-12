@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "@/store/useAuthStore";
 
+import { NewChatDialog } from "@/components/chat/NewChatDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,13 +69,13 @@ export function Navbar() {
         <button
           type="button"
           onClick={() => navigate("/chat")}
-          className="flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <MessageCircleMore className="size-5" />
           </div>
 
-          <div className="hidden min-w-0 text-left xs:block sm:block">
+          <div className="hidden min-w-0 text-left sm:block">
             <p className="truncate text-base font-semibold leading-none sm:text-lg">
               ClickChat
             </p>
@@ -99,6 +100,13 @@ export function Navbar() {
       </div>
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <NewChatDialog>
+          <Button type="button" variant="outline" size="sm" className="gap-2">
+            <MessageCircleMore className="size-4" />
+            <span className="hidden sm:inline">New Chat</span>
+          </Button>
+        </NewChatDialog>
+
         <Button
           type="button"
           variant="ghost"
