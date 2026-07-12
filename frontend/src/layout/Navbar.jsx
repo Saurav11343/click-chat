@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "@/store/useAuthStore";
 
-import { NewChatDialog } from "@/components/chat/NewChatDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,13 +99,6 @@ export function Navbar() {
       </div>
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-        <NewChatDialog>
-          <Button type="button" variant="outline" size="sm" className="gap-2">
-            <MessageCircleMore className="size-4" />
-            <span className="hidden sm:inline">New Chat</span>
-          </Button>
-        </NewChatDialog>
-
         <Button
           type="button"
           variant="ghost"

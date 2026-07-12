@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { NewChatDialog } from "./NewChatDialog";
 
 export function ConversationSidebar({
   conversations,
@@ -23,15 +24,16 @@ export function ConversationSidebar({
             Your recent messages
           </p>
         </div>
-
-        <Button
-          type="button"
-          size="icon"
-          aria-label="Start a new conversation"
-          className="shrink-0"
-        >
-          <MessageSquarePlus className="size-4" />
-        </Button>
+        <NewChatDialog>
+          <Button
+            type="button"
+            size="icon"
+            aria-label="Start a new conversation"
+            className="shrink-0"
+          >
+            <MessageSquarePlus className="size-4" />
+          </Button>
+        </NewChatDialog>
       </div>
 
       <Separator />
