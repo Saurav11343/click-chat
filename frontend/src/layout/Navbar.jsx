@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";  
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +22,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"; 
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -91,12 +92,16 @@ export function Navbar() {
             Chats
           </Button>
 
+        
+
           <Button type="button" variant="ghost" size="sm">
             <UsersRound className="size-4" />
             Groups
           </Button>
+            <ThemeToggle />
         </nav>
       </div>
+        
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
         <Button
