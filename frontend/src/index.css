@@ -128,30 +128,3 @@
     @apply font-sans;
     }
 }
-
-body{
-    margin:0;
-    transition:0.3s;
-}
-
-body.dark{
-    background:#0f172a;
-    color:white;
-}
-
-body.dark .chat-container{
-    background:#111827;
-}
-
-body.dark .sidebar{
-    background:#1f2937;
-}
-
-body.dark input{
-    background:#374151;
-    color:white;
-}
-
-body.dark button{
-    color:white;
-}
