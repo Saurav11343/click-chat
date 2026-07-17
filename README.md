@@ -92,6 +92,16 @@ API
 - Responsive UI
 - Toast Notifications (Sonner)
 - Loading States
+- Chat Dashboard
+- Conversation Sidebar
+- Responsive Chat Layout
+- User Search by Name or Email
+- New Chat Dialog
+- Invitation Notification Badge
+- Sent and Received Invitation Lists
+- Accept and Decline Invitation Actions
+- Pending Invitation Button States
+- Light, Dark & System Theme Support
 
 ### Backend
 
@@ -103,6 +113,12 @@ API
 - Multer File Upload
 - Cloudinary Integration
 - Server-side Validation (Zod)
+- User Search API
+- Chat Invitation API
+- Send and Retrieve Invitations
+- Accept and Decline Invitations
+- Duplicate Pending Invitation Prevention
+- Invitation Authorization and ObjectId Validation
 
 ### DevOps
 
@@ -113,17 +129,14 @@ API
 
 ## 🚧 In Progress
 
-- Chat Dashboard
-- Conversation Sidebar
-- User Search
-- Chat Layout
+- Conversation Management
+- One-to-One Messaging
 
 ---
 
 ## 📅 Planned
 
 - Socket.IO Integration
-- One-to-One Messaging
 - Group Chats
 - Media & Document Sharing
 - Typing Indicators
@@ -402,7 +415,31 @@ GET /api/auth/check
 ## Upload Profile Picture
 
 ```http
-PATCH /api/users/profile-picture
+PATCH /api/user/profilePic
+```
+
+## Search Users
+
+```http
+GET /api/user/search?q=query
+```
+
+## Send Chat Invitation
+
+```http
+POST /api/invitations
+```
+
+## Get Sent and Received Invitations
+
+```http
+GET /api/invitations
+```
+
+## Accept or Decline Invitation
+
+```http
+PATCH /api/invitations/:invitationId
 ```
 
 ---
@@ -499,10 +536,15 @@ version.
 
 ## 🚧 Phase 2 --- Chat Interface
 
-- Chat Dashboard
-- Conversation Sidebar
+- âœ… Chat Dashboard
+- âœ… Conversation Sidebar
+- âœ… User Search
+- âœ… New Chat Dialog
+- âœ… Chat Invitation Workflow
+- âœ… Sent and Received Invitation Lists
+- âœ… Accept and Decline Invitations
+- âœ… Responsive Layout
 - User Menu
-- Responsive Layout
 
 ## 📨 Phase 3 --- Messaging
 
