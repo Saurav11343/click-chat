@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { Navbar } from "./Navbar";
+import { useInvitationStore } from "@/store/useInvitationStore";
 
 const conversations = [
   {
@@ -62,6 +63,12 @@ const conversations = [
 
 export function ChatLayout() {
   const [selectedConversation, setSelectedConversation] = useState(null);
+
+  const getInvitations = useInvitationStore((state) => state.getInvitations);
+
+  useEffect(() => {
+    getInvitations();
+  }, [getInvitations]);
 
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);

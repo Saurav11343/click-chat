@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { NewChatDialog } from "./NewChatDialog";
+import { InvitationsDialog } from "./InvitationsDialog";
 
 export function ConversationSidebar({
   conversations,
@@ -24,16 +25,20 @@ export function ConversationSidebar({
             Your recent messages
           </p>
         </div>
-        <NewChatDialog>
-          <Button
-            type="button"
-            size="icon"
-            aria-label="Start a new conversation"
-            className="shrink-0"
-          >
-            <MessageSquarePlus className="size-4" />
-          </Button>
-        </NewChatDialog>
+        <div className="flex items-center gap-2">
+          <InvitationsDialog />
+
+          <NewChatDialog>
+            <Button
+              type="button"
+              size="icon"
+              aria-label="Start a new conversation"
+              className="shrink-0"
+            >
+              <MessageSquarePlus className="size-4" />
+            </Button>
+          </NewChatDialog>
+        </div>
       </div>
 
       <Separator />

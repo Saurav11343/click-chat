@@ -4,7 +4,6 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Search, UserSearch, X } from "lucide-react";
-import { toast } from "sonner";
 
 import { axiosInstance } from "@/api/axios";
 import { userSearchSchema } from "@/validations/user.validation";
@@ -24,6 +23,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserSearchItem } from "@/components/chat/UserSearchItem";
 import { UserSearchSkeleton } from "@/components/chat/UserSearchSkeleton";
 
+import { useInvitationStore } from "@/store/useInvitationStore";
+
 export function NewChatDialog({ children }) {
   const [open, setOpen] = React.useState(false);
   const [users, setUsers] = React.useState([]);
@@ -31,6 +32,19 @@ export function NewChatDialog({ children }) {
   const [searchError, setSearchError] = React.useState("");
   const [retryCount, setRetryCount] = React.useState(0);
   const [hasCompletedSearch, setHasCompletedSearch] = React.useState(false);
+
+  const getInvitations = useInvitationStore((state) => state.getInvitations);
+
+  const sentInvitations = useInvitationStore((state) => state.sentInvitations);
+
+  const receivedInvitations = useInvitationStore(
+    (state) => state.receivedInvitations,
+  );
+
+  const sendInvitation = useInvitationStore((state) => state.sendInvitation);
+
+  const sendingToUserId = useInvitationStore((state) => state.sendingToUserId);
+
   const form = useForm({
     resolver: zodResolver(userSearchSchema),
     defaultValues: {
@@ -102,6 +116,9 @@ export function NewChatDialog({ children }) {
 
   const handleOpenChange = (nextOpen) => {
     setOpen(nextOpen);
+    if (nextOpen) {
+      getInvitations();
+    }
 
     if (!nextOpen) {
       form.reset();
@@ -113,14 +130,8 @@ export function NewChatDialog({ children }) {
     }
   };
 
-  const handleInvite = (user) => {
-    const fullName = [user?.firstName, user?.lastName]
-      .filter(Boolean)
-      .join(" ");
-
-    toast.info("Chat invitation feature is coming next.", {
-      description: `You selected ${fullName || user?.email}.`,
-    });
+  const handleInvite = async (user) => {
+    await sendInvitation(user._id);
   };
 
   const handleClearSearch = () => {
@@ -246,6 +257,16 @@ export function NewChatDialog({ children }) {
                       key={user._id}
                       user={user}
                       onInvite={handleInvite}
+                      isInviting={sendingToUserId === user._id}
+                      isPending={
+                        sentInvitations.some(
+                          (invitation) =>
+                            invitation.recipient?._id === user._id,
+                        ) ||
+                        receivedInvitations.some(
+                          (invitation) => invitation.sender?._id === user._id,
+                        )
+                      }
                     />
                   ))}
                 </div>
