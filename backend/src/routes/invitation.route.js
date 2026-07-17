@@ -4,6 +4,7 @@ import {
   getInvitations,
   respondToInvitation,
   sendInvitation,
+  getAcceptedContacts,
 } from "../controllers/invitation.controller.js";
 
 import { protectRoute } from "../middleware/auth.middleware.js";
@@ -26,4 +27,5 @@ router.patch(
   validate(invitationActionSchema),
   respondToInvitation,
 );
+router.get("/contacts", getAcceptedContacts);
 export default router;
