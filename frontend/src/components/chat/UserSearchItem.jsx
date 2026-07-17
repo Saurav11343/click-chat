@@ -3,7 +3,12 @@ import { MessageCirclePlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
-export function UserSearchItem({ user, onInvite }) {
+export function UserSearchItem({
+  user,
+  onInvite,
+  isInviting = false,
+  isPending = false,
+}) {
   const profilePicUrl =
     typeof user?.profilePic === "string"
       ? user.profilePic
@@ -46,10 +51,13 @@ export function UserSearchItem({ user, onInvite }) {
         size="sm"
         className="shrink-0"
         onClick={() => onInvite(user)}
+        disabled={isInviting || isPending}
       >
         <MessageCirclePlus className="size-4" />
 
-        <span className="hidden sm:inline">Invite</span>
+        <span className="hidden sm:inline">
+          {isInviting ? "Sending..." : isPending ? "Pending" : "Invite"}
+        </span>
       </Button>
     </div>
   );
