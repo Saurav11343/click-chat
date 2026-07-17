@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { toast } from "sonner";
 
 import { axiosInstance } from "@/api/axios";
+import { useContactStore } from "./useContactStore";
 
 export const useInvitationStore = create((set, get) => ({
   isSendingInvitation: false,
@@ -80,6 +81,10 @@ export const useInvitationStore = create((set, get) => ({
       );
 
       await get().getInvitations();
+
+      if (action === "accepted") {
+        await useContactStore.getState().getContacts();
+      }
 
       return true;
     } catch (error) {

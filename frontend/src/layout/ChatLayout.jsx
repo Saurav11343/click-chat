@@ -6,69 +6,12 @@ import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { Navbar } from "./Navbar";
 import { useInvitationStore } from "@/store/useInvitationStore";
-
-const conversations = [
-  {
-    id: "1",
-    name: "Rahul Sharma",
-    initials: "RS",
-    image: "",
-    lastMessage: "Are we meeting today?",
-    time: "10:30 AM",
-    unreadCount: 2,
-    online: true,
-  },
-  {
-    id: "2",
-    name: "Priya Patel",
-    initials: "PP",
-    image: "",
-    lastMessage: "Thank you for helping me.",
-    time: "9:45 AM",
-    unreadCount: 0,
-    online: false,
-  },
-  {
-    id: "3",
-    name: "MCA Project Group",
-    initials: "MG",
-    image: "",
-    lastMessage: "Aman shared a document.",
-    time: "8:20 AM",
-    unreadCount: 4,
-    online: false,
-    isGroup: true,
-  },
-  {
-    id: "4",
-    name: "John Mathew",
-    initials: "JM",
-    image: "",
-    lastMessage: "Okay, the work is completed.",
-    time: "Yesterday",
-    unreadCount: 0,
-    online: true,
-  },
-  {
-    id: "5",
-    name: "Anjali Verma",
-    initials: "AV",
-    image: "",
-    lastMessage: "See you tomorrow!",
-    time: "Monday",
-    unreadCount: 0,
-    online: false,
-  },
-];
+import { useContactStore } from "@/store/useContactStore";
 
 export function ChatLayout() {
   const [selectedConversation, setSelectedConversation] = useState(null);
 
   const getInvitations = useInvitationStore((state) => state.getInvitations);
-
-  useEffect(() => {
-    getInvitations();
-  }, [getInvitations]);
 
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
@@ -77,6 +20,40 @@ export function ChatLayout() {
   const handleBackToConversations = () => {
     setSelectedConversation(null);
   };
+
+  const contacts = useContactStore((state) => state.contacts);
+
+  const getContacts = useContactStore((state) => state.getContacts);
+
+  const isLoadingContacts = useContactStore((state) => state.isLoadingContacts);
+
+  useEffect(() => {
+    getInvitations();
+    getContacts();
+  }, [getInvitations, getContacts]);
+
+  const contactConversations = contacts.map((contact) => {
+    const fullName = [contact.firstName, contact.lastName]
+      .filter(Boolean)
+      .join(" ");
+
+    const initials = `${
+      contact.firstName?.charAt(0) || ""
+    }${contact.lastName?.charAt(0) || ""}`.toUpperCase();
+
+    return {
+      id: contact._id,
+      userId: contact._id,
+      name: fullName || "Unknown user",
+      initials: initials || "U",
+      image: contact.profilePic?.url || "",
+      lastMessage: contact.bio || "You are now connected.",
+      time: "",
+      unreadCount: 0,
+      online: contact.isOnline || false,
+      lastSeen: contact.lastSeen,
+    };
+  });
 
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-background">
@@ -89,7 +66,8 @@ export function ChatLayout() {
           }`}
         >
           <ConversationSidebar
-            conversations={conversations}
+            conversations={contactConversations}
+            isLoading={isLoadingContacts}
             selectedConversation={selectedConversation}
             onSelectConversation={handleSelectConversation}
           />

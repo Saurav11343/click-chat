@@ -8,6 +8,7 @@ export function UserSearchItem({
   onInvite,
   isInviting = false,
   isPending = false,
+  isConnected = false,
 }) {
   const profilePicUrl =
     typeof user?.profilePic === "string"
@@ -56,7 +57,13 @@ export function UserSearchItem({
         <MessageCirclePlus className="size-4" />
 
         <span className="hidden sm:inline">
-          {isInviting ? "Sending..." : isPending ? "Pending" : "Invite"}
+          {isConnected
+            ? "Connected"
+            : isInviting
+              ? "Sending..."
+              : isPending
+                ? "Pending"
+                : "Invite"}
         </span>
       </Button>
     </div>
