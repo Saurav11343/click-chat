@@ -76,6 +76,7 @@ The project is being developed as a Master's project and as a foundation for fut
 - JWT and HTTP-only cookies
 - Zod
 - Multer and Cloudinary
+- Gmail REST API and Google OAuth 2.0
 
 ## Project structure
 
@@ -139,8 +140,24 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 GMAIL_USER=your_project_gmail_address
-GMAIL_APP_PASSWORD=your_google_app_password
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:3000/oauth2callback
+GOOGLE_REFRESH_TOKEN=your_google_oauth_refresh_token
 ```
+
+After enabling the Gmail API and creating a Desktop OAuth client, generate the
+sender account's refresh token locally:
+
+```bash
+cd backend
+npm run gmail:token
+```
+
+Open the authorization URL printed in the terminal, approve the `gmail.send`
+permission with the project Gmail account, and add the returned refresh token
+to both the local backend environment and Railway. OAuth credentials and
+refresh tokens must never be committed to source control.
 
 Install dependencies and start the API:
 
