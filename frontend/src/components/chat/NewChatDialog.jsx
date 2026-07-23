@@ -24,7 +24,7 @@ import { UserSearchItem } from "@/components/chat/UserSearchItem";
 import { UserSearchSkeleton } from "@/components/chat/UserSearchSkeleton";
 
 import { useInvitationStore } from "@/store/useInvitationStore";
-import { useContactStore } from "@/store/useContactStore";
+import { useConversationStore } from "@/store/useConversationStore";
 
 export function NewChatDialog({ children }) {
   const [open, setOpen] = React.useState(false);
@@ -46,7 +46,7 @@ export function NewChatDialog({ children }) {
 
   const sendingToUserId = useInvitationStore((state) => state.sendingToUserId);
 
-  const contacts = useContactStore((state) => state.contacts);
+  const conversations = useConversationStore((state) => state.conversations);
 
   const form = useForm({
     resolver: zodResolver(userSearchSchema),
@@ -270,8 +270,12 @@ export function NewChatDialog({ children }) {
                           (invitation) => invitation.sender?._id === user._id,
                         )
                       }
-                      isConnected={contacts.some(
-                        (contact) => contact._id === user._id,
+                      isConnected={conversations.some(
+                        (conversation) =>
+                          conversation.type === "direct" &&
+                          conversation.participants.some(
+                            (participant) => participant._id === user._id,
+                          ),
                       )}
                     />
                   ))}
