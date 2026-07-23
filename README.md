@@ -1,497 +1,146 @@
-# 💬 ClickChat
+# ClickChat
 
-> **ClickChat** is a modern **WhatsApp-inspired Real-Time Chat
-> Application** built using the **MERN Stack**, designed with
-> production-level architecture, secure authentication, and cloud-native
-> media management.
+ClickChat is a full-stack chat application built with the MERN stack. It currently supports secure authentication, user invitations, direct conversations, persistent text messages, emoji input, and message editing and deletion through a responsive interface.
 
-Developed as a **Master's Project**, ClickChat demonstrates
-industry-standard full-stack development practices while providing a
-scalable foundation for real-time communication, media sharing, and
-collaborative messaging.
+The project is being developed as a Master's project and as a foundation for future real-time communication with Socket.IO.
 
-### ✨ Highlights
+## Live demo
 
-- 🏗 Modular full-stack architecture (Frontend & Backend separation)
-- 🔐 Secure JWT Authentication with HTTP-only Cookies
-- ☁️ Cloudinary integration for profile image management
-- 🛡 Client-side & Server-side validation using Zod
-- ⚡ Global state management with Zustand
-- 🎨 Modern UI built with React, Tailwind CSS & shadcn/ui
-- 📦 RESTful API design following MVC architecture
-- 🚀 Automatic CI/CD deployment with GitHub, Vercel & Railway
-- 📱 Fully responsive user interface
-- 🔄 Designed for future Socket.IO real-time communication
-- 📈 Built with scalability and maintainability in mind
+- Frontend: https://chatapp-ldrp.vercel.app
+- Backend API: https://realtimechatwebapp-production-51a2.up.railway.app
 
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?logo=vite&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-API-000000?logo=express&logoColor=white)
-![MongoDB
-Atlas](https://img.shields.io/badge/MongoDB%20Atlas-Database-47A248?logo=mongodb&logoColor=white)
-![Cloudinary](https://img.shields.io/badge/Cloudinary-Media-3448C5?logo=cloudinary&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-Frontend%20Hosting-000000?logo=vercel&logoColor=white)
-![Railway](https://img.shields.io/badge/Railway-Backend%20Hosting-0B0D0E?logo=railway&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-blue)
+> The Railway service may take a few seconds to respond after a period of inactivity.
 
----
+## Current features
 
-# 🌐 Live Demo
+### Authentication and users
 
----
+- User registration, login, and logout
+- JWT authentication using an HTTP-only cookie
+- Persistent authentication and protected routes
+- Password hashing
+- User profile page
+- Cloudinary profile-picture upload
+- User search by name or email
+- Online status and last-seen fields
 
-Service URL
+### Invitations and contacts
 
----
+- Send chat invitations
+- View received and sent invitations
+- Accept or decline invitations
+- Prevent duplicate pending invitations
+- Show invitation notification counts and pending states
+- View accepted contacts
+- Automatically create a direct conversation when an invitation is accepted
 
-🌍 Frontend https://chatapp-ldrp.vercel.app
+### Conversations and messages
 
-🚀 Backend https://realtimechatwebapp-production-51a2.up.railway.app
-API
+- Direct one-to-one conversations
+- Conversation sidebar with real user information
+- Persistent MongoDB message history
+- Send and retrieve text messages through REST APIs
+- Display the latest message in the conversation list
+- Emoji picker in the message composer
+- Edit your own text messages
+- Delete your own messages for everyone using a soft delete
+- Edited and deleted message states
+- Responsive desktop and mobile chat layout
 
----
+### UI and development
 
-> **Note:** The backend is hosted on Railway's free tier and may take a
-> few seconds to respond after periods of inactivity.
+- Light, dark, and system themes
+- Loading skeletons and toast notifications
+- Client-side and server-side Zod validation
+- Zustand stores for authentication, users, invitations, conversations, and messages
+- MVC-style Express backend
+- Automatic deployment through Vercel and Railway
 
----
-
-# 🚀 Current Status
-
-## ✅ Completed
-
-### Authentication
-
-- User Registration
-- User Login
-- User Logout
-- JWT Authentication
-- HTTP-only Cookie Authentication
-- Authentication Persistence (`checkAuth`)
-- Protected Routes
-
-### User Management
-
-- User Profile Page
-- Profile Picture Upload
-- Cloudinary Image Storage
-- Avatar Preview
-- Online Status
-- Last Seen Tracking
+## Technology stack
 
 ### Frontend
 
-- React Router DOM
-- React Hook Form
-- Zod Client Validation
-- Zustand Authentication Store
-- Zustand User Store
-- Axios API Layer
-- shadcn/ui Components
-- Responsive UI
-- Toast Notifications (Sonner)
-- Loading States
-- Chat Dashboard
-- Conversation Sidebar
-- Responsive Chat Layout
-- User Search by Name or Email
-- New Chat Dialog
-- Invitation Notification Badge
-- Sent and Received Invitation Lists
-- Accept and Decline Invitation Actions
-- Pending Invitation Button States
-- Light, Dark & System Theme Support
+- React 19 and Vite
+- React Router
+- Zustand
+- Axios
+- React Hook Form and Zod
+- Tailwind CSS
+- shadcn/ui and Radix UI
+- emoji-picker-react
 
 ### Backend
 
-- RESTful API
-- MVC Architecture
-- MongoDB Atlas Integration
-- JWT Middleware
-- Cookie-based Authentication
-- Multer File Upload
-- Cloudinary Integration
-- Server-side Validation (Zod)
-- User Search API
-- Chat Invitation API
-- Send and Retrieve Invitations
-- Accept and Decline Invitations
-- Duplicate Pending Invitation Prevention
-- Invitation Authorization and ObjectId Validation
+- Node.js and Express
+- MongoDB and Mongoose
+- JWT and HTTP-only cookies
+- Zod
+- Multer and Cloudinary
 
-### DevOps
-
-- Automatic Deployment (Vercel + Railway)
-- GitHub Version Control
-
----
-
-## 🚧 In Progress
-
-- Conversation Management
-- One-to-One Messaging
-
----
-
-## 📅 Planned
-
-- Socket.IO Integration
-- Group Chats
-- Media & Document Sharing
-- Typing Indicators
-- Read Receipts
-- Notifications
-- Message Search
-
----
-
-# 📂 Project Structure
+## Project structure
 
 ```text
 ClickChat/
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── axios.js
-│   │   ├── assets/
-│   │   ├── components/
-│   │   │   ├── profile/
-│   │   │   └── ui/
-│   │   ├── lib/
-│   │   ├── pages/
-│   │   │   ├── Welcome.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Chat.jsx
-│   │   │   └── Profile.jsx
-│   │   ├── routes/
-│   │   │   └── AppRoutes.jsx
-│   │   ├── store/
-│   │   │   ├── useAuthStore.js
-│   │   │   └── useUserStore.js
-│   │   ├── validations/
-│   │   │   └── auth.validation.js
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── .env
-│   └── package.json
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   │   ├── db.js
-│   │   │   ├── db.js
-│   │   │   ├── env.js
-│   │   │   └── cloudinary.js
-│   │   ├── controllers/
-│   │   │   ├── auth.controller.js
-│   │   │   └── user.controller.js
-│   │   ├── middlewares/
-│   │   │   ├── auth.middleware.js
-│   │   │   ├── upload.middleware.js
-│   │   │   └── validate.middleware.js
-│   │   ├── models/
-│   │   │   └── user.model.js
-│   │   ├── routes/
-│   │   │   ├── auth.route.js
-│   │   │   └── user.route.js
-│   │   ├── services/
-│   │   │   └── cloudinary.service.js
-│   │   ├── utils/
-│   │   │   └── token.js
-│   │   ├── validations/
-│   │   │   └── auth.validation.js
-│   │   ├── app.js
-│   │   └── server.js
-│   ├── .env
-│   └── package.json
-└── README.md
+|-- frontend/
+|   |-- src/
+|   |   |-- api/
+|   |   |-- components/
+|   |   |   |-- chat/
+|   |   |   |-- profile/
+|   |   |   `-- ui/
+|   |   |-- layout/
+|   |   |-- pages/
+|   |   |-- routes/
+|   |   |-- store/
+|   |   `-- validations/
+|   `-- package.json
+|-- backend/
+|   |-- src/
+|   |   |-- config/
+|   |   |-- controllers/
+|   |   |-- middleware/
+|   |   |-- models/
+|   |   |-- routes/
+|   |   |-- services/
+|   |   |-- utils/
+|   |   `-- validations/
+|   `-- package.json
+`-- README.md
 ```
 
----
+## Running locally
 
-# 🏗 Architecture
+### Prerequisites
 
-## Backend
+- Node.js
+- npm
+- MongoDB database or MongoDB Atlas cluster
+- Cloudinary account for profile pictures
 
-- Config
-- Controllers
-- Models
-- Routes
-- Middlewares
-- Validation
-- Utilities
-
-## Frontend
-
-- Pages
-- Components
-- API Layer
-- Zustand Store
-- Routes
-- Validation Schemas
-
----
-
-# 🔐 Authentication Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant F as React Frontend
-    participant B as Express Backend
-    participant DB as MongoDB
-
-    U->>F: Login Credentials
-    F->>B: POST /api/auth/login
-    B->>DB: Find User
-    DB-->>B: User Document
-    B->>B: Verify Password
-    B->>B: Generate JWT
-    B-->>F: Set HttpOnly Cookie
-
-    F->>B: GET /api/auth/check
-    B->>B: Verify JWT
-    B-->>F: Authenticated User
-
-    F-->>U: Redirect to Chat Dashboard
-```
-
-# ☁️ Profile Picture Upload Flow
-
-```mermaid
-flowchart LR
-A[User Selects Image] --> B[React Frontend]
-B --> C[Express API]
-C --> D[Multer Middleware]
-D --> E[Cloudinary]
-E --> F[(MongoDB)]
-F --> B
-```
-
-# 🏗 Architecture Diagram
-
-```mermaid
-flowchart LR
-    U[User Browser] --> F[Frontend<br/>React + Vite on Vercel]
-    F -->|HTTPS /api requests| B[Backend<br/>Express on Railway]
-    B -->|Mongoose| D[(MongoDB Atlas)]
-    B -->|Set-Cookie: jwt| U
-    G[GitHub Repository] --> V[Vercel Deploy]
-    G --> R[Railway Deploy]
-```
-
-# ☁️ Deployment Flow
-
-```mermaid
-flowchart TD
-    A[Developer pushes to GitHub] --> B[Vercel project]
-    A --> C[Railway service]
-    B --> D[Preview or Production Frontend Deploy]
-    C --> E[Backend Build and Start]
-    E --> F[Public Railway Domain]
-    E --> G[(MongoDB Atlas)]
-    D --> H[Browser]
-    H --> F
-```
-
-# 🏛 Project Architecture
-
-```mermaid
-flowchart LR
-
-A[React + Vite]
-B[React Router]
-C[Zustand]
-D[Axios]
-
-E[Express API]
-F[JWT Middleware]
-G[Controllers]
-H[MongoDB]
-
-A --> B
-A --> C
-A --> D
-
-D --> E
-
-E --> F
-F --> G
-G --> H
-```
-
-# 🔒 Authentication Lifecycle
-
-```mermaid
-flowchart TD
-
-A[User Login]
-B[Generate JWT]
-C[Store HttpOnly Cookie]
-D[Frontend Calls /check]
-E[JWT Verification]
-F[User Loaded]
-G[Protected Route Access]
-
-A --> B
-B --> C
-C --> D
-D --> E
-E --> F
-F --> G
-```
-
-# ✨ Features
-
-## Authentication
-
-- User Registration
-- User Login
-- User Logout
-- JWT Authentication
-- HTTP-only Cookie Authentication
-- Protected Routes
-- Authentication Persistence
-- Secure Password Hashing
-
-## Frontend
-
-- Responsive UI
-- React Router Protected Navigation
-- React Hook Form
-- Zod Validation
-- Zustand Global Authentication Store
-- Axios API Integration
-- Sonner Toast Notifications
-- Loading States
-- shadcn/ui Components
-
-## Backend
-
-- RESTful APIs
-- MVC Architecture
-- JWT Authentication
-- Cookie-based Session Handling
-- Authentication Middleware
-- Standardized API Responses
-- MongoDB Atlas Integration
-
----
-
-# 📡 API Endpoints
-
-## Health Check
-
-```http
-GET /
-```
-
-## Register
-
-```http
-POST /api/auth/register
-```
-
-## Login
-
-```http
-POST /api/auth/login
-```
-
-## Logout
-
-```http
-GET /api/auth/logout
-```
-
-## checkAuth
-
-```http
-GET /api/auth/check
-```
-
-## Upload Profile Picture
-
-```http
-PATCH /api/user/profilePic
-```
-
-## Search Users
-
-```http
-GET /api/user/search?q=query
-```
-
-## Send Chat Invitation
-
-```http
-POST /api/invitations
-```
-
-## Get Sent and Received Invitations
-
-```http
-GET /api/invitations
-```
-
-## Accept or Decline Invitation
-
-```http
-PATCH /api/invitations/:invitationId
-```
-
----
-
-# 🔒 Validation
-
-Validation is performed on both the frontend and backend using **Zod**.
-
-Field Rule
-
----
-
-    First Name 2--30 characters, letters only
-    Last Name 2--30 characters, letters only
-    Email Valid email
-    Date of Birth Minimum age 13
-    Password Minimum 8 characters
-    Confirm Password Must match password
-
----
-
-# 🌐 Environment Variables
-
-## Backend
-
-```env
-PORT=5000
-MONGO_URI=mongodb_uri
-CLIENT_URL=http://localhost:5173
-JWT_SECRET=something
-JWT_EXPIRE=7d
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-```
-
-## Frontend
-
-```env
-VITE_API_URL=http://localhost:5000/api
-```
-
----
-
-# ▶️ Running Locally
+### 1. Clone and open the project
 
 ```bash
 git clone <repository-url>
-cd RealTimeChatWebApp
+cd click-chat
 ```
 
-### Backend
+### 2. Configure the backend
+
+Create `backend/.env`:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+CLIENT_URL=http://localhost:5173
+JWT_SECRET=your_secure_jwt_secret
+JWT_EXPIRE=7d
+NODE_ENV=development
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+Install dependencies and start the API:
 
 ```bash
 cd backend
@@ -499,7 +148,15 @@ npm install
 npm run dev
 ```
 
-### Frontend
+### 3. Configure the frontend
+
+Create `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+Open another terminal, then run:
 
 ```bash
 cd frontend
@@ -507,125 +164,77 @@ npm install
 npm run dev
 ```
 
----
+Open `http://localhost:5173` in your browser.
 
-# ☁️ Deployment
+## API endpoints
 
-Service Platform
+All protected requests use the JWT cookie and must include credentials.
 
----
+### Authentication
 
-Frontend Vercel Backend Railway Database MongoDB Atlas
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Register a user |
+| `POST` | `/api/auth/login` | Log in |
+| `GET` | `/api/auth/check` | Retrieve the authenticated user |
+| `GET` | `/api/auth/logout` | Log out |
 
-Every push to the `main` branch automatically deploys the latest
-version.
+### Users and invitations
 
----
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `PATCH` | `/api/user/profilePic` | Upload a profile picture |
+| `GET` | `/api/user/search?q=query` | Search for users |
+| `GET` | `/api/invitations` | Retrieve sent and received invitations |
+| `POST` | `/api/invitations` | Send an invitation |
+| `PATCH` | `/api/invitations/:invitationId` | Accept or decline an invitation |
+| `GET` | `/api/invitations/contacts` | Retrieve accepted contacts |
 
-# 🗺 Roadmap
+### Conversations and messages
 
-## ✅ Phase 1 --- Authentication
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/api/conversations` | Retrieve the user's conversations |
+| `GET` | `/api/conversations/:conversationId/messages` | Retrieve message history |
+| `POST` | `/api/conversations/:conversationId/messages` | Send a text message |
+| `PATCH` | `/api/conversations/:conversationId/messages/:messageId` | Edit your message |
+| `DELETE` | `/api/conversations/:conversationId/messages/:messageId` | Delete your message |
 
-- ✅ User Registration
-- ✅ User Login
-- ✅ User Logout
-- ✅ JWT Authentication
-- ✅ HTTP-only Cookies
-- ✅ Protected Routes
-- ✅ Authentication Persistence
+Example message body:
 
-## 🚧 Phase 2 --- Chat Interface
-
-- âœ… Chat Dashboard
-- âœ… Conversation Sidebar
-- âœ… User Search
-- âœ… New Chat Dialog
-- âœ… Chat Invitation Workflow
-- âœ… Sent and Received Invitation Lists
-- âœ… Accept and Decline Invitations
-- âœ… Responsive Layout
-- User Menu
-
-## 📨 Phase 3 --- Messaging
-
-- One-to-One Chat
-- Recent Conversations
-- MongoDB Message Storage
-
-## ⚡ Phase 4 --- Real-Time Communication
-
-- Socket.IO
-- Online Status
-- Typing Indicator
-- Read Receipts
-
-## 🚀 Phase 5 --- Advanced Features
-
-- Group Chats
-- Media Sharing
-- Voice Messages
-- Video Calling
-- Emoji Picker
-- Notifications
-- Message Search
-
----
-
-# 📖 Development Workflow
-
-```text
-Planning
-   │
-   ▼
-Database Design
-   │
-   ▼
-Backend API Development
-   │
-   ▼
-Authentication & Security
-   │
-   ▼
-Postman API Testing
-   │
-   ▼
-Frontend Development
-   │
-   ▼
-API Integration
-   │
-   ▼
-Authentication Persistence
-   │
-   ▼
-UI Testing
-   │
-   ▼
-Git Commit
-   │
-   ▼
-Automatic CI/CD Deployment
+```json
+{
+  "content": "Hello!"
+}
 ```
 
----
+## Current limitations
 
-# 📸 Screenshots
+- New messages do not yet appear instantly for another user; the application currently uses REST requests and refresh-based retrieval.
+- Group-conversation fields exist in the data model, but the complete group-chat workflow is not implemented yet.
+- Socket.IO packages are installed, but real-time events are not integrated yet.
 
-> Screenshots and GIFs will be added as development progresses.
+## Roadmap
 
----
+- Socket.IO real-time message delivery
+- Reply to messages
+- Group chat creation and management
+- Typing indicators
+- Read receipts and unread counts
+- Media and document sharing
+- Message search
+- Notifications
+- Voice and video calling
 
-# 🎯 Project Goal
+## Deployment
 
-Build a production-inspired real-time chat application demonstrating:
+- Frontend: Vercel
+- Backend: Railway
+- Database: MongoDB Atlas
+- Media storage: Cloudinary
 
-- Clean Architecture
-- REST API Design
-- Secure Authentication & Authorization
-- Modern React Development
-- Socket.io Real-Time Communication
-- Responsive UI/UX
-- CI/CD Deployment Workflow
+Pushing to the configured production branch triggers the deployment workflow for the corresponding service.
 
-This project serves as both a **Master's Project** and a
-**portfolio-ready application**.
+## Project goal
+
+ClickChat demonstrates secure authentication, REST API design, maintainable frontend state management, responsive React development, cloud media storage, and an incremental path toward a production-style real-time chat application.
