@@ -1,4 +1,4 @@
-"use client";
+import { useEffect, useRef } from "react";
 
 import {
   ArrowLeft,
@@ -10,31 +10,39 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+import { MessageComposer } from "@/components/chat/MessageComposer";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-const messages = [
-  {
-    id: "1",
-    content: "Hello Saurav! How are you?",
-    time: "10:28 AM",
-    sender: "other",
-  },
-  {
-    id: "2",
-    content: "Hi Rahul, I am doing well. How about you?",
-    time: "10:29 AM",
-    sender: "me",
-  },
-  {
-    id: "3",
-    content: "I am also doing well. Are we meeting today?",
-    time: "10:30 AM",
-    sender: "other",
-  },
-];
+import { useAuthStore } from "@/store/useAuthStore";
+import { useMessageStore } from "@/store/useMessageStore";
 
 export function ChatWindow({ selectedConversation, onBack }) {
+  const authUser = useAuthStore((state) => state.authUser);
+
+  const messages = useMessageStore((state) => state.messages);
+
+  const isLoadingMessages = useMessageStore((state) => state.isLoadingMessages);
+
+  const getMessages = useMessageStore((state) => state.getMessages);
+
+  const clearMessages = useMessageStore((state) => state.clearMessages);
+
+  const conversationId = selectedConversation?.conversationId;
+
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (!isLoadingMessages && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+  }, [messages, isLoadingMessages]);
+
   if (!selectedConversation) {
     return <EmptyChat />;
   }
@@ -131,71 +139,113 @@ export function ChatWindow({ selectedConversation, onBack }) {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5">
         <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col justify-end gap-3">
-          <div className="my-2 flex justify-center">
-            <span className="rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground">
-              Today
-            </span>
-          </div>
-
-          {messages.map((message) => {
-            const isMyMessage = message.sender === "me";
-
-            return (
-              <div
-                key={message.id}
-                className={`flex ${
-                  isMyMessage ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-3 py-2.5 sm:max-w-[70%] sm:px-4 ${
-                    isMyMessage
-                      ? "rounded-br-md bg-primary text-primary-foreground"
-                      : "rounded-bl-md border bg-background"
-                  }`}
-                >
-                  <p className="break-words text-sm leading-relaxed">
-                    {message.content}
-                  </p>
-
-                  <p
-                    className={`mt-1 text-right text-[10px] sm:text-[11px] ${
-                      isMyMessage
-                        ? "text-primary-foreground/70"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    {message.time}
-                  </p>
-                </div>
+          {isLoadingMessages ? (
+            <MessagesLoadingState />
+          ) : messages.length === 0 ? (
+            <EmptyMessagesState />
+          ) : (
+            <>
+              <div className="my-2 flex justify-center">
+                <span className="rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground">
+                  Messages
+                </span>
               </div>
-            );
-          })}
+
+              {messages.map((message) => {
+                const senderId =
+                  typeof message.sender === "string"
+                    ? message.sender
+                    : message.sender?._id;
+
+                const isMyMessage = senderId === authUser?._id;
+
+                return (
+                  <MessageBubble
+                    key={message._id}
+                    message={message}
+                    isMyMessage={isMyMessage}
+                  />
+                );
+              })}
+              <div ref={messagesEndRef} aria-hidden="true" />
+            </>
+          )}
         </div>
       </div>
 
       <Separator />
 
       <footer className="shrink-0 bg-background p-2 sm:p-4">
-        <div className="mx-auto flex max-w-4xl items-center gap-2">
-          <div className="flex min-h-11 min-w-0 flex-1 items-center rounded-xl border bg-muted/30 px-3 sm:px-4">
-            <p className="truncate text-sm text-muted-foreground">
-              Message composer will be added in Phase 3
-            </p>
-          </div>
-
-          <Button
-            type="button"
-            size="icon"
-            disabled
-            className="shrink-0"
-            aria-label="Send message"
-          >
-            <SendHorizontal className="size-4" />
-          </Button>
-        </div>
+        <MessageComposer conversationId={conversationId} />
       </footer>
     </section>
+  );
+}
+
+function MessageBubble({ message, isMyMessage }) {
+  const formattedTime = message.createdAt
+    ? new Date(message.createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+
+  return (
+    <div className={`flex ${isMyMessage ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`max-w-[85%] rounded-2xl px-3 py-2.5 sm:max-w-[70%] sm:px-4 ${
+          isMyMessage
+            ? "rounded-br-md bg-primary text-primary-foreground"
+            : "rounded-bl-md border bg-background"
+        }`}
+      >
+        {message.replyTo && (
+          <div
+            className={`mb-2 rounded-lg border-l-2 px-2 py-1 text-xs ${
+              isMyMessage
+                ? "border-primary-foreground/50 bg-primary-foreground/10"
+                : "border-primary/50 bg-muted"
+            }`}
+          >
+            <p className="truncate opacity-80">{message.replyTo.content}</p>
+          </div>
+        )}
+
+        <p className="break-words text-sm leading-relaxed">{message.content}</p>
+
+        <p
+          className={`mt-1 text-right text-[10px] sm:text-[11px] ${
+            isMyMessage ? "text-primary-foreground/70" : "text-muted-foreground"
+          }`}
+        >
+          {formattedTime}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function MessagesLoadingState() {
+  return (
+    <div className="flex flex-1 items-center justify-center py-12">
+      <p className="text-sm text-muted-foreground">Loading messages...</p>
+    </div>
+  );
+}
+
+function EmptyMessagesState() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <SendHorizontal className="size-7" />
+      </div>
+
+      <h3 className="mt-4 font-medium">No messages yet</h3>
+
+      <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+        Send the first message to start this conversation.
+      </p>
+    </div>
   );
 }
 
