@@ -16,6 +16,11 @@ The project is being developed as a Master's project and as a foundation for fut
 ### Authentication and users
 
 - User registration, login, and logout
+- Email verification before login
+- Secure, hashed verification tokens with 24-hour expiration
+- Verification-email resend with a 60-second cooldown
+- Gmail REST API delivery using Google OAuth 2.0
+- Rate limiting for registration and verification-email requests
 - JWT authentication using an HTTP-only cookie
 - Persistent authentication and protected routes
 - Password hashing
@@ -78,6 +83,164 @@ The project is being developed as a Master's project and as a foundation for fut
 - Multer and Cloudinary
 - Gmail REST API and Google OAuth 2.0
 
+## System architecture
+
+```mermaid
+flowchart LR
+    U["User browser"] --> F["React + Vite frontend"]
+    F -->|"HTTPS REST requests"| B["Express API"]
+    B --> A["JWT authentication middleware"]
+    B --> V["Zod validation middleware"]
+    B --> DB[("MongoDB Atlas")]
+    B --> C["Cloudinary media storage"]
+    B --> G["Gmail REST API"]
+    G --> R["Recipient email inbox"]
+
+    subgraph FS["Frontend state"]
+        Z["Zustand stores"]
+        UI["React components"]
+        UI <--> Z
+    end
+
+    F --- FS
+```
+
+The frontend communicates with the backend through Axios with credentials
+enabled. The backend validates requests, authorizes protected resources, and
+coordinates persistence and external services.
+
+## Core workflows
+
+### Registration and email verification
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant F as React frontend
+    participant B as Express backend
+    participant DB as MongoDB
+    participant G as Gmail API
+
+    U->>F: Submit registration form
+    F->>B: POST /api/auth/register
+    B->>B: Validate input and hash password
+    B->>B: Generate token and store its SHA-256 hash
+    B->>DB: Create unverified user
+    B->>G: Send verification link
+    G-->>U: Deliver verification email
+    B-->>F: Registration successful
+    F-->>U: Show Check Your Email page
+    U->>F: Open /verify-email?token=...
+    F->>B: GET /api/auth/verify-email?token=...
+    B->>B: Hash received token
+    B->>DB: Match hash and verify expiration
+    B->>DB: Mark email verified and clear token fields
+    B-->>F: Email verified
+    F-->>U: Show verification success
+```
+
+Only a hash of the verification token is stored. The raw token appears in the
+email link and expires after 24 hours. Resend requests rotate the token, apply
+a per-user cooldown, and are also protected by an IP-based rate limiter.
+
+### Login and protected-route authentication
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant F as React frontend
+    participant B as Express backend
+    participant DB as MongoDB
+
+    U->>F: Submit email and password
+    F->>B: POST /api/auth/login
+    B->>DB: Find normalized email
+    B->>B: Compare password hash
+    alt Email is not verified
+        B-->>F: 403 Verification required
+        F-->>U: Open Check Your Email page
+    else Email is verified
+        B->>B: Create JWT
+        B-->>F: Set HTTP-only JWT cookie
+        F->>B: GET /api/auth/check
+        B->>B: Verify JWT cookie
+        B-->>F: Return authenticated user
+        F-->>U: Open chat dashboard
+    end
+```
+
+### Invitation and conversation creation
+
+```mermaid
+sequenceDiagram
+    actor S as Sender
+    participant F as React frontend
+    participant B as Express backend
+    participant DB as MongoDB
+    actor R as Recipient
+
+    S->>F: Search for a user
+    F->>B: GET /api/user/search?q=...
+    B-->>F: Matching users
+    S->>F: Send invitation
+    F->>B: POST /api/invitations
+    B->>DB: Store pending invitation
+    R->>F: Open invitations dialog
+    F->>B: GET /api/invitations
+    B-->>F: Received and sent invitations
+    R->>F: Accept invitation
+    F->>B: PATCH /api/invitations/:invitationId
+    B->>DB: Mark invitation accepted
+    B->>DB: Create or reuse direct conversation
+    B-->>F: Accepted invitation and conversation
+```
+
+### REST message lifecycle
+
+```mermaid
+flowchart TD
+    A["Select a conversation"] --> B["Load message history"]
+    B --> C["GET conversation messages"]
+    C --> D[("MongoDB messages")]
+    E["Compose text or emoji message"] --> F["POST new message"]
+    F --> D
+    F --> G["Update conversation lastMessage"]
+    H["Edit own text message"] --> I["PATCH message"]
+    I --> J["Set edited state and timestamp"]
+    K["Delete own message"] --> L["DELETE message"]
+    L --> M["Soft delete content"]
+    M --> N["Update lastMessage when needed"]
+    D --> O["Zustand message store"]
+    O --> P["Message bubbles and sidebar"]
+```
+
+Messages are authorized against both the conversation and authenticated
+sender. Deletion is a soft delete so the conversation history can display a
+deleted-message state without removing the database record.
+
+### Frontend component and state flow
+
+```mermaid
+flowchart LR
+    AL["ChatLayout"] --> CS["ConversationSidebar"]
+    AL --> CW["ChatWindow"]
+    CW --> MB["MessageBubble"]
+    CW --> MC["MessageComposer"]
+    MC --> EP["Emoji picker"]
+
+    AS["Authentication store"] --> AL
+    IS["Invitation store"] --> ID["InvitationsDialog"]
+    COS["Conversation store"] --> CS
+    MS["Message store"] --> CW
+    MS --> MB
+    MS --> MC
+
+    AS --> API["Axios API layer"]
+    IS --> API
+    COS --> API
+    MS --> API
+```
+
 ## Project structure
 
 ```text
@@ -117,6 +280,9 @@ ClickChat/
 - npm
 - MongoDB database or MongoDB Atlas cluster
 - Cloudinary account for profile pictures
+- Google Cloud project with the Gmail API enabled
+- Dedicated Gmail sender account
+- Google OAuth client ID, client secret, and refresh token
 
 ### 1. Clone and open the project
 
@@ -197,6 +363,8 @@ All protected requests use the JWT cookie and must include credentials.
 | `POST` | `/api/auth/login` | Log in |
 | `GET` | `/api/auth/check` | Retrieve the authenticated user |
 | `GET` | `/api/auth/logout` | Log out |
+| `GET` | `/api/auth/verify-email?token=...` | Verify an email address |
+| `POST` | `/api/auth/resend-verification` | Send a new verification link |
 
 ### Users and invitations
 
@@ -253,6 +421,23 @@ Example message body:
 - Media storage: Cloudinary
 
 Pushing to the configured production branch triggers the deployment workflow for the corresponding service.
+
+```mermaid
+flowchart TD
+    DEV["Developer pushes source code"] --> GH["GitHub repository"]
+    GH --> VE["Vercel frontend deployment"]
+    GH --> RW["Railway backend deployment"]
+    VE --> UI["ClickChat web application"]
+    UI -->|"HTTPS API requests"| RW
+    RW --> MA[("MongoDB Atlas")]
+    RW --> CL["Cloudinary"]
+    RW -->|"HTTPS OAuth request"| GO["Google OAuth server"]
+    RW -->|"HTTPS send request"| GM["Gmail REST API"]
+    GM --> IN["User inbox"]
+```
+
+The production backend uses Gmail's HTTPS API instead of SMTP, which keeps
+email delivery compatible with Railway's outbound networking restrictions.
 
 ## Project goal
 
