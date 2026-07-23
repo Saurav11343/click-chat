@@ -1,6 +1,7 @@
 import { success } from "zod";
 import Invitation from "../models/invitation.model.js";
 import User from "../models/user.model.js";
+import Conversation from "../models/conversation.model.js";
 
 export const sendInvitation = async (req, res) => {
   try {
@@ -118,22 +119,11 @@ export const respondToInvitation = async (req, res) => {
     const { invitationId } = req.params;
     const { action } = req.body;
 
-    const invitation = await Invitation.findOneAndUpdate(
-      {
-        _id: invitationId,
-        recipient: userId,
-        status: "pending",
-      },
-      {
-        status: action,
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
-      .populate("sender", "_id firstName lastName email profilePic")
-      .populate("recipient", "_id firstName lastName email profilePic");
+    const invitation = await Invitation.findOne({
+      _id: invitationId,
+      recipient: userId,
+      status: "pending",
+    });
 
     if (!invitation) {
       return res.status(404).json({
@@ -143,15 +133,65 @@ export const respondToInvitation = async (req, res) => {
       });
     }
 
+    let conversation = null;
+
+    if (action === "accepted") {
+      const participants = [invitation.sender, invitation.recipient];
+
+      const directKey = participants
+        .map((participant) => participant.toString())
+        .sort()
+        .join(":");
+
+      conversation = await Conversation.findOneAndUpdate(
+        {
+          type: "direct",
+          directKey,
+        },
+        {
+          $setOnInsert: {
+            type: "direct",
+            participants,
+            directKey,
+            createdBy: invitation.sender,
+          },
+        },
+        {
+          new: true,
+          upsert: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        },
+      ).populate(
+        "participants",
+        "_id firstName lastName email profilePic bio isOnline lastSeen",
+      );
+    }
+    
+    invitation.status = action;
+
+    await invitation.save();
+
+    await invitation.populate(
+      "sender",
+      "_id firstName lastName email profilePic",
+    );
+
+    await invitation.populate(
+      "recipient",
+      "_id firstName lastName email profilePic",
+    );
+
     const message =
       action === "accepted"
-        ? "Invitation accepted successfully."
+        ? "Invitation accepted and conversation created successfully."
         : "Invitation declined successfully.";
 
     return res.status(200).json({
       success: true,
       message,
       invitation,
+      conversation,
     });
   } catch (error) {
     console.error("Respond to invitation error:", error);

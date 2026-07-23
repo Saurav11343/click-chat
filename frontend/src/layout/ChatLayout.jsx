@@ -6,7 +6,8 @@ import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { Navbar } from "./Navbar";
 import { useInvitationStore } from "@/store/useInvitationStore";
-import { useContactStore } from "@/store/useContactStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useConversationStore } from "@/store/useConversationStore";
 
 export function ChatLayout() {
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -21,37 +22,73 @@ export function ChatLayout() {
     setSelectedConversation(null);
   };
 
-  const contacts = useContactStore((state) => state.contacts);
+  const authUser = useAuthStore((state) => state.authUser);
 
-  const getContacts = useContactStore((state) => state.getContacts);
+  const conversations = useConversationStore((state) => state.conversations);
 
-  const isLoadingContacts = useContactStore((state) => state.isLoadingContacts);
+  const getConversations = useConversationStore(
+    (state) => state.getConversations,
+  );
+
+  const isLoadingConversations = useConversationStore(
+    (state) => state.isLoadingConversations,
+  );
 
   useEffect(() => {
     getInvitations();
-    getContacts();
-  }, [getInvitations, getContacts]);
+    getConversations();
+  }, [getInvitations, getConversations]);
 
-  const contactConversations = contacts.map((contact) => {
-    const fullName = [contact.firstName, contact.lastName]
+  const sidebarConversations = conversations.map((conversation) => {
+    if (conversation.type === "group") {
+      const groupName = conversation.groupName || "Unnamed group";
+
+      return {
+        id: conversation._id,
+        conversationId: conversation._id,
+        name: groupName,
+        initials: groupName
+          .split(" ")
+          .map((word) => word.charAt(0))
+          .join("")
+          .slice(0, 2)
+          .toUpperCase(),
+        image: conversation.groupImage?.url || "",
+        lastMessage:
+          conversation.lastMessage?.content || "Group conversation created.",
+        time: "",
+        unreadCount: 0,
+        online: false,
+        isGroup: true,
+      };
+    }
+
+    const otherUser = conversation.participants.find(
+      (participant) => participant._id !== authUser?._id,
+    );
+
+    const fullName = [otherUser?.firstName, otherUser?.lastName]
       .filter(Boolean)
       .join(" ");
 
-    const initials = `${
-      contact.firstName?.charAt(0) || ""
-    }${contact.lastName?.charAt(0) || ""}`.toUpperCase();
+    const initials = `${otherUser?.firstName?.charAt(0) || ""}${
+      otherUser?.lastName?.charAt(0) || ""
+    }`.toUpperCase();
 
     return {
-      id: contact._id,
-      userId: contact._id,
+      id: conversation._id,
+      conversationId: conversation._id,
+      userId: otherUser?._id,
       name: fullName || "Unknown user",
       initials: initials || "U",
-      image: contact.profilePic?.url || "",
-      lastMessage: contact.bio || "You are now connected.",
+      image: otherUser?.profilePic?.url || "",
+      lastMessage:
+        conversation.lastMessage?.content || "Conversation created. Say hello!",
       time: "",
       unreadCount: 0,
-      online: contact.isOnline || false,
-      lastSeen: contact.lastSeen,
+      online: otherUser?.isOnline || false,
+      lastSeen: otherUser?.lastSeen,
+      isGroup: false,
     };
   });
 
@@ -66,8 +103,8 @@ export function ChatLayout() {
           }`}
         >
           <ConversationSidebar
-            conversations={contactConversations}
-            isLoading={isLoadingContacts}
+            conversations={sidebarConversations}
+            isLoading={isLoadingConversations}
             selectedConversation={selectedConversation}
             onSelectConversation={handleSelectConversation}
           />
