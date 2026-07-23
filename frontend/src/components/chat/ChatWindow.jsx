@@ -12,7 +12,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { MessageComposer } from "@/components/chat/MessageComposer";
-
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -34,6 +33,18 @@ export function ChatWindow({ selectedConversation, onBack }) {
 
   const messagesEndRef = useRef(null);
 
+  // Load messages whenever the selected
+  // conversation changes.
+  useEffect(() => {
+    if (conversationId) {
+      getMessages(conversationId);
+    } else {
+      clearMessages();
+    }
+  }, [conversationId, getMessages, clearMessages]);
+
+  // Scroll to the newest message after loading
+  // or sending a message.
   useEffect(() => {
     if (!isLoadingMessages && messages.length > 0) {
       messagesEndRef.current?.scrollIntoView({
@@ -167,6 +178,7 @@ export function ChatWindow({ selectedConversation, onBack }) {
                   />
                 );
               })}
+
               <div ref={messagesEndRef} aria-hidden="true" />
             </>
           )}
