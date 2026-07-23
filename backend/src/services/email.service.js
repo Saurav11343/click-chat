@@ -1,4 +1,4 @@
-import mailer from "../config/mailer.js";
+import gmail from "../config/gmail.js";
 import ENV from "../config/env.js";
 
 export const sendVerificationEmail = async ({ email, verificationToken }) => {
@@ -6,12 +6,7 @@ export const sendVerificationEmail = async ({ email, verificationToken }) => {
 
   verificationUrl.searchParams.set("token", verificationToken);
 
-  const info = await mailer.sendMail({
-    from: `ClickChat <${ENV.GMAIL_USER}>`,
-    to: email,
-    subject: "Verify your ClickChat email",
-    text: `Verify your ClickChat email by opening this link: ${verificationUrl.toString()}\n\nThis link expires in 24 hours.`,
-    html: `
+  const html = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
         <h2>Verify your email address</h2>
 
@@ -46,8 +41,26 @@ export const sendVerificationEmail = async ({ email, verificationToken }) => {
           If you did not create this account, you can ignore this email.
         </p>
       </div>
-    `,
+    `;
+
+  const message = [
+    `From: ClickChat <${ENV.GMAIL_USER}>`,
+    `To: ${email}`,
+    "Subject: Verify your ClickChat email",
+    "MIME-Version: 1.0",
+    'Content-Type: text/html; charset="UTF-8"',
+    "",
+    html,
+  ].join("\r\n");
+
+  const rawMessage = Buffer.from(message).toString("base64url");
+
+  const response = await gmail.users.messages.send({
+    userId: "me",
+    requestBody: {
+      raw: rawMessage,
+    },
   });
 
-  return info;
+  return response.data;
 };
