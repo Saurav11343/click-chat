@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageComposer } from "@/components/chat/MessageComposer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { MessageBubble } from "@/components/chat/MessageBubble";
 
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMessageStore } from "@/store/useMessageStore";
@@ -175,6 +176,7 @@ export function ChatWindow({ selectedConversation, onBack }) {
                     key={message._id}
                     message={message}
                     isMyMessage={isMyMessage}
+                    conversationId={conversationId}
                   />
                 );
               })}
@@ -191,49 +193,6 @@ export function ChatWindow({ selectedConversation, onBack }) {
         <MessageComposer conversationId={conversationId} />
       </footer>
     </section>
-  );
-}
-
-function MessageBubble({ message, isMyMessage }) {
-  const formattedTime = message.createdAt
-    ? new Date(message.createdAt).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "";
-
-  return (
-    <div className={`flex ${isMyMessage ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`max-w-[85%] rounded-2xl px-3 py-2.5 sm:max-w-[70%] sm:px-4 ${
-          isMyMessage
-            ? "rounded-br-md bg-primary text-primary-foreground"
-            : "rounded-bl-md border bg-background"
-        }`}
-      >
-        {message.replyTo && (
-          <div
-            className={`mb-2 rounded-lg border-l-2 px-2 py-1 text-xs ${
-              isMyMessage
-                ? "border-primary-foreground/50 bg-primary-foreground/10"
-                : "border-primary/50 bg-muted"
-            }`}
-          >
-            <p className="truncate opacity-80">{message.replyTo.content}</p>
-          </div>
-        )}
-
-        <p className="break-words text-sm leading-relaxed">{message.content}</p>
-
-        <p
-          className={`mt-1 text-right text-[10px] sm:text-[11px] ${
-            isMyMessage ? "text-primary-foreground/70" : "text-muted-foreground"
-          }`}
-        >
-          {formattedTime}
-        </p>
-      </div>
-    </div>
   );
 }
 
