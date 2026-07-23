@@ -39,10 +39,21 @@ function Login() {
   });
 
   const onSubmit = async (data) => {
-    const success = await login(data);
+    const result = await login(data);
 
-    if (success) {
+    if (result?.success) {
       navigate("/chat");
+      return;
+    }
+
+    if (result?.requiresEmailVerification) {
+      navigate("/check-email", {
+        state: {
+          email: data.email,
+          emailSent: true,
+          initialCooldown: 0,
+        },
+      });
     }
   };
 

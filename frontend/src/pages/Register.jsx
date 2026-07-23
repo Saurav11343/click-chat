@@ -40,11 +40,16 @@ function Register() {
       confirmPassword: "",
     },
   });
-
   const onSubmit = async (data) => {
-    const res = await register(data);
-    if (res) {
-      navigate("/login");
+    const result = await register(data);
+
+    if (result?.success) {
+      navigate("/check-email", {
+        state: {
+          email: data.email,
+          emailSent: result.emailSent,
+        },
+      });
     }
   };
 

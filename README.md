@@ -138,6 +138,8 @@ NODE_ENV=development
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+GMAIL_USER=your_project_gmail_address
+GMAIL_APP_PASSWORD=your_google_app_password
 ```
 
 Install dependencies and start the API:
