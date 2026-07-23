@@ -8,6 +8,7 @@ export const useAuthStore = create((set, get) => ({
   isRegisteringUp: false,
   isLoggingIn: false,
   isLoggingOut: false,
+  isResendingVerification: false,
 
   register: async (data) => {
     set({ isRegisteringUp: true });
@@ -17,7 +18,7 @@ export const useAuthStore = create((set, get) => ({
 
       if (res.data.success) {
         toast.success(res.data.message || "Registered successfully");
-        return true;
+        return res.data;
       } else {
         toast.error(res.data.message || "Registration failed");
       }
@@ -25,6 +26,43 @@ export const useAuthStore = create((set, get) => ({
       toast.error(error.response?.data?.message || "Registration failed");
     } finally {
       set({ isRegisteringUp: false });
+    }
+  },
+
+  resendVerificationEmail: async (email) => {
+    set({
+      isResendingVerification: true,
+    });
+
+    try {
+      const response = await axiosInstance.post("/auth/resend-verification", {
+        email,
+      });
+
+      toast.success(
+        response.data.message || "A new verification email has been sent.",
+      );
+
+      return {
+        success: true,
+        retryAfter: 60,
+      };
+    } catch (error) {
+      const retryAfter = error.response?.data?.retryAfter || 0;
+
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to resend the verification email.",
+      );
+
+      return {
+        success: false,
+        retryAfter,
+      };
+    } finally {
+      set({
+        isResendingVerification: false,
+      });
     }
   },
 
@@ -36,13 +74,30 @@ export const useAuthStore = create((set, get) => ({
 
       if (res.data.success) {
         await get().checkAuth();
+
         toast.success(res.data.message || "Login successful");
-        return true;
-      } else {
-        toast.error(res.data.message || "Login Failed");
+
+        return {
+          success: true,
+        };
       }
+
+      toast.error(res.data.message || "Login failed");
+
+      return {
+        success: false,
+        requiresEmailVerification: false,
+      };
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
+      const errorData = error.response?.data;
+
+      toast.error(errorData?.message || "Login failed");
+
+      return {
+        success: false,
+        requiresEmailVerification:
+          errorData?.requiresEmailVerification || false,
+      };
     } finally {
       set({ isLoggingIn: false });
     }

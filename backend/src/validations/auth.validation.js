@@ -54,3 +54,14 @@ export const loginSchema = z.object({
   email: z.email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
 });
+
+export const verifyEmailSchema = z.object({
+  token: z
+    .string()
+    .trim()
+    .regex(/^[a-fA-F0-9]{64}$/, "Invalid verification token"),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+});

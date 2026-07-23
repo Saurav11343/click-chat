@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SendHorizontal, Smile } from "lucide-react";
 
 import EmojiPicker, { EmojiStyle, Theme } from "emoji-picker-react";
@@ -10,6 +10,7 @@ import { useMessageStore } from "@/store/useMessageStore";
 export function MessageComposer({ conversationId }) {
   const [content, setContent] = useState("");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const emojiPickerRef = useRef(null);
 
   const isSendingMessage = useMessageStore((state) => state.isSendingMessage);
 
@@ -21,6 +22,27 @@ export function MessageComposer({ conversationId }) {
     setContent("");
     setIsEmojiPickerOpen(false);
   }, [conversationId]);
+
+  useEffect(() => {
+    if (!isEmojiPickerOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target)
+      ) {
+        setIsEmojiPickerOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, [isEmojiPickerOpen]);
 
   const handleEmojiClick = (emojiData) => {
     setContent((currentContent) => {
@@ -50,36 +72,37 @@ export function MessageComposer({ conversationId }) {
       onSubmit={handleSubmit}
       className="relative mx-auto flex max-w-4xl items-center gap-2"
     >
-      {isEmojiPickerOpen && (
-        <div className="absolute bottom-full left-0 z-50 mb-2">
-          <EmojiPicker
-            onEmojiClick={handleEmojiClick}
-            emojiStyle={EmojiStyle.NATIVE}
-            theme={Theme.AUTO}
-            width="min(350px, calc(100vw - 2rem))"
-            height={400}
-            lazyLoadEmojis
-            previewConfig={{
-              showPreview: false,
-            }}
-          />
-        </div>
-      )}
+      <div ref={emojiPickerRef} className="relative shrink-0">
+        {isEmojiPickerOpen && (
+          <div className="absolute bottom-full left-0 z-50 mb-2">
+            <EmojiPicker
+              onEmojiClick={handleEmojiClick}
+              emojiStyle={EmojiStyle.NATIVE}
+              theme={Theme.AUTO}
+              width="min(350px, calc(100vw - 2rem))"
+              height={400}
+              lazyLoadEmojis
+              previewConfig={{
+                showPreview: false,
+              }}
+            />
+          </div>
+        )}
 
-      <Button
-        type="button"
-        size="icon"
-        variant="ghost"
-        disabled={!conversationId || isSendingMessage}
-        onClick={() => setIsEmojiPickerOpen((currentValue) => !currentValue)}
-        className="shrink-0"
-        aria-label={
-          isEmojiPickerOpen ? "Close emoji picker" : "Open emoji picker"
-        }
-        aria-expanded={isEmojiPickerOpen}
-      >
-        <Smile className="size-5" />
-      </Button>
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          disabled={!conversationId || isSendingMessage}
+          onClick={() => setIsEmojiPickerOpen((currentValue) => !currentValue)}
+          aria-label={
+            isEmojiPickerOpen ? "Close emoji picker" : "Open emoji picker"
+          }
+          aria-expanded={isEmojiPickerOpen}
+        >
+          <Smile className="size-5" />
+        </Button>
+      </div>
 
       <Input
         type="text"

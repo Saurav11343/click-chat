@@ -9,6 +9,8 @@ import Chat from "../pages/Chat";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Spinner } from "@/components/ui/spinner";
 import Profile from "@/pages/Profile";
+import VerifyEmail from "../pages/VerifyEmail";
+import CheckEmail from "../pages/CheckEmail";
 
 function AppRoutes() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -50,6 +52,16 @@ function AppRoutes() {
       <Route
         path="/profile"
         element={authUser ? <Profile /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/verify-email"
+        element={authUser ? <Navigate to="/chat" replace /> : <VerifyEmail />}
+      />
+
+      <Route
+        path="/check-email"
+        element={authUser ? <Navigate to="/chat" replace /> : <CheckEmail />}
       />
     </Routes>
   );

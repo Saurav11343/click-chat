@@ -25,6 +25,28 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    emailVerificationToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    emailVerificationExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    emailVerificationSentAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
 
     dateOfBirth: {
       type: Date,
