@@ -1,4 +1,5 @@
 import Conversation from "../models/conversation.model.js";
+import "../models/message.model.js";
 
 export const getConversations = async (req, res) => {
   try {
@@ -12,6 +13,7 @@ export const getConversations = async (req, res) => {
       .populate("createdBy", "_id firstName lastName")
       .populate("groupAdmins", "_id firstName lastName")
       .sort({ updatedAt: -1 })
+      .populate("lastMessage")
       .lean();
 
     return res.status(200).json({
