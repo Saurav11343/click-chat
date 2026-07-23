@@ -1,11 +1,18 @@
 import express from "express";
 import { getConversations } from "../controllers/conversation.controller.js";
-import { getMessages, sendMessage } from "../controllers/message.controller.js";
+import {
+  getMessages,
+  sendMessage,
+  editMessage,
+  deleteMessage,
+} from "../controllers/message.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 import {
   conversationIdSchema,
   sendMessageSchema,
+  messageParamsSchema,
+  editMessageSchema,
 } from "../validations/message.validation.js";
 
 const router = express.Router();
@@ -25,6 +32,19 @@ router.post(
   validate(conversationIdSchema, "params"),
   validate(sendMessageSchema),
   sendMessage,
+);
+
+router.patch(
+  "/:conversationId/messages/:messageId",
+  validate(messageParamsSchema, "params"),
+  validate(editMessageSchema),
+  editMessage,
+);
+
+router.delete(
+  "/:conversationId/messages/:messageId",
+  validate(messageParamsSchema, "params"),
+  deleteMessage,
 );
 
 export default router;

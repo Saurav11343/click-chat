@@ -35,7 +35,12 @@ const messageSchema = new mongoose.Schema(
 
     content: {
       type: String,
-      required: [true, "Message content is required"],
+      required: [
+        function () {
+          return !this.isDeleted;
+        },
+        "Message content is required",
+      ],
       trim: true,
       maxlength: [5000, "Message cannot exceed 5000 characters"],
     },
@@ -66,6 +71,15 @@ const messageSchema = new mongoose.Schema(
     },
 
     editedAt: {
+      type: Date,
+      default: null,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
       type: Date,
       default: null,
     },

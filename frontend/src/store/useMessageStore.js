@@ -9,6 +9,8 @@ export const useMessageStore = create((set, get) => ({
   activeConversationId: null,
   isLoadingMessages: false,
   isSendingMessage: false,
+  editingMessageId: null,
+  deletingMessageId: null,
 
   getMessages: async (conversationId) => {
     set({
@@ -88,5 +90,86 @@ export const useMessageStore = create((set, get) => ({
       activeConversationId: null,
       isLoadingMessages: false,
     });
+  },
+
+  editMessage: async (conversationId, messageId, content) => {
+    set({
+      editingMessageId: messageId,
+    });
+
+    try {
+      const response = await axiosInstance.patch(
+        `/conversations/${conversationId}/messages/${messageId}`,
+        {
+          content,
+        },
+      );
+
+      const updatedMessage = response.data.data;
+
+      set((state) => ({
+        messages: state.messages.map((message) =>
+          message._id === messageId
+            ? {
+                ...message,
+                ...updatedMessage,
+              }
+            : message,
+        ),
+      }));
+
+      await useConversationStore.getState().getConversations();
+
+      toast.success(response.data.message || "Message edited successfully.");
+
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to edit message.");
+
+      return false;
+    } finally {
+      set({
+        editingMessageId: null,
+      });
+    }
+  },
+
+  deleteMessage: async (conversationId, messageId) => {
+    set({
+      deletingMessageId: messageId,
+    });
+
+    try {
+      const response = await axiosInstance.delete(
+        `/conversations/${conversationId}/messages/${messageId}`,
+      );
+
+      const deletedMessage = response.data.data;
+
+      set((state) => ({
+        messages: state.messages.map((message) =>
+          message._id === messageId
+            ? {
+                ...message,
+                ...deletedMessage,
+              }
+            : message,
+        ),
+      }));
+
+      await useConversationStore.getState().getConversations();
+
+      toast.success(response.data.message || "Message deleted successfully.");
+
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to delete message.");
+
+      return false;
+    } finally {
+      set({
+        deletingMessageId: null,
+      });
+    }
   },
 }));
