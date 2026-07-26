@@ -10,6 +10,9 @@ import { useInvitationStore } from "@/store/useInvitationStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useConversationStore } from "@/store/useConversationStore";
 
+import { socket } from "@/lib/socket";
+import { useMessageStore } from "@/store/useMessageStore";
+
 export function ChatLayout() {
   const [selectedConversation, setSelectedConversation] = useState(null);
 
@@ -27,11 +30,31 @@ export function ChatLayout() {
     (state) => state.isLoadingConversations,
   );
 
+  const addIncomingMessage = useMessageStore(
+    (state) => state.addIncomingMessage,
+  );
+
   useEffect(() => {
     getInvitations();
     getConversations();
   }, [getInvitations, getConversations]);
 
+  useEffect(() => {
+    const handleNewMessage = (message) => {
+      console.log("New socket message:", message);
+
+      addIncomingMessage(message);
+
+      getConversations();
+    };
+
+    socket.on("message:new", handleNewMessage);
+
+    return () => {
+      socket.off("message:new", handleNewMessage);
+    };
+  }, [addIncomingMessage, getConversations]);
+  
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
   };

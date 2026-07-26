@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getIO } from "../socket/socket.js";
 
 const senderFields = "_id firstName lastName profilePic";
 
@@ -75,6 +76,15 @@ export const sendMessage = async (req, res) => {
 
     await populateMessage(message);
 
+    const io = getIO();
+
+    const recipientIds = conversation.participants.filter(
+      (participantId) => participantId.toString() !== senderId.toString(),
+    );
+
+    for (const recipientId of recipientIds) {
+      io.to(`user:${recipientId.toString()}`).emit("message:new", message);
+    }
     return res.status(201).json({
       success: true,
       message: "Message sent successfully.",
