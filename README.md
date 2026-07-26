@@ -1,8 +1,8 @@
 # ClickChat
 
-ClickChat is a full-stack chat application built with the MERN stack. It currently supports secure authentication, user invitations, direct conversations, persistent text messages, emoji input, and message editing and deletion through a responsive interface.
+ClickChat is a full-stack real-time chat application built with the MERN stack and Socket.IO. It currently supports secure authentication, user invitations, direct conversations, persistent text messages, emoji input, real-time delivery of new messages, and message editing and deletion through a responsive interface.
 
-The project is being developed as a Master's project and as a foundation for future real-time communication with Socket.IO.
+The project is being developed as a Master's project and is being expanded incrementally toward production-style presence, messaging, and attachment features.
 
 ## Live demo
 
@@ -45,6 +45,9 @@ The project is being developed as a Master's project and as a foundation for fut
 - Conversation sidebar with real user information
 - Persistent MongoDB message history
 - Send and retrieve text messages through REST APIs
+- Receive newly saved messages in real time through Socket.IO
+- Authenticated Socket.IO connections using the existing HTTP-only JWT cookie
+- Private per-user socket rooms with support for multiple tabs or devices
 - Display the latest message in the conversation list
 - Emoji picker in the message composer
 - Edit your own text messages
@@ -73,6 +76,7 @@ The project is being developed as a Master's project and as a foundation for fut
 - Tailwind CSS
 - shadcn/ui and Radix UI
 - emoji-picker-react
+- Socket.IO Client
 
 ### Backend
 
@@ -82,6 +86,8 @@ The project is being developed as a Master's project and as a foundation for fut
 - Zod
 - Multer and Cloudinary
 - Gmail REST API and Google OAuth 2.0
+- Socket.IO with authenticated user rooms
+- `cookie` for parsing the Socket.IO handshake cookie
 
 ## System architecture
 
@@ -89,11 +95,15 @@ The project is being developed as a Master's project and as a foundation for fut
 flowchart LR
     U["User browser"] --> F["React + Vite frontend"]
     F -->|"HTTPS REST requests"| B["Express API"]
+    F <-->|"Authenticated Socket.IO connection"| S["Socket.IO server"]
     B --> A["JWT authentication middleware"]
     B --> V["Zod validation middleware"]
     B --> DB[("MongoDB Atlas")]
     B --> C["Cloudinary media storage"]
     B --> G["Gmail REST API"]
+    S --> SA["Socket authentication middleware"]
+    S --> UR["Private user rooms"]
+    B -->|"Emit saved messages"| S
     G --> R["Recipient email inbox"]
 
     subgraph FS["Frontend state"]
@@ -106,8 +116,14 @@ flowchart LR
 ```
 
 The frontend communicates with the backend through Axios with credentials
-enabled. The backend validates requests, authorizes protected resources, and
-coordinates persistence and external services.
+enabled. REST remains responsible for validation, authorization, persistence,
+uploads, and error responses. After a new message is successfully saved, the
+backend uses Socket.IO to deliver it to the recipient's private user room.
+
+Socket connections are authenticated separately from Express routes because
+they use a different middleware pipeline. Both pipelines verify the same
+HTTP-only JWT cookie. Authenticated sockets join a `user:<userId>` room, which
+allows all active tabs and devices belonging to that user to receive events.
 
 ## Core workflows
 
@@ -195,28 +211,38 @@ sequenceDiagram
     B-->>F: Accepted invitation and conversation
 ```
 
-### REST message lifecycle
+### Real-time message lifecycle
 
 ```mermaid
-flowchart TD
-    A["Select a conversation"] --> B["Load message history"]
-    B --> C["GET conversation messages"]
-    C --> D[("MongoDB messages")]
-    E["Compose text or emoji message"] --> F["POST new message"]
-    F --> D
-    F --> G["Update conversation lastMessage"]
-    H["Edit own text message"] --> I["PATCH message"]
-    I --> J["Set edited state and timestamp"]
-    K["Delete own message"] --> L["DELETE message"]
-    L --> M["Soft delete content"]
-    M --> N["Update lastMessage when needed"]
-    D --> O["Zustand message store"]
-    O --> P["Message bubbles and sidebar"]
+sequenceDiagram
+    actor S as Sender
+    participant SF as Sender frontend
+    participant B as Express backend
+    participant DB as MongoDB
+    participant IO as Socket.IO
+    participant RF as Recipient frontend
+
+    S->>SF: Compose text or emoji message
+    SF->>B: POST conversation message
+    B->>B: Authenticate and validate request
+    B->>DB: Save message and update lastMessage
+    DB-->>B: Saved message
+    B->>IO: Emit message:new to recipient room
+    IO-->>RF: Deliver message:new
+    RF->>RF: Update Zustand stores and UI
+    B-->>SF: Return saved message
+    SF->>SF: Update Zustand stores and UI
 ```
 
 Messages are authorized against both the conversation and authenticated
-sender. Deletion is a soft delete so the conversation history can display a
-deleted-message state without removing the database record.
+sender. MongoDB remains the source of truth: Socket.IO announces a message only
+after it has been saved successfully. The sender receives the saved message in
+the REST response, while other participants receive `message:new` through their
+private rooms. Duplicate insertion is prevented using the MongoDB message ID.
+
+Editing and deletion remain persisted through REST. Deletion is a soft delete
+so the conversation history can display a deleted-message state without
+removing the database record. Real-time edit and delete events are planned next.
 
 ### Frontend component and state flow
 
@@ -234,6 +260,8 @@ flowchart LR
     MS["Message store"] --> CW
     MS --> MB
     MS --> MC
+    SO["Socket.IO client"] -->|"message:new"| MS
+    SO -->|"refresh latest message"| COS
 
     AS --> API["Axios API layer"]
     IS --> API
@@ -266,6 +294,7 @@ ClickChat/
 |   |   |-- models/
 |   |   |-- routes/
 |   |   |-- services/
+|   |   |-- socket/
 |   |   |-- utils/
 |   |   `-- validations/
 |   `-- package.json
@@ -276,7 +305,7 @@ ClickChat/
 
 ### Prerequisites
 
-- Node.js
+- Node.js 22 or newer
 - npm
 - MongoDB database or MongoDB Atlas cluster
 - Cloudinary account for profile pictures
@@ -355,6 +384,14 @@ Open `http://localhost:5173` in your browser.
 
 All protected requests use the JWT cookie and must include credentials.
 
+Socket.IO connections use the same JWT cookie during the handshake. After
+authentication, each socket joins a private `user:<userId>` room. The currently
+implemented server-to-client event is:
+
+| Event | Direction | Description |
+| --- | --- | --- |
+| `message:new` | Server to client | Deliver a newly saved message to other conversation participants |
+
 ### Authentication
 
 | Method | Endpoint | Description |
@@ -397,18 +434,23 @@ Example message body:
 
 ## Current limitations
 
-- New messages do not yet appear instantly for another user; the application currently uses REST requests and refresh-based retrieval.
+- Message edits and deletions are persisted but are not yet broadcast in real time.
+- Online/offline presence fields exist in the user model, but socket-based presence tracking is not implemented yet.
+- Typing indicators, read receipts, and unread counts are not implemented yet.
+- Attachments, GIF selection, and voice recording are not implemented yet.
 - Group-conversation fields exist in the data model, but the complete group-chat workflow is not implemented yet.
-- Socket.IO packages are installed, but real-time events are not integrated yet.
 
 ## Roadmap
 
-- Socket.IO real-time message delivery
+- Real-time message editing and deletion events
+- Online/offline presence with multi-tab connection tracking
+- Last-seen updates with a reconnect grace period
 - Reply to messages
 - Group chat creation and management
 - Typing indicators
 - Read receipts and unread counts
-- Media and document sharing
+- Image, media, and document sharing
+- GIF picker and voice messages
 - Message search
 - Notifications
 - Voice and video calling
@@ -441,4 +483,4 @@ email delivery compatible with Railway's outbound networking restrictions.
 
 ## Project goal
 
-ClickChat demonstrates secure authentication, REST API design, maintainable frontend state management, responsive React development, cloud media storage, and an incremental path toward a production-style real-time chat application.
+ClickChat demonstrates secure authentication, REST API design, authenticated real-time communication, maintainable frontend state management, responsive React development, cloud media storage, and an incremental path toward a production-style chat application.
