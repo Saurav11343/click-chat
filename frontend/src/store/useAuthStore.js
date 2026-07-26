@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { axiosInstance } from "@/api/axios";
 import { toast } from "sonner";
 
+import { socket } from "@/lib/socket";
+
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isCheckingAuth: false,
@@ -108,11 +110,14 @@ export const useAuthStore = create((set, get) => ({
 
     try {
       const res = await axiosInstance.get("/auth/logout");
-      set({
-        authUser: null,
-      });
 
       if (res.data.success) {
+        socket.disconnect();
+
+        set({
+          authUser: null,
+        });
+
         toast.success(res.data.message || "Logout successful");
         return true;
       } else {
@@ -137,8 +142,14 @@ export const useAuthStore = create((set, get) => ({
         authUser: res.data.user,
       });
 
+      if (!socket.connected) {
+        socket.connect();
+      }
+
       return true;
     } catch (error) {
+      socket.disconnect();
+
       set({
         authUser: null,
       });
