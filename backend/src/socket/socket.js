@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
-import { parseCookie  } from "cookie";
-import jwt, { decode } from "jsonwebtoken";
+import { parseCookie } from "cookie";
+import jwt from "jsonwebtoken";
 
 import ENV from "../config/env.js";
 import User from "../models/user.model.js";
@@ -9,7 +9,7 @@ let io;
 
 const authenticateSocket = async (socket, next) => {
   try {
-    const cookies = parseCookie (socket.handshake.headers.cookie || "");
+    const cookies = parseCookie(socket.handshake.headers.cookie || "");
     const token = cookies.jwt;
 
     if (!token) {

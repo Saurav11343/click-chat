@@ -83,6 +83,25 @@ export const useMessageStore = create((set, get) => ({
       });
     }
   },
+  
+  addIncomingMessage: (incomingMessage) => {
+    set((state) => {
+      const alreadyExists = state.messages.some(
+        (message) => message._id === incomingMessage._id,
+      );
+
+      const belongsToActiveConversation =
+        state.activeConversationId === incomingMessage.conversation;
+
+      if (alreadyExists || !belongsToActiveConversation) {
+        return {};
+      }
+
+      return {
+        messages: [...state.messages, incomingMessage],
+      };
+    });
+  },
 
   clearMessages: () => {
     set({
