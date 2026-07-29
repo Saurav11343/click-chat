@@ -17,14 +17,13 @@ export function ConversationSidebar({
   isLoading = false,
 }) {
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col bg-background md:border-r">
-      <div className="flex min-h-20 shrink-0 items-center justify-between gap-3 px-4 py-3">
+    <aside className="flex h-full min-h-0 w-full flex-col bg-background">
+      <div className="flex min-h-22 shrink-0 items-center justify-between gap-3 px-4 py-4 sm:px-5">
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold">Conversations</h1>
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Your inbox</p>
+          <h1 className="mt-1 truncate text-xl font-semibold tracking-tight">Messages</h1>
 
-          <p className="truncate text-sm text-muted-foreground">
-            Your recent messages
-          </p>
+          <p className="sr-only">Your recent conversations</p>
         </div>
         <div className="flex items-center gap-2">
           <InvitationsDialog />
@@ -34,7 +33,7 @@ export function ConversationSidebar({
               type="button"
               size="icon"
               aria-label="Start a new conversation"
-              className="shrink-0"
+              className="shrink-0 rounded-xl"
             >
               <MessageSquarePlus className="size-4" />
             </Button>
@@ -45,7 +44,7 @@ export function ConversationSidebar({
       <Separator />
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className="space-y-1 p-2">
+        <div className="space-y-1.5 p-3">
           {isLoading ? (
             <ContactsLoadingState />
           ) : conversations.length === 0 ? (
@@ -59,14 +58,14 @@ export function ConversationSidebar({
                   key={conversation.id}
                   type="button"
                   onClick={() => onSelectConversation(conversation)}
-                  className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  className={`group/conversation flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     isSelected
-                      ? "bg-muted"
-                      : "hover:bg-muted/60 active:bg-muted"
+                      ? "bg-primary/8 shadow-sm ring-1 ring-primary/15"
+                      : "hover:bg-muted/70 active:scale-[0.99] active:bg-muted"
                   }`}
                 >
                   <div className="relative shrink-0">
-                    <Avatar className="size-11 sm:size-12">
+                    <Avatar className="size-11 ring-2 ring-background sm:size-12">
                       <AvatarImage
                         src={conversation.image}
                         alt={conversation.name}
@@ -77,13 +76,13 @@ export function ConversationSidebar({
                     </Avatar>
 
                     {conversation.online && !conversation.isGroup && (
-                      <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-background bg-green-500" />
+                      <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
                     )}
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-medium sm:text-[15px]">
+                      <p className="truncate text-sm font-semibold sm:text-[15px]">
                         {conversation.name}
                       </p>
 
@@ -92,7 +91,7 @@ export function ConversationSidebar({
                       </span>
                     </div>
 
-                    <div className="mt-1 flex items-center justify-between gap-2">
+                    <div className="mt-0.5 flex items-center justify-between gap-2">
                       <p
                         className={`truncate text-sm ${
                           conversation.unreadCount > 0
@@ -126,7 +125,7 @@ function ContactsLoadingState() {
       {[1, 2, 3].map((item) => (
         <div
           key={item}
-          className="flex animate-pulse items-center gap-3 rounded-xl p-3"
+          className="flex animate-pulse items-center gap-3 rounded-2xl p-3"
         >
           <div className="size-12 shrink-0 rounded-full bg-muted" />
 
@@ -142,9 +141,9 @@ function ContactsLoadingState() {
 
 function EmptyContactsState() {
   return (
-    <div className="flex min-h-64 flex-col items-center justify-center px-6 text-center">
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-muted">
-        <MessageSquarePlus className="size-7 text-muted-foreground" />
+    <div className="flex min-h-72 flex-col items-center justify-center px-6 text-center">
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/10">
+        <MessageSquarePlus className="size-7" />
       </div>
 
       <h3 className="mt-4 font-medium">No contacts yet</h3>

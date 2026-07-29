@@ -76,10 +76,10 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
       className={`group flex ${isMyMessage ? "justify-end" : "justify-start"}`}
     >
       <div
-        className={`relative max-w-[85%] rounded-2xl px-3 py-2.5 sm:max-w-[70%] sm:px-4 ${
+        className={`relative max-w-[86%] rounded-2xl px-3.5 py-2.5 shadow-sm sm:max-w-[72%] sm:px-4 ${
           isMyMessage
-            ? "rounded-br-md bg-primary text-primary-foreground"
-            : "rounded-bl-md border bg-background"
+            ? "rounded-br-sm bg-primary text-primary-foreground shadow-primary/10"
+            : "rounded-bl-sm bg-background ring-1 ring-foreground/8"
         }`}
       >
         {isMyMessage && !message.isDeleted && !isEditing && (
@@ -175,12 +175,12 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
             </Button>
           </form>
         ) : (
-          <p className="break-words text-sm leading-relaxed">
+          <p className="break-words text-[13px] leading-relaxed sm:text-sm">
             {message.content}
           </p>
         )}
 
-        <div className="mt-1 flex items-center justify-end gap-1.5">
+        <div className="mt-1.5 flex items-center justify-end gap-1.5">
           {message.isEdited && !message.isDeleted && (
             <span
               className={`text-[10px] ${
