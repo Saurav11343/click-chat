@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 
 import {
   ArrowLeft,
@@ -157,27 +157,34 @@ export function ChatWindow({ selectedConversation, onBack }) {
             <EmptyMessagesState />
           ) : (
             <>
-              <div className="my-2 flex justify-center">
-                <span className="rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground">
-                  Messages
-                </span>
-              </div>
-
-              {messages.map((message) => {
+              {messages.map((message, index) => {
                 const senderId =
                   typeof message.sender === "string"
                     ? message.sender
                     : message.sender?._id;
 
                 const isMyMessage = senderId === authUser?._id;
+                const previousMessage = messages[index - 1];
+                const showDateSeparator =
+                  !previousMessage ||
+                  !isSameDay(previousMessage.createdAt, message.createdAt);
 
                 return (
-                  <MessageBubble
-                    key={message._id}
-                    message={message}
-                    isMyMessage={isMyMessage}
-                    conversationId={conversationId}
-                  />
+                  <Fragment key={message._id}>
+                    {showDateSeparator && (
+                      <div className="my-2 flex justify-center">
+                        <span className="rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+                          {formatMessageDate(message.createdAt)}
+                        </span>
+                      </div>
+                    )}
+
+                    <MessageBubble
+                      message={message}
+                      isMyMessage={isMyMessage}
+                      conversationId={conversationId}
+                    />
+                  </Fragment>
                 );
               })}
 
@@ -194,6 +201,47 @@ export function ChatWindow({ selectedConversation, onBack }) {
       </footer>
     </section>
   );
+}
+
+function isSameDay(firstValue, secondValue) {
+  const firstDate = new Date(firstValue);
+  const secondDate = new Date(secondValue);
+
+  if (
+    Number.isNaN(firstDate.getTime()) ||
+    Number.isNaN(secondDate.getTime())
+  ) {
+    return false;
+  }
+
+  return firstDate.toDateString() === secondDate.toDateString();
+}
+
+function formatMessageDate(value) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown date";
+  }
+
+  const today = new Date();
+  const yesterday = new Date(today);
+
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return "Today";
+  }
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+
+  return date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    year: date.getFullYear() === today.getFullYear() ? undefined : "numeric",
+  });
 }
 
 function formatLastSeen(value) {
