@@ -67,7 +67,7 @@ const authenticateSocket = async (socket, next) => {
 export const initializeSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
-      origin: ENV.CLIENT_URL,
+      origin: [ENV.CLIENT_URL, "http://localhost", "https://localhost"],
       credentials: true,
     },
   });
