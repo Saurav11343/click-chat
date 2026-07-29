@@ -23,6 +23,23 @@ const populateMessage = async (message) => {
   return message;
 };
 
+const emitToOtherParticipants = ({
+  conversation,
+  senderId,
+  event,
+  payload,
+}) => {
+  const io = getIO();
+
+  const recipientIds = conversation.participants.filter(
+    (participantId) => participantId.toString() !== senderId.toString(),
+  );
+
+  for (const recipientId of recipientIds) {
+    io.to(`user:${recipientId.toString()}`).emit(event, payload);
+  }
+};
+
 export const sendMessage = async (req, res) => {
   try {
     const senderId = req.user._id;
@@ -76,15 +93,13 @@ export const sendMessage = async (req, res) => {
 
     await populateMessage(message);
 
-    const io = getIO();
+    emitToOtherParticipants({
+      conversation,
+      senderId,
+      event: "message:new",
+      payload: message,
+    });
 
-    const recipientIds = conversation.participants.filter(
-      (participantId) => participantId.toString() !== senderId.toString(),
-    );
-
-    for (const recipientId of recipientIds) {
-      io.to(`user:${recipientId.toString()}`).emit("message:new", message);
-    }
     return res.status(201).json({
       success: true,
       message: "Message sent successfully.",
@@ -162,6 +177,17 @@ export const editMessage = async (req, res) => {
 
     const { content } = req.body;
 
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: userId,
+    }).select("participants lastMessage");
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found or you are not a participant.",
+      });
+    }
     const message = await Message.findOne({
       _id: messageId,
       conversation: conversationId,
@@ -197,6 +223,13 @@ export const editMessage = async (req, res) => {
     await message.save();
 
     await populateMessage(message);
+
+    emitToOtherParticipants({
+      conversation,
+      senderId: userId,
+      event: "message:updated",
+      payload: message,
+    });
 
     return res.status(200).json({
       success: true,
@@ -246,22 +279,14 @@ export const deleteMessage = async (req, res) => {
       participants: userId,
     });
 
-    if (conversation?.lastMessage?.toString() === messageId) {
-      const previousMessage = await Message.findOne({
-        conversation: conversationId,
-        isDeleted: false,
-      })
-        .sort({
-          createdAt: -1,
-        })
-        .select("_id");
-
-      conversation.lastMessage = previousMessage?._id || null;
-
-      await conversation.save();
-    }
-
     await populateMessage(message);
+
+    emitToOtherParticipants({
+      conversation,
+      senderId: userId,
+      event: "message:deleted",
+      payload: message,
+    });
 
     return res.status(200).json({
       success: true,
