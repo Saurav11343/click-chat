@@ -7,7 +7,7 @@ import Register from "../pages/Register";
 import Chat from "../pages/Chat";
 
 import { useAuthStore } from "@/store/useAuthStore";
-import { Spinner } from "@/components/ui/spinner";
+import { AppLoadingScreen } from "@/components/AppLoadingScreen";
 import Profile from "@/pages/Profile";
 import VerifyEmail from "../pages/VerifyEmail";
 import CheckEmail from "../pages/CheckEmail";
@@ -20,11 +20,7 @@ function AppRoutes() {
   }, [checkAuth]);
 
   if (isCheckingAuth) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spinner />
-      </div>
-    );
+    return <AppLoadingScreen />;
   }
 
   return (
