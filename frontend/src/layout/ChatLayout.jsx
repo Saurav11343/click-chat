@@ -14,11 +14,19 @@ import { socket } from "@/lib/socket";
 import { useMessageStore } from "@/store/useMessageStore";
 
 export function ChatLayout() {
-  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [selectedConversationId, setSelectedConversationId] = useState(null);
 
   const authUser = useAuthStore((state) => state.authUser);
 
   const getInvitations = useInvitationStore((state) => state.getInvitations);
+
+  const addIncomingInvitation = useInvitationStore(
+    (state) => state.addIncomingInvitation,
+  );
+
+  const applyInvitationResponse = useInvitationStore(
+    (state) => state.applyInvitationResponse,
+  );
 
   const conversations = useConversationStore((state) => state.conversations);
 
@@ -28,6 +36,10 @@ export function ChatLayout() {
 
   const syncLastMessage = useConversationStore(
     (state) => state.syncLastMessage,
+  );
+
+  const updateParticipantPresence = useConversationStore(
+    (state) => state.updateParticipantPresence,
   );
 
   const isLoadingConversations = useConversationStore(
@@ -61,23 +73,48 @@ export function ChatLayout() {
       syncLastMessage(message);
     };
 
+    const handlePresenceUpdate = (presence) => {
+      updateParticipantPresence(presence);
+    };
+
+    const handleNewInvitation = (invitation) => {
+      addIncomingInvitation(invitation);
+    };
+
+    const handleInvitationResponse = (payload) => {
+      applyInvitationResponse(payload);
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("message:updated", handleUpdatedMessage);
     socket.on("message:deleted", handleDeletedMessage);
+    socket.on("presence:update", handlePresenceUpdate);
+    socket.on("invitation:new", handleNewInvitation);
+    socket.on("invitation:responded", handleInvitationResponse);
 
     return () => {
       socket.off("message:new", handleNewMessage);
       socket.off("message:updated", handleUpdatedMessage);
       socket.off("message:deleted", handleDeletedMessage);
+      socket.off("presence:update", handlePresenceUpdate);
+      socket.off("invitation:new", handleNewInvitation);
+      socket.off("invitation:responded", handleInvitationResponse);
     };
-  }, [addIncomingMessage, replaceMessage, syncLastMessage]);
+  }, [
+    addIncomingMessage,
+    replaceMessage,
+    syncLastMessage,
+    updateParticipantPresence,
+    addIncomingInvitation,
+    applyInvitationResponse,
+  ]);
 
   const handleSelectConversation = (conversation) => {
-    setSelectedConversation(conversation);
+    setSelectedConversationId(conversation.id);
   };
 
   const handleBackToConversations = () => {
-    setSelectedConversation(null);
+    setSelectedConversationId(null);
   };
 
   const sidebarConversations = conversations.map((conversation) => {
@@ -142,6 +179,11 @@ export function ChatLayout() {
       isGroup: false,
     };
   });
+
+  const selectedConversation =
+    sidebarConversations.find(
+      (conversation) => conversation.id === selectedConversationId,
+    ) || null;
 
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-background">

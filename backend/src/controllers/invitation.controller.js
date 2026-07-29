@@ -1,7 +1,10 @@
-import { success } from "zod";
 import Invitation from "../models/invitation.model.js";
 import User from "../models/user.model.js";
 import Conversation from "../models/conversation.model.js";
+import { getIO } from "../socket/socket.js";
+
+const invitationUserFields =
+  "_id firstName lastName email profilePic bio isOnline lastSeen";
 
 export const sendInvitation = async (req, res) => {
   try {
@@ -57,9 +60,17 @@ export const sendInvitation = async (req, res) => {
       recipient: recipientId,
     });
 
+    await invitation.populate("sender", invitationUserFields);
+    await invitation.populate("recipient", invitationUserFields);
+
+    const io = getIO();
+
+    io.to(`user:${recipientId}`).emit("invitation:new", invitation);
+
     return res.status(201).json({
       success: true,
       message: "Invitation sent successfully",
+      invitation,
     });
   } catch (error) {
     console.error("Send invitation error:", error);
@@ -172,14 +183,17 @@ export const respondToInvitation = async (req, res) => {
 
     await invitation.save();
 
-    await invitation.populate(
-      "sender",
-      "_id firstName lastName email profilePic",
-    );
+    await invitation.populate("sender", invitationUserFields);
+    await invitation.populate("recipient", invitationUserFields);
 
-    await invitation.populate(
-      "recipient",
-      "_id firstName lastName email profilePic",
+    const io = getIO();
+
+    io.to(`user:${invitation.sender._id.toString()}`).emit(
+      "invitation:responded",
+      {
+        invitation,
+        conversation,
+      },
     );
 
     const message =
