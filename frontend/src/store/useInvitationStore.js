@@ -12,6 +12,45 @@ export const useInvitationStore = create((set, get) => ({
   isLoadingInvitations: false,
   respondingToInvitationId: null,
 
+  addIncomingInvitation: (invitation) => {
+    if (!invitation?._id) {
+      return;
+    }
+
+    set((state) => {
+      const alreadyExists = state.receivedInvitations.some(
+        (item) => item._id === invitation._id,
+      );
+
+      if (alreadyExists) {
+        return {};
+      }
+
+      return {
+        receivedInvitations: [invitation, ...state.receivedInvitations],
+      };
+    });
+  },
+
+  applyInvitationResponse: ({ invitation, conversation }) => {
+    if (!invitation?._id) {
+      return;
+    }
+
+    set((state) => ({
+      receivedInvitations: state.receivedInvitations.filter(
+        (item) => item._id !== invitation._id,
+      ),
+      sentInvitations: state.sentInvitations.filter(
+        (item) => item._id !== invitation._id,
+      ),
+    }));
+
+    if (invitation.status === "accepted" && conversation) {
+      useConversationStore.getState().addConversation(conversation);
+    }
+  },
+
   sendInvitation: async (recipientId) => {
     set({ isSendingInvitation: true, sendingToUserId: recipientId });
 
@@ -20,8 +59,20 @@ export const useInvitationStore = create((set, get) => ({
         recipientId,
       });
 
+      const invitation = response.data.invitation;
+
+      if (invitation) {
+        set((state) => ({
+          sentInvitations: [
+            invitation,
+            ...state.sentInvitations.filter(
+              (item) => item._id !== invitation._id,
+            ),
+          ],
+        }));
+      }
+
       toast.success(response.data.message || "Invitation sent successfully");
-      await get().getInvitations();
 
       return true;
     } catch (error) {
@@ -80,11 +131,10 @@ export const useInvitationStore = create((set, get) => ({
         response.data.message || "Invitation updated successfully.",
       );
 
-      await get().getInvitations();
-
-      if (action === "accepted") {
-        await useConversationStore.getState().getConversations();
-      }
+      get().applyInvitationResponse({
+        invitation: response.data.invitation,
+        conversation: response.data.conversation,
+      });
 
       return true;
     } catch (error) {

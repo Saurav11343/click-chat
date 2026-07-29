@@ -7,6 +7,21 @@ export const useConversationStore = create((set) => ({
   conversations: [],
   isLoadingConversations: false,
 
+  addConversation: (conversation) => {
+    if (!conversation?._id) {
+      return;
+    }
+
+    set((state) => ({
+      conversations: [
+        conversation,
+        ...state.conversations.filter(
+          (item) => item._id !== conversation._id,
+        ),
+      ],
+    }));
+  },
+
   syncLastMessage: (message, { isNew = false } = {}) => {
     set((state) => {
       const conversationIndex = state.conversations.findIndex(
@@ -48,6 +63,24 @@ export const useConversationStore = create((set) => ({
         ),
       };
     });
+  },
+
+  updateParticipantPresence: ({ userId, isOnline, lastSeen }) => {
+    set((state) => ({
+      conversations: state.conversations.map((conversation) => ({
+        ...conversation,
+
+        participants: conversation.participants.map((participant) =>
+          participant._id === userId
+            ? {
+                ...participant,
+                isOnline,
+                lastSeen,
+              }
+            : participant,
+        ),
+      })),
+    }));
   },
 
   getConversations: async () => {

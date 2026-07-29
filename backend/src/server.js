@@ -3,12 +3,25 @@ import { createServer } from "node:http";
 import app from "./app.js";
 import connectDB from "./config/db.js";
 import ENV from "./config/env.js";
+import User from "./models/user.model.js";
 
 import { initializeSocket } from "./socket/socket.js";
 
 const startServers = async () => {
   try {
     await connectDB();
+
+    await User.updateMany(
+      {
+        isOnline: true,
+      },
+      {
+        $set: {
+          isOnline: false,
+          lastSeen: new Date(),
+        },
+      },
+    );
 
     const httpServer = createServer(app);
     initializeSocket(httpServer);

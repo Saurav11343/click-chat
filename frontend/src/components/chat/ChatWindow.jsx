@@ -99,7 +99,7 @@ export function ChatWindow({ selectedConversation, onBack }) {
                   ? "Group conversation"
                   : selectedConversation.online
                     ? "Online"
-                    : "Offline"}
+                    : formatLastSeen(selectedConversation.lastSeen)}
               </p>
             </div>
           </div>
@@ -196,6 +196,36 @@ export function ChatWindow({ selectedConversation, onBack }) {
   );
 }
 
+function formatLastSeen(value) {
+  if (!value) {
+    return "Offline";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Offline";
+  }
+
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+
+  const formattedTime = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  if (isToday) {
+    return `Last seen today at ${formattedTime}`;
+  }
+
+  const formattedDate = date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+  });
+
+  return `Last seen ${formattedDate} at ${formattedTime}`;
+}
 function MessagesLoadingState() {
   return (
     <div className="flex flex-1 items-center justify-center py-12">
