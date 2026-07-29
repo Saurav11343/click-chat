@@ -1,15 +1,11 @@
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema } from "@/validations/auth.validation";
-import { MessageCircle } from "lucide-react";
+import { Eye, EyeOff, LogIn } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
-import { useAuthStore } from "@/store/useAuthStore";
-import { Spinner } from "@/components/ui/spinner";
-
+import AuthShell from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 import {
   Card,
   CardContent,
@@ -17,17 +13,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { useAuthStore } from "@/store/useAuthStore";
+import { loginSchema } from "@/validations/auth.validation";
 
 function Login() {
   const navigate = useNavigate();
   const { login, isLoggingIn } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -58,81 +58,88 @@ function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <Link to="/" className="mx-auto mb-3">
-            <div className="bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-full transition-opacity hover:opacity-80">
-              <MessageCircle />
-            </div>
-          </Link>
-
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>
-            Login to continue chatting with your friends.
+    <AuthShell>
+      <Card className="w-full max-w-md gap-0 rounded-3xl border-0 py-0 shadow-2xl shadow-primary/5 ring-1 ring-foreground/10">
+        <CardHeader className="px-6 pb-6 pt-8 text-center sm:px-8 sm:pt-10">
+          <span className="mx-auto mb-4 flex size-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+            <LogIn className="size-5" />
+          </span>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Welcome back</CardTitle>
+          <CardDescription className="text-base">
+            Enter your details to continue to your conversations.
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="px-6 pb-8 sm:px-8 sm:pb-10">
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <FieldGroup>
+            <FieldGroup className="gap-5">
               <Controller
                 name="email"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <FieldLabel htmlFor="email">Email address</FieldLabel>
                     <Input
                       {...field}
                       id="email"
                       type="email"
-                      placeholder="john@example.com"
+                      placeholder="you@example.com"
                       aria-invalid={fieldState.invalid}
                       autoComplete="email"
+                      className="h-11 rounded-xl"
                     />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
               />
+
               <Controller
                 name="password"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input
-                      {...field}
-                      id="password"
-                      type="password"
-                      placeholder="********"
-                      aria-invalid={fieldState.invalid}
-                      autoComplete="current-password"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        aria-invalid={fieldState.invalid}
+                        autoComplete="current-password"
+                        className="h-11 rounded-xl pr-11"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        onClick={() => setShowPassword((visible) => !visible)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </Button>
+                    </div>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
               />
-              <Button className="w-full" type="submit" disabled={isLoggingIn}>
-                {isLoggingIn ? <Spinner className="h-5 w-5" /> : "Login"}
+
+              <Button className="h-11 w-full rounded-xl" type="submit" disabled={isLoggingIn}>
+                {isLoggingIn ? <Spinner className="size-5" /> : "Log in"}
               </Button>
-              <p className="text-muted-foreground text-center text-sm">
-                Don't have an account?{" "}
-                <Link
-                  to="/register"
-                  className="text-primary font-medium hover:underline"
-                >
-                  Register
+
+              <p className="text-center text-sm text-muted-foreground">
+                New to ClickChat?{" "}
+                <Link to="/register" className="font-medium text-foreground underline-offset-4 hover:underline">
+                  Create an account
                 </Link>
               </p>
             </FieldGroup>
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }
 

@@ -20,11 +20,6 @@ export function MessageComposer({ conversationId }) {
   const trimmedContent = content.trim();
 
   useEffect(() => {
-    setContent("");
-    setIsEmojiPickerOpen(false);
-  }, [conversationId]);
-
-  useEffect(() => {
     if (!isEmojiPickerOpen) {
       return;
     }
@@ -111,7 +106,7 @@ export function MessageComposer({ conversationId }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="relative mx-auto flex max-w-4xl items-center gap-2"
+      className="relative mx-auto flex max-w-5xl items-center gap-1.5 rounded-2xl border bg-muted/50 p-1.5 shadow-sm focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/15"
     >
       <div ref={emojiPickerRef} className="relative shrink-0">
         {isEmojiPickerOpen && (
@@ -140,6 +135,7 @@ export function MessageComposer({ conversationId }) {
             isEmojiPickerOpen ? "Close emoji picker" : "Open emoji picker"
           }
           aria-expanded={isEmojiPickerOpen}
+          className="rounded-xl"
         >
           <Smile className="size-5" />
         </Button>
@@ -154,7 +150,7 @@ export function MessageComposer({ conversationId }) {
         maxLength={5000}
         disabled={!conversationId || isSendingMessage}
         autoComplete="off"
-        className="min-h-11 flex-1"
+        className="min-h-10 flex-1 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0 dark:bg-transparent"
         aria-label="Message"
       />
 
@@ -162,7 +158,7 @@ export function MessageComposer({ conversationId }) {
         type="submit"
         size="icon"
         disabled={!trimmedContent || !conversationId || isSendingMessage}
-        className="shrink-0"
+        className="shrink-0 rounded-xl"
         aria-label="Send message"
       >
         <SendHorizontal className="size-4" />

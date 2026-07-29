@@ -50,7 +50,7 @@ export function InvitationsDialog() {
           type="button"
           variant="outline"
           size="icon"
-          className="relative shrink-0"
+          className="relative shrink-0 rounded-xl"
           aria-label="View chat invitations"
         >
           <Mail className="size-4" />
@@ -63,9 +63,9 @@ export function InvitationsDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="flex max-h-[85dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <DialogHeader className="border-b px-5 py-4">
-          <DialogTitle>Chat invitations</DialogTitle>
+      <DialogContent className="flex max-h-[85dvh] flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-lg">
+        <DialogHeader className="border-b bg-muted/35 px-5 py-5">
+          <DialogTitle className="text-xl tracking-tight">Chat invitations</DialogTitle>
 
           <DialogDescription>
             Accept or decline invitations from other users.
@@ -86,7 +86,7 @@ export function InvitationsDialog() {
                   </h3>
 
                   {receivedInvitations.length === 0 ? (
-                    <p className="rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground">
+                    <p className="rounded-2xl border border-dashed bg-muted/20 p-5 text-center text-sm text-muted-foreground">
                       No received invitations.
                     </p>
                   ) : (
@@ -111,7 +111,7 @@ export function InvitationsDialog() {
                   </h3>
 
                   {sentInvitations.length === 0 ? (
-                    <p className="rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground">
+                    <p className="rounded-2xl border border-dashed bg-muted/20 p-5 text-center text-sm text-muted-foreground">
                       No sent invitations.
                     </p>
                   ) : (
@@ -146,7 +146,7 @@ function InvitationItem({ invitation, isResponding, onRespond }) {
   }${sender?.lastName?.charAt(0) || ""}`.toUpperCase();
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
+    <div className="flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-sm">
       <Avatar className="size-11 shrink-0 border">
         <AvatarImage
           src={sender?.profilePic?.url || ""}
@@ -171,6 +171,7 @@ function InvitationItem({ invitation, isResponding, onRespond }) {
         <Button
           type="button"
           size="icon"
+          className="rounded-xl"
           disabled={isResponding}
           onClick={() => onRespond(invitation._id, "accepted")}
           aria-label={`Accept invitation from ${fullName}`}
@@ -182,6 +183,7 @@ function InvitationItem({ invitation, isResponding, onRespond }) {
           type="button"
           size="icon"
           variant="outline"
+          className="rounded-xl"
           disabled={isResponding}
           onClick={() => onRespond(invitation._id, "declined")}
           aria-label={`Decline invitation from ${fullName}`}
@@ -193,21 +195,6 @@ function InvitationItem({ invitation, isResponding, onRespond }) {
   );
 }
 
-function EmptyInvitations() {
-  return (
-    <div className="flex min-h-64 flex-col items-center justify-center px-6 text-center">
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-muted">
-        <Mail className="size-7 text-muted-foreground" />
-      </div>
-
-      <h3 className="mt-4 font-medium">No pending invitations</h3>
-
-      <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-        New chat invitations will appear here.
-      </p>
-    </div>
-  );
-}
 function SentInvitationItem({ invitation }) {
   const recipient = invitation.recipient;
 
@@ -220,7 +207,7 @@ function SentInvitationItem({ invitation }) {
   }${recipient?.lastName?.charAt(0) || ""}`.toUpperCase();
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
+    <div className="flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-sm">
       <Avatar className="size-11 shrink-0 border">
         <AvatarImage
           src={recipient?.profilePic?.url || ""}

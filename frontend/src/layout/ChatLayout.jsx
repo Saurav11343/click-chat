@@ -186,12 +186,12 @@ export function ChatLayout() {
     ) || null;
 
   return (
-    <div className="flex h-dvh w-full flex-col overflow-hidden bg-background">
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-muted/30">
       <Navbar />
 
-      <main className="relative flex min-h-0 flex-1 overflow-hidden">
+      <main className="relative flex min-h-0 flex-1 gap-3 overflow-hidden md:p-3">
         <div
-          className={`h-full w-full md:block md:w-[340px] lg:w-[360px] xl:w-[380px] ${
+          className={`h-full w-full overflow-hidden bg-background md:block md:w-[340px] md:rounded-2xl md:shadow-sm md:ring-1 md:ring-foreground/10 lg:w-[360px] xl:w-[390px] ${
             selectedConversation ? "hidden" : "block"
           }`}
         >
@@ -204,7 +204,7 @@ export function ChatLayout() {
         </div>
 
         <div
-          className={`h-full min-w-0 flex-1 md:block ${
+          className={`h-full min-w-0 flex-1 overflow-hidden bg-background md:block md:rounded-2xl md:shadow-sm md:ring-1 md:ring-foreground/10 ${
             selectedConversation ? "block" : "hidden"
           }`}
         >

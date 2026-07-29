@@ -60,21 +60,22 @@ export function ChatWindow({ selectedConversation, onBack }) {
   }
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-col bg-muted/20">
-      <header className="flex min-h-16 shrink-0 items-center justify-between gap-2 bg-background px-2 sm:px-4 lg:px-5">
+    <section className="flex h-full min-h-0 min-w-0 flex-col bg-muted/25">
+      <header className="flex min-h-18 shrink-0 items-center justify-between gap-2 bg-background/95 px-2 backdrop-blur-xl sm:px-5">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="shrink-0 md:hidden"
+            className="shrink-0 rounded-xl md:hidden"
             aria-label="Back to conversations"
           >
             <ArrowLeft className="size-5" />
           </Button>
 
-          <Avatar className="size-9 shrink-0 sm:size-10">
+          <div className="relative shrink-0">
+          <Avatar className="size-10 ring-2 ring-background sm:size-11">
             <AvatarImage
               src={selectedConversation.image}
               alt={selectedConversation.name}
@@ -83,17 +84,17 @@ export function ChatWindow({ selectedConversation, onBack }) {
 
             <AvatarFallback>{selectedConversation.initials}</AvatarFallback>
           </Avatar>
+          {selectedConversation.online && !selectedConversation.isGroup && (
+            <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
+          )}
+          </div>
 
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold sm:text-base">
+            <h2 className="truncate text-sm font-semibold tracking-tight sm:text-base">
               {selectedConversation.name}
             </h2>
 
             <div className="flex items-center gap-1.5">
-              {selectedConversation.online && !selectedConversation.isGroup && (
-                <span className="size-2 shrink-0 rounded-full bg-green-500" />
-              )}
-
               <p className="truncate text-xs text-muted-foreground">
                 {selectedConversation.isGroup
                   ? "Group conversation"
@@ -111,7 +112,7 @@ export function ChatWindow({ selectedConversation, onBack }) {
             variant="ghost"
             size="icon"
             aria-label="Search messages"
-            className="hidden sm:inline-flex"
+            className="hidden rounded-xl sm:inline-flex"
           >
             <Search className="size-4" />
           </Button>
@@ -121,7 +122,7 @@ export function ChatWindow({ selectedConversation, onBack }) {
             variant="ghost"
             size="icon"
             aria-label="Start audio call"
-            className="hidden sm:inline-flex"
+            className="hidden rounded-xl sm:inline-flex"
           >
             <Phone className="size-4" />
           </Button>
@@ -131,15 +132,16 @@ export function ChatWindow({ selectedConversation, onBack }) {
             variant="ghost"
             size="icon"
             aria-label="Start video call"
-            className="hidden md:inline-flex"
+            className="hidden rounded-xl md:inline-flex"
           >
             <Video className="size-4" />
           </Button>
 
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
+          variant="ghost"
+          size="icon"
+          className="rounded-xl"
             aria-label="Conversation options"
           >
             <EllipsisVertical className="size-5" />
@@ -149,8 +151,8 @@ export function ChatWindow({ selectedConversation, onBack }) {
 
       <Separator />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5">
-        <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col justify-end gap-3">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-[radial-gradient(circle_at_50%_0%,color-mix(in_oklab,var(--primary)_4%,transparent),transparent_35%)] px-3 py-5 sm:px-6">
+        <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col justify-end gap-2.5">
           {isLoadingMessages ? (
             <MessagesLoadingState />
           ) : messages.length === 0 ? (
@@ -172,10 +174,12 @@ export function ChatWindow({ selectedConversation, onBack }) {
                 return (
                   <Fragment key={message._id}>
                     {showDateSeparator && (
-                      <div className="my-2 flex justify-center">
-                        <span className="rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+                      <div className="my-3 flex items-center gap-3">
+                        <span className="h-px flex-1 bg-border/70" />
+                        <span className="rounded-full border bg-background/90 px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm">
                           {formatMessageDate(message.createdAt)}
                         </span>
+                        <span className="h-px flex-1 bg-border/70" />
                       </div>
                     )}
 
@@ -196,8 +200,8 @@ export function ChatWindow({ selectedConversation, onBack }) {
 
       <Separator />
 
-      <footer className="shrink-0 bg-background p-2 sm:p-4">
-        <MessageComposer conversationId={conversationId} />
+      <footer className="shrink-0 bg-background/95 p-2.5 backdrop-blur-xl sm:p-4">
+        <MessageComposer key={conversationId} conversationId={conversationId} />
       </footer>
     </section>
   );
@@ -300,17 +304,17 @@ function EmptyMessagesState() {
 
 function EmptyChat() {
   return (
-    <section className="hidden h-full min-h-0 min-w-0 items-center justify-center bg-muted/20 p-6 md:flex">
-      <div className="max-w-md text-center">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+    <section className="relative hidden h-full min-h-0 min-w-0 items-center justify-center overflow-hidden bg-muted/25 p-6 md:flex">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--primary)_7%,transparent),transparent_38%)]" />
+      <div className="relative max-w-md text-center">
+        <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/15">
           <SendHorizontal className="size-8" />
         </div>
 
-        <h2 className="mt-5 text-2xl font-semibold">Welcome to ClickChat</h2>
+        <h2 className="mt-6 text-2xl font-semibold tracking-tight">Your conversations, one click away</h2>
 
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Select a conversation from the sidebar to start chatting with your
-          friends and groups.
+          Choose a conversation from the sidebar and pick up exactly where you left off.
         </p>
       </div>
     </section>

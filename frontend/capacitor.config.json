@@ -1,8 +1,5 @@
 {
   "appId": "com.clickchat.app",
   "appName": "Click Chat",
-  "webDir": "dist",
-  "server": {
-    "androidScheme": "http"
-  }
+  "webDir": "dist"
 }

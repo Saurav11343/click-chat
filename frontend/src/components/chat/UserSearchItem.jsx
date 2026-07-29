@@ -22,7 +22,7 @@ export function UserSearchItem({
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ");
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-muted/40">
+    <div className="flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-muted/35">
       <Avatar className="size-11 shrink-0 border">
         <AvatarImage
           src={profilePicUrl}
@@ -50,7 +50,7 @@ export function UserSearchItem({
       <Button
         type="button"
         size="sm"
-        className="shrink-0"
+        className="shrink-0 rounded-xl"
         onClick={() => onInvite(user)}
         disabled={isInviting || isPending}
       >

@@ -160,16 +160,16 @@ export function NewChatDialog({ children }) {
         )}
       </DialogTrigger>
 
-      <DialogContent className="flex max-h-[85dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <DialogHeader className="border-b px-5 py-4">
-          <DialogTitle>Start a new chat</DialogTitle>
+      <DialogContent className="flex max-h-[85dvh] flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-lg">
+        <DialogHeader className="border-b bg-muted/35 px-5 py-5">
+          <DialogTitle className="text-xl tracking-tight">Start a new chat</DialogTitle>
 
           <DialogDescription>
             Search for another user by name or email.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="border-b p-4">
+        <div className="border-b bg-background p-4">
           <form onSubmit={(event) => event.preventDefault()}>
             <FieldGroup>
               <Controller
@@ -192,7 +192,7 @@ export function NewChatDialog({ children }) {
                         autoComplete="off"
                         autoFocus
                         aria-invalid={fieldState.invalid}
-                        className="h-11 pl-9 pr-10"
+                        className="h-11 rounded-xl bg-muted/40 pl-9 pr-10"
                       />
 
                       {field.value && (

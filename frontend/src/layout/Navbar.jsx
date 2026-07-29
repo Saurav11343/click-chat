@@ -65,14 +65,14 @@ export function Navbar() {
   };
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background px-3 sm:px-5">
+    <header className="z-20 flex h-16 shrink-0 items-center justify-between border-b bg-background/90 px-3 shadow-sm backdrop-blur-xl sm:px-5 lg:px-6">
       <div className="flex min-w-0 items-center gap-4 lg:gap-8">
         <button
           type="button"
           onClick={() => navigate("/chat")}
-          className="flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex min-w-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
         >
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
             <MessageCircleMore className="size-5" />
           </div>
 
@@ -87,13 +87,23 @@ export function Navbar() {
           </div>
         </button>
 
-        <nav className="hidden items-center gap-1 md:flex">
-          <Button type="button" variant="secondary" size="sm">
+        <nav className="hidden items-center gap-1 rounded-xl bg-muted/65 p-1 ring-1 ring-foreground/5 md:flex">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="h-8 rounded-lg bg-background px-3 shadow-sm hover:bg-background"
+          >
             <MessageCircleMore className="size-4" />
             Chats
           </Button>
 
-          <Button type="button" variant="ghost" size="sm">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 rounded-lg px-3"
+          >
             <UsersRound className="size-4" />
             Groups
           </Button>
@@ -106,6 +116,7 @@ export function Navbar() {
           type="button"
           variant="ghost"
           size="icon"
+          className="rounded-xl"
           aria-label="Notifications"
         >
           <Bell className="size-5" />
@@ -116,10 +127,10 @@ export function Navbar() {
             <Button
               type="button"
               variant="ghost"
-              className="h-auto gap-2 px-1.5 py-1.5 sm:px-2"
+              className="h-11 gap-2 rounded-xl border border-transparent px-1.5 py-1.5 hover:border-border hover:bg-muted/60 sm:px-2.5"
               aria-label="Open user menu"
             >
-              <Avatar className="size-9 border">
+              <Avatar className="size-9 overflow-hidden border">
                 <AvatarImage
                   src={profilePicUrl}
                   alt={
@@ -149,10 +160,14 @@ export function Navbar() {
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" sideOffset={8} className="w-64">
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex items-center gap-3 py-1">
-                <Avatar className="size-11 border">
+          <DropdownMenuContent
+            align="end"
+            sideOffset={8}
+            className="w-64 rounded-2xl p-2 shadow-xl"
+          >
+            <DropdownMenuLabel className="rounded-xl bg-muted/45 p-3 font-normal">
+              <div className="flex items-center gap-3">
+                <Avatar className="size-11 overflow-hidden border">
                   <AvatarImage
                     src={profilePicUrl}
                     alt={
@@ -178,10 +193,10 @@ export function Navbar() {
               </div>
             </DropdownMenuLabel>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="my-2" />
 
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer rounded-lg"
               onSelect={handleProfileNavigation}
             >
               <UserRound className="size-4" />
@@ -189,17 +204,17 @@ export function Navbar() {
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer rounded-lg"
               onSelect={handleSettingsNavigation}
             >
               <Settings className="size-4" />
               Settings
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="my-2" />
 
             <DropdownMenuItem
-              className="cursor-pointer text-destructive focus:text-destructive"
+              className="cursor-pointer rounded-lg text-destructive focus:text-destructive"
               disabled={isLoggingOut}
               onSelect={(event) => {
                 event.preventDefault();
