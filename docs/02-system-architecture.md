@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-    U["Browser user"] -->|"HTTPS"| V["React 19 + Vite on Vercel"]
+    U["Desktop or mobile browser"] -->|"HTTPS"| V["React 19 + Vite on Vercel"]
     V -->|"REST with credentials"| E["Express 5 API on Railway"]
     V <-->|"Authenticated Socket.IO"| S["Socket.IO server"]
     E --> M[("MongoDB Atlas")]
@@ -29,6 +29,7 @@ flowchart LR
 | Component | Responsibilities |
 | --- | --- |
 | React frontend | Routing, forms, responsive UI, local state, REST calls, and socket event handling |
+| App loading screen | Replaces the application routes while the initial authentication check is in progress |
 | Axios client | Sends API requests to `VITE_API_URL/api` with cookies enabled |
 | Zustand stores | Own authentication, invitation, conversation, message, and profile-update state |
 | Express API | Routing, validation, authentication, authorization, persistence, upload handling, and responses |
@@ -127,6 +128,7 @@ The single-process server stores socket counts and timers in memory. MongoDB sto
 ```mermaid
 flowchart LR
     AR["AppRoutes"] --> AS["useAuthStore"]
+    AR --> LS["AppLoadingScreen"]
     CL["ChatLayout"] --> IS["useInvitationStore"]
     CL --> CS["useConversationStore"]
     CW["ChatWindow"] --> MS["useMessageStore"]
@@ -161,3 +163,8 @@ flowchart TD
 ```
 
 Vercel rewrites frontend routes to `/` so React Router can handle direct navigation. Railway runs `node src/server.js`. The current presence algorithm assumes one Railway backend process.
+
+The maintained deployment targets are:
+
+- Web application: `https://clickchat-ldrp.vercel.app/`
+- Backend API and Socket.IO server: `https://click-chat-production.up.railway.app/`

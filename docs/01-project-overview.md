@@ -59,7 +59,9 @@ flowchart LR
 - JWT authentication through an HTTP-only cookie.
 - Protected frontend routes and persistent authentication checks.
 - Profile display and Cloudinary profile-picture replacement.
+- Drag-and-drop or file-picker profile-image selection with immediate upload, local validation, progress feedback, and automatic dialog closure after success.
 - Light, dark, and system theme support.
+- A branded responsive landing page, shared authentication shell, application loading screen, chat dashboard, and account profile interface built from reusable shadcn/Radix primitives.
 
 #### Invitations and contacts
 
@@ -98,7 +100,7 @@ flowchart LR
 | --- | --- |
 | Security | HTTP-only JWT, password hashing, hashed verification tokens, authorization checks, validation, and rate limiting |
 | Consistency | MongoDB is updated before real-time message events are emitted |
-| Responsiveness | Mobile/desktop layouts, loading states, local Zustand updates, and targeted socket events |
+| Responsiveness | Mobile/desktop layouts, a full-screen authentication loader, local Zustand updates, and targeted socket events |
 | Maintainability | MVC-style backend, dedicated services and validation, feature stores, and reusable UI components |
 | Availability | Vercel frontend, Railway backend, MongoDB Atlas, Cloudinary, and Gmail REST API |
 | Scalability | Suitable for one backend instance; distributed presence and Socket.IO require Redis later |
@@ -113,3 +115,7 @@ flowchart LR
 - Chat attachments, GIFs, and voice messages.
 - Push notifications, message search, and calling.
 - Redis-backed multi-instance presence and Socket.IO fan-out.
+
+## Maintained platforms
+
+The maintained repository contains the browser-based React frontend and Node.js backend. An Android APK was produced during an earlier Capacitor experiment, but the generated Android project and Capacitor configuration are no longer part of the source tree. Native packaging is therefore outside the current documented build workflow.

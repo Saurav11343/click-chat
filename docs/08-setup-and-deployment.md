@@ -92,6 +92,8 @@ npm run dev
 
 Open `http://localhost:5173`.
 
+The maintained source tree is web-only. It does not include an Android project or Capacitor build scripts, so the commands above are the complete supported local workflow.
+
 ## Available commands
 
 | Directory | Command | Purpose |
@@ -127,6 +129,13 @@ Resetting presence at startup is correct for the current single backend instance
 
 ## Cloud deployment
 
+### Current production endpoints
+
+| Service | URL |
+| --- | --- |
+| Web application | [https://clickchat-ldrp.vercel.app/](https://clickchat-ldrp.vercel.app/) |
+| Backend API and Socket.IO | [https://click-chat-production.up.railway.app/](https://click-chat-production.up.railway.app/) |
+
 | Layer | Service | Configuration |
 | --- | --- | --- |
 | Frontend | Vercel | Vite build; `vercel.json` rewrites all paths to `/` for React Router |
@@ -153,3 +162,5 @@ flowchart LR
 5. Verify the Gmail refresh token belongs to the configured sender.
 6. Verify MongoDB and Cloudinary network/credential configuration.
 7. Test registration, email verification, login, profile upload, invitation, messaging, and presence after deployment.
+
+The backend CORS configuration also permits `http://localhost` and `https://localhost` for compatibility with the previously installed experimental APK. Those origins do not mean the Android/Capacitor source is maintained in this repository.

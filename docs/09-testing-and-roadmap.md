@@ -55,6 +55,17 @@
 | Reconnect within five seconds | Offline timer is cancelled; no flicker |
 | Backend restarts | Stale online flags reset; reconnecting clients become online again |
 
+### Interface and profile
+
+| Scenario | Expected result |
+| --- | --- |
+| Initial authentication check | Branded full-screen loader remains visible until the check completes |
+| Responsive landing/auth pages | Content remains usable without horizontal overflow on mobile and desktop |
+| Theme change | Landing, authentication, dashboard, dialogs, and profile use the selected theme consistently |
+| Valid profile image selection | Upload starts immediately and the dialog closes after success |
+| Invalid profile image | Unsupported type or image over 5 MB is rejected before upload |
+| Upload in progress | Dialog cannot be dismissed accidentally and progress state remains visible |
+
 ## Recommended automated test architecture
 
 ```mermaid
@@ -86,6 +97,7 @@ flowchart TD
 | Attachments | Upload helpers and message types exist; message routes/UI are incomplete | Text/emoji only |
 | Presence scale | Counts/timers are process-local | Single backend instance only |
 | Testing | No automated suite | Regression risk grows with new features |
+| Platform packaging | Android/Capacitor source is not maintained in this repository | New APK builds require a separate packaging phase later |
 | Security | Password recovery, session management, blocking/reporting, and security headers are incomplete | Not ready for broad public production use |
 
 ## Prioritized roadmap

@@ -28,6 +28,10 @@ This directory contains the detailed technical documentation for ClickChat. The 
 | Deployment | Setup and deployment |
 | Limitations and future work | Testing and roadmap |
 
+## Current repository scope
+
+These documents describe the maintained web frontend and backend in the current branch. Generated Android/Capacitor files from the earlier APK experiment have been removed and are not part of the supported project structure or build instructions.
+
 ## Documentation rule
 
 When a feature changes, update the relevant detailed page first, then update the short feature list or roadmap in the root README. Document only behavior present in the current branch; describe prepared schema fields or services as partial support rather than completed features.
