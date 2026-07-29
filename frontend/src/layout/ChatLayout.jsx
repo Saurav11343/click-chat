@@ -26,6 +26,10 @@ export function ChatLayout() {
     (state) => state.getConversations,
   );
 
+  const syncLastMessage = useConversationStore(
+    (state) => state.syncLastMessage,
+  );
+
   const isLoadingConversations = useConversationStore(
     (state) => state.isLoadingConversations,
   );
@@ -34,6 +38,8 @@ export function ChatLayout() {
     (state) => state.addIncomingMessage,
   );
 
+  const replaceMessage = useMessageStore((state) => state.replaceMessage);
+
   useEffect(() => {
     getInvitations();
     getConversations();
@@ -41,20 +47,31 @@ export function ChatLayout() {
 
   useEffect(() => {
     const handleNewMessage = (message) => {
-      console.log("New socket message:", message);
-
       addIncomingMessage(message);
+      syncLastMessage(message, { isNew: true });
+    };
 
-      getConversations();
+    const handleUpdatedMessage = (message) => {
+      replaceMessage(message);
+      syncLastMessage(message);
+    };
+
+    const handleDeletedMessage = (message) => {
+      replaceMessage(message);
+      syncLastMessage(message);
     };
 
     socket.on("message:new", handleNewMessage);
+    socket.on("message:updated", handleUpdatedMessage);
+    socket.on("message:deleted", handleDeletedMessage);
 
     return () => {
       socket.off("message:new", handleNewMessage);
+      socket.off("message:updated", handleUpdatedMessage);
+      socket.off("message:deleted", handleDeletedMessage);
     };
-  }, [addIncomingMessage, getConversations]);
-  
+  }, [addIncomingMessage, replaceMessage, syncLastMessage]);
+
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
   };
@@ -81,8 +98,9 @@ export function ChatLayout() {
         name: groupName,
         initials: initials || "G",
         image: conversation.groupImage?.url || "",
-        lastMessage:
-          conversation.lastMessage?.content || "Group conversation created.",
+        lastMessage: conversation.lastMessage?.isDeleted
+          ? "Message deleted"
+          : conversation.lastMessage?.content || "Group conversation created.",
         time: formatConversationTime(
           conversation.lastMessage?.createdAt || conversation.updatedAt,
         ),
@@ -111,8 +129,10 @@ export function ChatLayout() {
       name: fullName || "Unknown user",
       initials: initials || "U",
       image: otherUser?.profilePic?.url || "",
-      lastMessage:
-        conversation.lastMessage?.content || "Conversation created. Say hello!",
+      lastMessage: conversation.lastMessage?.isDeleted
+        ? "Message deleted"
+        : conversation.lastMessage?.content ||
+          "Conversation created. Say hello!",
       time: formatConversationTime(
         conversation.lastMessage?.createdAt || conversation.updatedAt,
       ),

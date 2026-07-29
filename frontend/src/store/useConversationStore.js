@@ -7,6 +7,49 @@ export const useConversationStore = create((set) => ({
   conversations: [],
   isLoadingConversations: false,
 
+  syncLastMessage: (message, { isNew = false } = {}) => {
+    set((state) => {
+      const conversationIndex = state.conversations.findIndex(
+        (conversation) => conversation._id === message.conversation,
+      );
+
+      if (conversationIndex === -1) {
+        return {};
+      }
+
+      const conversation = state.conversations[conversationIndex];
+
+      if (!isNew && conversation.lastMessage?._id !== message._id) {
+        return {};
+      }
+
+      const updatedConversation = {
+        ...conversation,
+        lastMessage: {
+          ...conversation.lastMessage,
+          ...message,
+        },
+      };
+
+      if (isNew) {
+        return {
+          conversations: [
+            updatedConversation,
+            ...state.conversations.filter(
+              (item) => item._id !== conversation._id,
+            ),
+          ],
+        };
+      }
+
+      return {
+        conversations: state.conversations.map((item) =>
+          item._id === conversation._id ? updatedConversation : item,
+        ),
+      };
+    });
+  },
+
   getConversations: async () => {
     set({ isLoadingConversations: true });
 

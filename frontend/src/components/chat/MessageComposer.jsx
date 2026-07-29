@@ -11,6 +11,7 @@ export function MessageComposer({ conversationId }) {
   const [content, setContent] = useState("");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const emojiPickerRef = useRef(null);
+  const messageInputRef = useRef(null);
 
   const isSendingMessage = useMessageStore((state) => state.isSendingMessage);
 
@@ -43,6 +44,46 @@ export function MessageComposer({ conversationId }) {
       document.removeEventListener("pointerdown", handleClickOutside);
     };
   }, [isEmojiPickerOpen]);
+
+  useEffect(() => {
+    if (!conversationId) {
+      return;
+    }
+
+    const handleEnterToFocus = (event) => {
+      if (
+        event.key !== "Enter" ||
+        event.defaultPrevented ||
+        event.isComposing ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      const isInteractiveTarget =
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.closest(
+            "input, textarea, select, button, a, [role='button'], [role='dialog'], [role='alertdialog'], [role='menu'], [role='menuitem'], [role='option']",
+          ));
+
+      if (isInteractiveTarget) {
+        return;
+      }
+
+      event.preventDefault();
+      messageInputRef.current?.focus();
+    };
+
+    window.addEventListener("keydown", handleEnterToFocus);
+
+    return () => {
+      window.removeEventListener("keydown", handleEnterToFocus);
+    };
+  }, [conversationId]);
 
   const handleEmojiClick = (emojiData) => {
     setContent((currentContent) => {
@@ -105,6 +146,7 @@ export function MessageComposer({ conversationId }) {
       </div>
 
       <Input
+        ref={messageInputRef}
         type="text"
         value={content}
         onChange={(event) => setContent(event.target.value)}

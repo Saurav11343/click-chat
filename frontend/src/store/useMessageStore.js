@@ -70,7 +70,9 @@ export const useMessageStore = create((set, get) => ({
         }));
       }
 
-      await useConversationStore.getState().getConversations();
+      useConversationStore
+        .getState()
+        .syncLastMessage(newMessage, { isNew: true });
 
       return true;
     } catch (error) {
@@ -83,7 +85,7 @@ export const useMessageStore = create((set, get) => ({
       });
     }
   },
-  
+
   addIncomingMessage: (incomingMessage) => {
     set((state) => {
       const alreadyExists = state.messages.some(
@@ -99,6 +101,36 @@ export const useMessageStore = create((set, get) => ({
 
       return {
         messages: [...state.messages, incomingMessage],
+      };
+    });
+  },
+
+  replaceMessage: (incomingMessage) => {
+    set((state) => {
+      const belongsToActiveConversation =
+        state.activeConversationId === incomingMessage.conversation;
+
+      if (!belongsToActiveConversation) {
+        return {};
+      }
+
+      const messageExists = state.messages.some(
+        (message) => message._id === incomingMessage._id,
+      );
+
+      if (!messageExists) {
+        return {};
+      }
+
+      return {
+        messages: state.messages.map((message) =>
+          message._id === incomingMessage._id
+            ? {
+                ...message,
+                ...incomingMessage,
+              }
+            : message,
+        ),
       };
     });
   },
@@ -126,18 +158,9 @@ export const useMessageStore = create((set, get) => ({
 
       const updatedMessage = response.data.data;
 
-      set((state) => ({
-        messages: state.messages.map((message) =>
-          message._id === messageId
-            ? {
-                ...message,
-                ...updatedMessage,
-              }
-            : message,
-        ),
-      }));
+      get().replaceMessage(updatedMessage);
 
-      await useConversationStore.getState().getConversations();
+      useConversationStore.getState().syncLastMessage(updatedMessage);
 
       toast.success(response.data.message || "Message edited successfully.");
 
@@ -165,18 +188,9 @@ export const useMessageStore = create((set, get) => ({
 
       const deletedMessage = response.data.data;
 
-      set((state) => ({
-        messages: state.messages.map((message) =>
-          message._id === messageId
-            ? {
-                ...message,
-                ...deletedMessage,
-              }
-            : message,
-        ),
-      }));
+      get().replaceMessage(deletedMessage);
 
-      await useConversationStore.getState().getConversations();
+      useConversationStore.getState().syncLastMessage(deletedMessage);
 
       toast.success(response.data.message || "Message deleted successfully.");
 
