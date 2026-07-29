@@ -1,13 +1,13 @@
 # ClickChat
 
-ClickChat is a full-stack real-time chat application built with the MERN stack and Socket.IO. It provides verified account onboarding, real-time invitations, persistent direct messaging, synchronized message edits and deletions, multi-tab presence tracking, last-seen state, and a responsive React interface.
+ClickChat is a full-stack real-time messaging application built with the MERN stack and Socket.IO. It combines verified account onboarding, real-time invitations, persistent direct messaging, synchronized message updates, multi-tab presence tracking, and a responsive interface designed for desktop and mobile browsers.
 
 The project is being developed as a Master’s project and as a practical demonstration of secure REST APIs, authenticated real-time communication, MongoDB data modelling, client-side state management, cloud integrations, and incremental production engineering.
 
 ## Live demo
 
-- Frontend: https://chatapp-ldrp.vercel.app
-- Backend API: https://realtimechatwebapp-production-51a2.up.railway.app
+- Web application: [clickchat-ldrp.vercel.app](https://clickchat-ldrp.vercel.app/)
+- Backend API: [click-chat-production.up.railway.app](https://click-chat-production.up.railway.app/)
 
 > The Railway service may take a few seconds to respond after inactivity.
 
@@ -25,13 +25,14 @@ The project is being developed as a Master’s project and as a practical demons
 - Multi-tab online/offline presence with a five-second reconnect grace period
 - Persisted last-seen timestamps and stale-presence cleanup after server restarts
 - Light, dark, and system themes
-- Responsive desktop and mobile chat layouts
+- Responsive landing, authentication, chat, and profile interfaces
+- Branded application loading experience
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    U["Browser"] -->|"HTTPS"| F["React + Vite frontend"]
+    U["Desktop or mobile browser"] -->|"HTTPS"| F["React + Vite frontend"]
     F -->|"REST with JWT cookie"| B["Express API"]
     F <-->|"Authenticated Socket.IO"| S["Socket.IO server"]
     B --> DB[("MongoDB Atlas")]
@@ -125,6 +126,7 @@ click-chat/
 |       |-- api/
 |       |-- components/
 |       |-- layout/
+|       |-- lib/
 |       |-- pages/
 |       |-- routes/
 |       |-- store/
@@ -155,4 +157,4 @@ See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritiz
 
 ## Deployment
 
-The frontend is deployed to Vercel, the backend to Railway, data to MongoDB Atlas, profile media to Cloudinary, and verification email through the Gmail REST API. Pushing to the configured production branch triggers the corresponding deployment workflow.
+The web frontend is deployed to Vercel, the backend to Railway, data to MongoDB Atlas, profile media to Cloudinary, and verification email through the Gmail REST API. This repository currently contains the web application and backend only; the earlier experimental Android/Capacitor project is not part of the maintained source tree.

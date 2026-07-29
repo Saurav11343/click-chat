@@ -14,13 +14,16 @@
 
 `AppRoutes` calls `checkAuth()` on mount. Authenticated users are redirected away from public-only pages, while unauthenticated users are redirected away from protected pages.
 
+While that initial authentication request is pending, `AppRoutes` renders `AppLoadingScreen` instead of the route tree. The loader uses the current theme tokens, branded iconography, an accessible live status, and responsive full-viewport positioning.
+
 ## Component hierarchy
 
 ```mermaid
 flowchart TD
     APP["App"] --> TP["ThemeProvider"]
     APP --> RT["AppRoutes"]
-    RT --> PUB["Welcome / Login / Register / Verification"]
+    RT --> LOAD["AppLoadingScreen"]
+    RT --> PUB["Welcome / AuthShell / Verification"]
     RT --> CHAT["Chat"]
     RT --> PROFILE["Profile"]
     CHAT --> LAYOUT["ChatLayout"]
@@ -32,7 +35,16 @@ flowchart TD
     WIN --> BUB["MessageBubble"]
     WIN --> COMP["MessageComposer"]
     COMP --> EMOJI["EmojiPicker"]
+    PROFILE --> PIC["ProfilePictureUpload"]
 ```
+
+## Visual system and page composition
+
+- The landing page uses a branded header, responsive hero, product preview, trust points, feature cards, call to action, and footer.
+- Login and registration share `AuthShell`, which supplies consistent branding, theme control, navigation, benefits, and responsive two-column composition.
+- The authenticated dashboard uses the original stable navbar structure with updated theme-aware styling, a conversation panel, and a focused chat panel.
+- The profile page presents account status, verification state, biography, identity fields, membership information, and profile-image controls in the same visual system.
+- Tailwind theme tokens and shadcn/Radix primitives provide consistent borders, cards, menus, dialogs, avatars, spacing, focus states, and light/dark behavior.
 
 ## Zustand stores
 
@@ -42,7 +54,7 @@ flowchart TD
 | `useInvitationStore` | Received/sent invitations and action flags | Fetch, send, respond, insert socket invitations, remove responses, delegate accepted conversation insertion |
 | `useConversationStore` | Conversation array and loading flag | Fetch list, add conversation, synchronize latest message, update participant presence |
 | `useMessageStore` | Active conversation messages and mutation flags | Fetch latest 50, send, insert incoming, replace edited/deleted, clear on selection change |
-| `useUserStore` | Profile-picture mutation flag | Upload profile picture and refresh authenticated user |
+| `useUserStore` | Profile-picture mutation flag | Upload a selected profile picture and refresh the authenticated user |
 
 ## Chat data flow
 
@@ -98,6 +110,10 @@ The composer supports text, native emoji insertion, a 5,000-character limit, and
 - Mobile: the sidebar is shown until a conversation is selected; the chat header provides a back button.
 - `h-dvh`, bounded scrolling areas, and flex layouts keep the composer and header visible.
 - shadcn/Radix primitives provide dialogs, dropdowns, scroll areas, avatars, badges, and form controls.
+
+## Profile-picture interaction
+
+`ProfilePictureUpload` accepts JPEG, PNG, and WebP images up to 5 MB at the client. A user can click the drop zone or drag an image onto it. Selection starts the upload immediately: the component displays a local preview and progress state, prevents accidental dialog closure during the request, refreshes the authenticated user after success, and closes the dialog automatically. Validation or upload failure keeps the interaction available for another selection.
 
 ## Validation and feedback
 
