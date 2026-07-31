@@ -4,14 +4,15 @@ import { getIO } from "../socket/socket.js";
 
 const senderFields = "_id firstName lastName profilePic";
 const replyFields =
-  "_id content sender messageType attachment gif isDeleted createdAt";
+  "_id content sender messageType attachment gif externalMedia isDeleted createdAt";
 
-export const sendGif = async (req, res) => {
+export const sendExternalMedia = async (req, res) => {
   try {
     const senderId = req.user._id;
     const { conversationId } = req.params;
     const {
       providerId,
+      mediaType,
       url,
       previewUrl,
       width,
@@ -31,9 +32,10 @@ export const sendGif = async (req, res) => {
       });
     }
 
-    const gif = {
+    const externalMedia = {
       provider: "giphy",
       providerId,
+      mediaType,
       url,
       previewUrl,
       width,
@@ -43,8 +45,8 @@ export const sendGif = async (req, res) => {
     const message = await Message.create({
       conversation: conversationId,
       sender: senderId,
-      messageType: "gif",
-      gif,
+      messageType: mediaType,
+      externalMedia,
       readBy: [{ user: senderId, readAt: new Date() }],
     });
 
@@ -71,7 +73,7 @@ export const sendGif = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "GIF sent successfully.",
+      message: `${mediaType === "sticker" ? "Sticker" : "GIF"} sent successfully.`,
       data: payload,
     });
   } catch (error) {

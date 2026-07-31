@@ -118,7 +118,7 @@ All routes under `/api/conversations` use protected-route middleware.
 | GET | `/api/conversations/:conversationId/messages` | None | Latest 50 messages in ascending display order | Current user must be a participant |
 | POST | `/api/conversations/:conversationId/messages` | `{ content, replyTo? }` | `201`, populated message in `data` | Current user must be a participant |
 | POST | `/api/conversations/:conversationId/attachments` | `multipart/form-data`: `file`, optional `content`, optional `replyTo` | `201`, populated attachment message in `data` | One supported file up to 10 MB; current user must be a participant |
-| POST | `/api/conversations/:conversationId/gifs` | `{ providerId, url, previewUrl, width, height, description? }` | `201`, populated GIF message in `data` | Backend accepts only HTTPS media URLs hosted on GIPHY domains |
+| POST | `/api/conversations/:conversationId/media` | `{ providerId, mediaType, url, previewUrl, width, height, description? }` | `201`, populated GIF or sticker message in `data` | Backend accepts only `gif`/`sticker` types and HTTPS media URLs hosted on GIPHY domains |
 | PATCH | `/api/conversations/:conversationId/messages/:messageId` | `{ content }` | Updated message in `data` | Current user must own the non-deleted text message |
 | DELETE | `/api/conversations/:conversationId/messages/:messageId` | None | Soft-deleted message in `data` | Current user must own the non-deleted message |
 

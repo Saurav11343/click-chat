@@ -13,14 +13,14 @@ import {
   accessAttachment,
   sendAttachment,
 } from "../controllers/attachment.controller.js";
-import { sendGif } from "../controllers/gif.controller.js";
+import { sendExternalMedia } from "../controllers/gif.controller.js";
 
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { uploadChatFile } from "../middleware/upload.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 
 import { validateChatAttachment } from "../validations/attachment.validation.js";
-import { sendGifSchema } from "../validations/gif.validation.js";
+import { sendExternalMediaSchema } from "../validations/gif.validation.js";
 
 import {
   conversationIdSchema,
@@ -57,10 +57,10 @@ router.post(
 );
 
 router.post(
-  "/:conversationId/gifs",
+  "/:conversationId/media",
   validate(conversationIdSchema, "params"),
-  validate(sendGifSchema),
-  sendGif,
+  validate(sendExternalMediaSchema),
+  sendExternalMedia,
 );
 
 router.get(

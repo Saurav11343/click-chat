@@ -12,7 +12,7 @@ import { getIO } from "../socket/socket.js";
 const senderFields = "_id firstName lastName profilePic";
 
 const replyFields =
-  "_id content sender messageType attachment gif isDeleted createdAt";
+  "_id content sender messageType attachment gif externalMedia isDeleted createdAt";
 
 const populateMessage = async (message) => {
   await message.populate("sender", senderFields);

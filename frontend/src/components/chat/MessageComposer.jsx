@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMessageStore } from "@/store/useMessageStore";
-import { GifPicker } from "@/components/chat/GifPicker";
+import { GiphyPicker } from "@/components/chat/GifPicker";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -96,7 +96,9 @@ export function MessageComposer({ conversationId, onTypingChange }) {
     (state) => state.isSendingAttachment,
   );
 
-  const isSendingGif = useMessageStore((state) => state.isSendingGif);
+  const isSendingExternalMedia = useMessageStore(
+    (state) => state.isSendingExternalMedia,
+  );
 
   const attachmentUploadProgress = useMessageStore(
     (state) => state.attachmentUploadProgress,
@@ -108,7 +110,8 @@ export function MessageComposer({ conversationId, onTypingChange }) {
 
   const trimmedContent = content.trim();
 
-  const isBusy = isSendingMessage || isSendingAttachment || isSendingGif;
+  const isBusy =
+    isSendingMessage || isSendingAttachment || isSendingExternalMedia;
 
   const canSend = Boolean(
     conversationId && !isBusy && (trimmedContent || selectedFile),
@@ -365,7 +368,7 @@ export function MessageComposer({ conversationId, onTypingChange }) {
           <Paperclip className="size-5" />
         </Button>
 
-        <GifPicker conversationId={conversationId} disabled={isBusy} />
+        <GiphyPicker conversationId={conversationId} disabled={isBusy} />
 
         <div ref={emojiPickerRef} className="relative shrink-0">
           {isEmojiPickerOpen && (

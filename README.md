@@ -20,7 +20,7 @@ The project is being developed as a Master’s project and as a practical demons
 - Automatic direct-conversation creation on invitation acceptance
 - Persistent text and emoji messages
 - Image, video, audio, PDF, Office-document, text, and CSV attachments with captions and upload progress
-- GIPHY picker with trending results, debounced search, pagination, and real-time delivery
+- Combined GIPHY GIF/sticker picker with trending results, debounced search, pagination, analytics, and real-time delivery
 - Real-time message creation, editing, and soft deletion
 - Latest-message previews without full conversation-list refreshes
 - WhatsApp-style message date separators

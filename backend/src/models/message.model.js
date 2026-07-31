@@ -125,6 +125,53 @@ const gifSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const externalMediaSchema = new mongoose.Schema(
+  {
+    provider: {
+      type: String,
+      enum: ["giphy"],
+      required: true,
+    },
+    providerId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    mediaType: {
+      type: String,
+      enum: ["gif", "sticker"],
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    previewUrl: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    width: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    height: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 300,
+    },
+  },
+  { _id: false },
+);
+
 const messageSchema = new mongoose.Schema(
   {
     conversation: {
@@ -153,7 +200,15 @@ const messageSchema = new mongoose.Schema(
     messageType: {
       type: String,
       enum: {
-        values: ["text", "image", "video", "audio", "file", "gif"],
+        values: [
+          "text",
+          "image",
+          "video",
+          "audio",
+          "file",
+          "gif",
+          "sticker",
+        ],
         message: "{VALUE} is not a valid message type",
       },
       default: "text",
@@ -166,6 +221,11 @@ const messageSchema = new mongoose.Schema(
 
     gif: {
       type: gifSchema,
+      default: null,
+    },
+
+    externalMedia: {
+      type: externalMediaSchema,
       default: null,
     },
 
@@ -218,6 +278,9 @@ messageSchema.pre("validate", function validateMessage() {
   );
 
   const hasGif = Boolean(this.gif?.providerId && this.gif?.url);
+  const hasExternalMedia = Boolean(
+    this.externalMedia?.providerId && this.externalMedia?.url,
+  );
 
   if (this.messageType === "text") {
     if (!hasContent) {
@@ -234,13 +297,29 @@ messageSchema.pre("validate", function validateMessage() {
     return;
   }
 
-  if (this.messageType === "gif") {
-    if (!hasGif) {
-      this.invalidate("gif", "GIF metadata is required for GIF messages");
+  if (this.messageType === "gif" || this.messageType === "sticker") {
+    if (!hasGif && !hasExternalMedia) {
+      this.invalidate(
+        "externalMedia",
+        "External media metadata is required for GIF and sticker messages",
+      );
     }
 
     if (hasAttachment) {
-      this.invalidate("attachment", "A GIF message cannot contain an upload");
+      this.invalidate(
+        "attachment",
+        "A GIF or sticker message cannot contain an upload",
+      );
+    }
+
+    if (
+      hasExternalMedia &&
+      this.externalMedia.mediaType !== this.messageType
+    ) {
+      this.invalidate(
+        "externalMedia.mediaType",
+        "External media type must match the message type",
+      );
     }
 
     return;

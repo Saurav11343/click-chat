@@ -43,6 +43,7 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
   const isDeleting = deletingMessageId === message._id;
 
   const isTextMessage = message.messageType === "text";
+  const isSticker = message.messageType === "sticker";
   const hasLink = /https?:\/\/\S+/i.test(message.content || "");
   const canCopy = isTextMessage || hasLink;
   const hasMessageActions = canCopy || isMyMessage;
@@ -109,14 +110,18 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
       className={`group flex ${isMyMessage ? "justify-end" : "justify-start"}`}
     >
       <div
-        className={`relative max-w-[86%] rounded-2xl px-3.5 py-2.5 shadow-sm sm:max-w-[72%] sm:px-4 ${
+        className={`relative max-w-[86%] rounded-2xl sm:max-w-[72%] ${
           !message.isDeleted && !isEditing && hasMessageActions
             ? "pr-10 sm:pr-10"
             : ""
         } ${
-          isMyMessage
+          isSticker && !message.isDeleted
+            ? "bg-transparent px-0 py-0 text-foreground shadow-none"
+            : isMyMessage
             ? "rounded-br-sm bg-primary text-primary-foreground shadow-primary/10"
             : "rounded-bl-sm bg-background ring-1 ring-foreground/8"
+        } ${
+          !isSticker || message.isDeleted ? "px-3.5 py-2.5 sm:px-4" : ""
         }`}
       >
         {!message.isDeleted && !isEditing && hasMessageActions && (
@@ -129,7 +134,7 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
                   size="icon-sm"
                   disabled={isDeleting}
                   className={`size-7 rounded-lg shadow-none ${
-                    isMyMessage
+                    isMyMessage && !isSticker
                       ? "text-primary-foreground/75 hover:bg-primary-foreground/15 hover:text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
@@ -226,7 +231,7 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
           </form>
         ) : (
           <>
-            {(message.attachment || message.gif) && (
+            {(message.attachment || message.gif || message.externalMedia) && (
               <AttachmentContent
                 message={message}
                 isMyMessage={isMyMessage}
@@ -248,7 +253,7 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
           {message.isEdited && !message.isDeleted && (
             <span
               className={`text-[10px] ${
-                isMyMessage
+                isMyMessage && !isSticker
                   ? "text-primary-foreground/70"
                   : "text-muted-foreground"
               }`}
@@ -259,7 +264,7 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
 
           <span
             className={`text-[10px] sm:text-[11px] ${
-              isMyMessage
+              isMyMessage && !isSticker
                 ? "text-primary-foreground/70"
                 : "text-muted-foreground"
             }`}
@@ -275,9 +280,18 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
 function AttachmentContent({ message, isMyMessage, conversationId }) {
   const { attachment, messageType } = message;
   const accessUrl = getAttachmentAccessUrl(conversationId, message._id);
+  const externalMedia = message.externalMedia || message.gif;
 
-  if (messageType === "gif" && message.gif?.url) {
-    return <GifAttachment gif={message.gif} />;
+  if (
+    (messageType === "gif" || messageType === "sticker") &&
+    externalMedia?.url
+  ) {
+    return (
+      <ExternalMediaAttachment
+        media={externalMedia}
+        isSticker={messageType === "sticker"}
+      />
+    );
   }
 
   if (!attachment?.url) {
@@ -322,32 +336,36 @@ function AttachmentContent({ message, isMyMessage, conversationId }) {
   );
 }
 
-function GifAttachment({ gif }) {
+function ExternalMediaAttachment({ media, isSticker }) {
   const [hasError, setHasError] = useState(false);
 
   if (hasError) {
     return (
       <div className="rounded-lg border border-current/15 p-3 text-sm opacity-75">
-        GIF unavailable
+        {isSticker ? "Sticker" : "GIF"} unavailable
       </div>
     );
   }
 
   return (
     <a
-      href={gif.url}
+      href={media.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block overflow-hidden rounded-xl"
-      aria-label="Open GIF"
+      className={isSticker ? "block" : "block overflow-hidden rounded-xl"}
+      aria-label={`Open ${isSticker ? "sticker" : "GIF"}`}
     >
       <img
-        src={gif.url}
-        alt={gif.description || "GIF"}
+        src={media.url}
+        alt={media.description || (isSticker ? "Sticker" : "GIF")}
         loading="lazy"
         onError={() => setHasError(true)}
-        className="max-h-80 w-full min-w-44 rounded-xl object-contain"
-        style={{ aspectRatio: `${gif.width} / ${gif.height}` }}
+        className={
+          isSticker
+            ? "max-h-56 max-w-56 object-contain"
+            : "max-h-80 w-full min-w-44 rounded-xl object-contain"
+        }
+        style={{ aspectRatio: `${media.width} / ${media.height}` }}
       />
     </a>
   );
@@ -688,6 +706,9 @@ function getReplyPreview(replyMessage) {
 
     case "gif":
       return "GIF";
+
+    case "sticker":
+      return "Sticker";
 
     default:
       return "Message";
