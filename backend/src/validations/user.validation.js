@@ -24,6 +24,12 @@ export const updateProfileValidation = z
       .trim()
       .max(150, "Bio must not exceed 150 characters.")
       .optional(),
+    preferredLanguage: z
+      .enum([
+        "en", "hi", "es", "fr", "de", "it", "pt", "ru", "ja", "ko",
+        "zh", "ar", "bn", "gu", "mr", "pa", "ta", "te", "ur", "ne",
+      ])
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Provide at least one profile field to update.",

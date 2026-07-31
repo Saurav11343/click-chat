@@ -6,6 +6,7 @@ import {
   Check,
   Clock3,
   KeyRound,
+  Languages,
   Mail,
   MessageCircle,
   Pencil,
@@ -25,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore";
+import { TRANSLATION_LANGUAGES } from "@/lib/languages";
 
 function Profile() {
   const navigate = useNavigate();
@@ -46,6 +48,9 @@ function Profile() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [preferredLanguage, setPreferredLanguage] = useState(
+    authUser?.preferredLanguage || "en",
+  );
 
   const fullName = [authUser?.firstName, authUser?.lastName]
     .filter(Boolean)
@@ -110,6 +115,10 @@ function Profile() {
     if (changed) {
       clearPasswordForm();
     }
+  };
+
+  const handleLanguageSave = async () => {
+    await updateProfile({ preferredLanguage });
   };
 
   return (
@@ -305,6 +314,53 @@ function Profile() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="mt-6 rounded-2xl py-6">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Languages className="size-5" />
+              </span>
+              <div>
+                <CardTitle className="text-xl tracking-tight">
+                  Preferred language
+                </CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Messages are auto-detected and translated into this language.
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <select
+                value={preferredLanguage}
+                onChange={(event) => setPreferredLanguage(event.target.value)}
+                className="h-10 min-w-0 flex-1 rounded-xl border bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                aria-label="Preferred translation language"
+                disabled={isUpdatingProfile}
+              >
+                {TRANSLATION_LANGUAGES.map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                onClick={handleLanguageSave}
+                disabled={
+                  isUpdatingProfile ||
+                  preferredLanguage === (authUser?.preferredLanguage || "en")
+                }
+                className="rounded-xl"
+              >
+                <Check className="size-4" />
+                {isUpdatingProfile ? "Saving..." : "Save language"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="mt-6 rounded-2xl py-6">
           <CardHeader>
