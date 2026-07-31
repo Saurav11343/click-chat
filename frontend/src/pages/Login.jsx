@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
 import AuthShell from "@/components/auth/AuthShell";
+import { GoogleAuthSection } from "@/components/auth/GoogleSignInButton";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,6 +28,7 @@ import { loginSchema } from "@/validations/auth.validation";
 function Login() {
   const navigate = useNavigate();
   const { login, isLoggingIn } = useAuthStore();
+  const googleLogin = useAuthStore((state) => state.googleLogin);
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm({
@@ -57,6 +59,12 @@ function Login() {
     }
   };
 
+  const handleGoogleLogin = async (credential) => {
+    if (await googleLogin(credential)) {
+      navigate("/chat");
+    }
+  };
+
   return (
     <AuthShell>
       <Card className="w-full max-w-md gap-0 rounded-3xl border-0 py-0 shadow-2xl shadow-primary/5 ring-1 ring-foreground/10">
@@ -71,6 +79,8 @@ function Login() {
         </CardHeader>
 
         <CardContent className="px-6 pb-8 sm:px-8 sm:pb-10">
+          <GoogleAuthSection onCredential={handleGoogleLogin} />
+
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup className="gap-5">
               <Controller

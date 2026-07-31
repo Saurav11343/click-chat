@@ -25,6 +25,17 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      select: false,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,
@@ -74,12 +85,16 @@ const userSchema = new mongoose.Schema(
 
     dateOfBirth: {
       type: Date,
-      required: [true, "Date of birth is required"],
+      required: function requireDateOfBirth() {
+        return this.authProvider === "local";
+      },
     },
 
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function requirePassword() {
+        return this.authProvider === "local";
+      },
       minlength: [8, "Password must be at least 8 characters"],
     },
 

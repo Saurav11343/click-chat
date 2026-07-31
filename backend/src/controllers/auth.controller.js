@@ -10,6 +10,9 @@ import {
 import { sendVerificationEmail } from "../services/email.service.js";
 import { sendPasswordResetEmail } from "../services/email.service.js";
 import { createActionToken, hashActionToken } from "../utils/actionToken.js";
+import { google } from "googleapis";
+
+const googleAuthClient = new google.auth.OAuth2(ENV.GOOGLE_AUTH_CLIENT_ID);
 
 export const register = async (req, res) => {
   try {
@@ -127,6 +130,90 @@ export const login = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error.",
+    });
+  }
+};
+
+export const googleLogin = async (req, res) => {
+  try {
+    if (!ENV.GOOGLE_AUTH_CLIENT_ID) {
+      return res.status(503).json({
+        success: false,
+        message: "Google sign-in is not configured.",
+      });
+    }
+
+    const ticket = await googleAuthClient.verifyIdToken({
+      idToken: req.body.credential,
+      audience: ENV.GOOGLE_AUTH_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload?.sub || !payload.email || !payload.email_verified) {
+      return res.status(401).json({
+        success: false,
+        message: "Google could not verify this email address.",
+      });
+    }
+
+    const normalizedEmail = payload.email.trim().toLowerCase();
+    let user = await User.findOne({
+      $or: [{ googleId: payload.sub }, { email: normalizedEmail }],
+    }).select("+googleId");
+
+    if (user) {
+      if (user.googleId && user.googleId !== payload.sub) {
+        return res.status(409).json({
+          success: false,
+          message: "This email is already linked to another Google account.",
+        });
+      }
+
+      user.googleId = payload.sub;
+      user.isEmailVerified = true;
+
+      if (!user.profilePic?.url && payload.picture) {
+        user.profilePic = { url: payload.picture };
+      }
+
+      await user.save();
+    } else {
+      const displayName = payload.name?.trim() || "Google User";
+      const nameParts = displayName.split(/\s+/);
+      const proposedFirstName =
+        payload.given_name?.trim() || nameParts[0] || "Google";
+      const proposedLastName =
+        payload.family_name?.trim() || nameParts.slice(1).join(" ") || "User";
+      const firstName = (
+        proposedFirstName.length >= 2 ? proposedFirstName : "Google"
+      ).slice(0, 30);
+      const lastName = (
+        proposedLastName.length >= 2 ? proposedLastName : "User"
+      ).slice(0, 30);
+
+      user = await User.create({
+        firstName,
+        lastName,
+        email: normalizedEmail,
+        googleId: payload.sub,
+        authProvider: "google",
+        isEmailVerified: true,
+        profilePic: { url: payload.picture || "" },
+      });
+    }
+
+    generateToken(user._id, res);
+
+    return res.status(200).json({
+      success: true,
+      message: "Signed in with Google successfully.",
+    });
+  } catch (error) {
+    console.error("Google login error:", error.message);
+
+    return res.status(401).json({
+      success: false,
+      message: "Google sign-in failed. Please try again.",
     });
   }
 };
@@ -292,7 +379,14 @@ export const changePassword = async (req, res) => {
       "+password +passwordChangedAt",
     );
 
-    if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+    if (!user?.password) {
+      return res.status(400).json({
+        success: false,
+        message: "Use password reset first to create a password for this account.",
+      });
+    }
+
+    if (!(await bcrypt.compare(currentPassword, user.password))) {
       return res.status(400).json({
         success: false,
         message: "Current password is incorrect.",
@@ -390,7 +484,10 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    if (await bcrypt.compare(req.body.newPassword, user.password)) {
+    if (
+      user.password &&
+      (await bcrypt.compare(req.body.newPassword, user.password))
+    ) {
       return res.status(400).json({
         success: false,
         message: "New password must be different from your previous password.",

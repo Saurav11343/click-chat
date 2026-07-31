@@ -9,6 +9,7 @@ import {
   changePassword,
   forgotPassword,
   resetPassword,
+  googleLogin,
 } from "../controllers/auth.controller.js";
 
 import {
@@ -19,6 +20,7 @@ import {
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  googleLoginSchema,
 } from "../validations/auth.validation.js";
 
 import { validate } from "../middleware/validate.middleware.js";
@@ -35,6 +37,8 @@ router.post(
 );
 
 router.post("/login", validate(loginSchema), login);
+
+router.post("/google", validate(googleLoginSchema), googleLogin);
 
 router.patch(
   "/change-password",

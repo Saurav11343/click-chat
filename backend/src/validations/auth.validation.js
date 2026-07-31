@@ -55,6 +55,10 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+export const googleLoginSchema = z.object({
+  credential: z.string().min(100, "Invalid Google credential").max(5000),
+});
+
 export const verifyEmailSchema = z.object({
   token: z
     .string()
