@@ -121,6 +121,12 @@ function Login() {
                       </Button>
                     </div>
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    <Link
+                      to="/forgot-password"
+                      className="self-end text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
                   </Field>
                 )}
               />

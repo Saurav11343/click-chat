@@ -11,6 +11,61 @@ export const useAuthStore = create((set, get) => ({
   isLoggingIn: false,
   isLoggingOut: false,
   isResendingVerification: false,
+  isChangingPassword: false,
+  isRequestingPasswordReset: false,
+  isResettingPassword: false,
+
+  changePassword: async (data) => {
+    set({ isChangingPassword: true });
+
+    try {
+      const response = await axiosInstance.patch("/auth/change-password", data);
+      toast.success(response.data.message || "Password changed successfully");
+      return true;
+    } catch (error) {
+      const errors = error.response?.data?.errors;
+      const firstError = errors
+        ? Object.values(errors).flat().find(Boolean)
+        : null;
+      toast.error(firstError || error.response?.data?.message || "Unable to change password");
+      return false;
+    } finally {
+      set({ isChangingPassword: false });
+    }
+  },
+
+  requestPasswordReset: async (email) => {
+    set({ isRequestingPasswordReset: true });
+
+    try {
+      const response = await axiosInstance.post("/auth/forgot-password", { email });
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to request password reset");
+      return { success: false };
+    } finally {
+      set({ isRequestingPasswordReset: false });
+    }
+  },
+
+  resetPassword: async (data) => {
+    set({ isResettingPassword: true });
+
+    try {
+      const response = await axiosInstance.post("/auth/reset-password", data);
+      toast.success(response.data.message || "Password reset successfully");
+      return true;
+    } catch (error) {
+      const errors = error.response?.data?.errors;
+      const firstError = errors
+        ? Object.values(errors).flat().find(Boolean)
+        : null;
+      toast.error(firstError || error.response?.data?.message || "Unable to reset password");
+      return false;
+    } finally {
+      set({ isResettingPassword: false });
+    }
+  },
 
   register: async (data) => {
     set({ isRegisteringUp: true });

@@ -20,13 +20,27 @@ export const protectRoute = async (req, res, next) => {
       });
     }
 
-    const user = await User.findById(decoded.userId).select("-password");
+    const user = await User.findById(decoded.userId).select(
+      "-password +passwordChangedAt",
+    );
     if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
+
+    if (
+      user.passwordChangedAt &&
+      decoded.iat * 1000 < user.passwordChangedAt.getTime() - 1000
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Your password changed. Please log in again.",
+      });
+    }
+
+    user.passwordChangedAt = undefined;
 
     req.user = user;
     next();

@@ -1,26 +1,51 @@
+import { useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
   CalendarDays,
+  Check,
   Clock3,
+  KeyRound,
   Mail,
   MessageCircle,
+  Pencil,
   Quote,
   ShieldCheck,
   UserRound,
+  X,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import ProfilePictureUpload from "@/components/profile/ProfilePictureUpload";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useUserStore } from "@/store/useUserStore";
 
 function Profile() {
   const navigate = useNavigate();
   const authUser = useAuthStore((state) => state.authUser);
+  const changePassword = useAuthStore((state) => state.changePassword);
+  const isChangingPassword = useAuthStore(
+    (state) => state.isChangingPassword,
+  );
+  const updateProfile = useUserStore((state) => state.updateProfile);
+  const isUpdatingProfile = useUserStore(
+    (state) => state.isUpdatingProfile,
+  );
+  const [editingName, setEditingName] = useState(false);
+  const [editingBio, setEditingBio] = useState(false);
+  const [firstName, setFirstName] = useState(authUser?.firstName || "");
+  const [lastName, setLastName] = useState(authUser?.lastName || "");
+  const [bio, setBio] = useState(authUser?.bio || "");
+  const [editingPassword, setEditingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const fullName = [authUser?.firstName, authUser?.lastName]
     .filter(Boolean)
@@ -31,6 +56,61 @@ function Profile() {
     : authUser?.lastSeen
       ? `Last seen ${formatDateTime(authUser.lastSeen)}`
       : "Offline";
+
+  const handleNameSave = async (event) => {
+    event.preventDefault();
+
+    const saved = await updateProfile({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+    });
+
+    if (saved) {
+      setEditingName(false);
+    }
+  };
+
+  const handleBioSave = async (event) => {
+    event.preventDefault();
+
+    const saved = await updateProfile({ bio: bio.trim() });
+
+    if (saved) {
+      setEditingBio(false);
+    }
+  };
+
+  const cancelNameEdit = () => {
+    setFirstName(authUser?.firstName || "");
+    setLastName(authUser?.lastName || "");
+    setEditingName(false);
+  };
+
+  const cancelBioEdit = () => {
+    setBio(authUser?.bio || "");
+    setEditingBio(false);
+  };
+
+  const clearPasswordForm = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setEditingPassword(false);
+  };
+
+  const handlePasswordChange = async (event) => {
+    event.preventDefault();
+
+    const changed = await changePassword({
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    });
+
+    if (changed) {
+      clearPasswordForm();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -92,15 +172,66 @@ function Profile() {
         <div className="mt-6 grid gap-6 lg:grid-cols-[0.82fr_1.18fr]">
           <Card className="rounded-2xl py-6">
             <CardHeader>
-              <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Quote className="size-5" />
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Quote className="size-5" />
+                  </div>
+                  <CardTitle className="text-xl tracking-tight">About you</CardTitle>
+                </div>
+                {!editingBio && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-xl"
+                    onClick={() => setEditingBio(true)}
+                    aria-label="Edit bio"
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                )}
               </div>
-              <CardTitle className="text-xl tracking-tight">About you</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm leading-7 text-muted-foreground">
-                {authUser?.bio || "No bio has been added yet."}
-              </p>
+              {editingBio ? (
+                <form onSubmit={handleBioSave}>
+                  <textarea
+                    value={bio}
+                    onChange={(event) => setBio(event.target.value)}
+                    maxLength={150}
+                    rows={4}
+                    autoFocus
+                    disabled={isUpdatingProfile}
+                    className="w-full resize-none rounded-xl border bg-background px-3 py-2 text-sm outline-none transition-shadow focus-visible:ring-3 focus-visible:ring-ring/50"
+                    aria-label="Bio"
+                  />
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <span className="text-xs text-muted-foreground">
+                      {bio.length}/150
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={cancelBioEdit}
+                        disabled={isUpdatingProfile}
+                      >
+                        <X className="size-4" /> Cancel
+                      </Button>
+                      <Button type="submit" size="sm" disabled={isUpdatingProfile}>
+                        <Check className="size-4" />
+                        {isUpdatingProfile ? "Saving..." : "Save"}
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <p className="text-sm leading-7 text-muted-foreground">
+                  {authUser?.bio || "No bio has been added yet."}
+                </p>
+              )}
               <div className="mt-6 rounded-2xl border bg-muted/30 p-4">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-500" />
@@ -121,7 +252,52 @@ function Profile() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 sm:grid-cols-2">
-                <ProfileDetail icon={UserRound} label="Full name" value={fullName || "Not available"} />
+                {editingName ? (
+                  <form
+                    onSubmit={handleNameSave}
+                    className="rounded-2xl border bg-muted/20 p-4 sm:col-span-2"
+                  >
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Input
+                        value={firstName}
+                        onChange={(event) => setFirstName(event.target.value)}
+                        placeholder="First name"
+                        maxLength={30}
+                        autoFocus
+                        disabled={isUpdatingProfile}
+                      />
+                      <Input
+                        value={lastName}
+                        onChange={(event) => setLastName(event.target.value)}
+                        placeholder="Last name"
+                        maxLength={30}
+                        disabled={isUpdatingProfile}
+                      />
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={cancelNameEdit}
+                        disabled={isUpdatingProfile}
+                      >
+                        <X className="size-4" /> Cancel
+                      </Button>
+                      <Button type="submit" size="sm" disabled={isUpdatingProfile}>
+                        <Check className="size-4" />
+                        {isUpdatingProfile ? "Saving..." : "Save"}
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  <ProfileDetail
+                    icon={UserRound}
+                    label="Full name"
+                    value={fullName || "Not available"}
+                    onEdit={() => setEditingName(true)}
+                  />
+                )}
                 <ProfileDetail icon={Mail} label="Email address" value={authUser?.email || "Not available"} />
                 <ProfileDetail icon={CalendarDays} label="Date of birth" value={formatDate(authUser?.dateOfBirth)} />
                 <ProfileDetail icon={Clock3} label="Member since" value={formatDate(authUser?.createdAt)} />
@@ -129,12 +305,100 @@ function Profile() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="mt-6 rounded-2xl py-6">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <KeyRound className="size-5" />
+                </span>
+                <div>
+                  <CardTitle className="text-xl tracking-tight">Password</CardTitle>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Update the password used to access your account.
+                  </p>
+                </div>
+              </div>
+              {!editingPassword && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-xl"
+                  onClick={() => setEditingPassword(true)}
+                  aria-label="Change password"
+                >
+                  <Pencil className="size-4" />
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          {editingPassword && (
+            <CardContent>
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <PasswordInput
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    placeholder="Current password"
+                    autoComplete="current-password"
+                    required
+                  />
+                  <PasswordInput
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    placeholder="New password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    maxLength={72}
+                    required
+                  />
+                  <PasswordInput
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    placeholder="Confirm new password"
+                    autoComplete="new-password"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Use 8–72 characters with uppercase, lowercase, and a number.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearPasswordForm}
+                    disabled={isChangingPassword}
+                  >
+                    <X className="size-4" /> Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={
+                      isChangingPassword ||
+                      !currentPassword ||
+                      newPassword.length < 8 ||
+                      newPassword !== confirmPassword
+                    }
+                  >
+                    <Check className="size-4" />
+                    {isChangingPassword ? "Changing..." : "Change password"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          )}
+        </Card>
       </main>
     </div>
   );
 }
 
-function ProfileDetail({ icon: Icon, label, value }) {
+function ProfileDetail({ icon: Icon, label, value, onEdit }) {
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-2xl border bg-muted/20 p-4 transition-colors hover:bg-muted/40">
       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-background text-muted-foreground shadow-sm ring-1 ring-foreground/8">
@@ -144,6 +408,18 @@ function ProfileDetail({ icon: Icon, label, value }) {
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="mt-0.5 truncate text-sm font-medium" title={value}>{value}</p>
       </div>
+      {onEdit && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="ml-auto shrink-0 rounded-xl"
+          onClick={onEdit}
+          aria-label={`Edit ${label.toLowerCase()}`}
+        >
+          <Pencil className="size-4" />
+        </Button>
+      )}
     </div>
   );
 }
