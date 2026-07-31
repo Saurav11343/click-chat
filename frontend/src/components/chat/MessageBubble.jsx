@@ -7,6 +7,7 @@ import {
   EllipsisVertical,
   FileText,
   ImageOff,
+  Languages,
   Pencil,
   Play,
   Trash2,
@@ -25,6 +26,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useMessageStore } from "@/store/useMessageStore";
+import { axiosInstance } from "@/api/axios";
+import { getLanguageName } from "@/lib/languages";
 
 export function MessageBubble({
   message,
@@ -35,6 +38,9 @@ export function MessageBubble({
   const [isEditing, setIsEditing] = useState(false);
 
   const [editedContent, setEditedContent] = useState(message.content || "");
+  const [translation, setTranslation] = useState(null);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const editingMessageId = useMessageStore((state) => state.editingMessageId);
 
@@ -51,7 +57,10 @@ export function MessageBubble({
   const isSticker = message.messageType === "sticker";
   const hasLink = /https?:\/\/\S+/i.test(message.content || "");
   const canCopy = isTextMessage || hasLink;
-  const hasMessageActions = canCopy || isMyMessage;
+  const canTranslate = Boolean(message.content?.trim());
+  const canTranslateReceivedMessage = !isMyMessage && canTranslate;
+  const hasMessageActions =
+    canCopy || isMyMessage || canTranslateReceivedMessage;
 
   const formattedTime = message.createdAt
     ? new Date(message.createdAt).toLocaleTimeString([], {
@@ -110,6 +119,31 @@ export function MessageBubble({
     }
   };
 
+  const handleTranslate = async () => {
+    if (translation?.sourceContent === message.content) {
+      setShowTranslation((current) => !current);
+      return;
+    }
+
+    try {
+      setIsTranslating(true);
+      const response = await axiosInstance.post(
+        `/conversations/${conversationId}/messages/${message._id}/translate`,
+      );
+      setTranslation({
+        ...response.data.translation,
+        sourceContent: message.content,
+      });
+      setShowTranslation(true);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Unable to translate this message.",
+      );
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   return (
     <div
       className={`group flex ${isMyMessage ? "justify-end" : "justify-start"}`}
@@ -156,6 +190,22 @@ export function MessageBubble({
                   <DropdownMenuItem onClick={handleCopy}>
                     <Copy className="size-4" />
                     Copy
+                  </DropdownMenuItem>
+                )}
+
+                {canTranslateReceivedMessage && (
+                  <DropdownMenuItem
+                    onClick={handleTranslate}
+                    disabled={isTranslating}
+                  >
+                    <Languages className="size-4" />
+                    {isTranslating
+                      ? "Translating..."
+                      : showTranslation
+                        ? "Hide translation"
+                        : translation
+                          ? "Show translation"
+                          : "Translate"}
                   </DropdownMenuItem>
                 )}
 
@@ -251,6 +301,25 @@ export function MessageBubble({
                 <MessageText content={message.content} />
 
                 <YouTubePreview content={message.content} />
+
+                {showTranslation &&
+                  translation?.sourceContent === message.content && (
+                    <div
+                      className={`mt-2 rounded-xl border px-3 py-2 ${
+                        isMyMessage && !isSticker
+                          ? "border-primary-foreground/20 bg-primary-foreground/10"
+                          : "border-border bg-muted/60"
+                      }`}
+                    >
+                      <p className="text-[10px] font-medium uppercase tracking-wide opacity-65">
+                        {getLanguageName(translation.targetLanguage)} translation
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed">
+                        {translation.text}
+                      </p>
+                    </div>
+                  )}
+
               </div>
             )}
           </>

@@ -109,6 +109,13 @@ const userSchema = new mongoose.Schema(
       default: "Hey there! I am using ChatApp.",
     },
 
+    preferredLanguage: {
+      type: String,
+      default: "en",
+      trim: true,
+      lowercase: true,
+    },
+
     isOnline: {
       type: Boolean,
       default: false,
