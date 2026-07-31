@@ -21,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/ui/ModeToggle";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuthStore } from "@/store/useAuthStore";
 import { InvitationsDialog } from "./InvitationsDialog";
 import { PublicProfileDialog } from "./PublicProfileDialog";
@@ -55,7 +54,7 @@ export function ConversationSidebar({
   };
 
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col bg-background">
+    <aside className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background">
       <div className="flex h-16 shrink-0 items-center justify-between border-b px-3 sm:px-4">
         <button
           type="button"
@@ -138,8 +137,8 @@ export function ConversationSidebar({
         </div>
       </div>
 
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="space-y-1.5 p-3">
+      <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+        <div className="w-full min-w-0 space-y-1.5 overflow-hidden p-3">
           {isLoading ? (
             <ContactsLoadingState />
           ) : conversations.length === 0 ? (
@@ -151,7 +150,7 @@ export function ConversationSidebar({
               return (
                 <div
                   key={conversation.id}
-                  className={`group/conversation flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  className={`group/conversation flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-2xl p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     isSelected
                       ? "bg-primary/8 shadow-sm ring-1 ring-primary/15"
                       : "hover:bg-muted/70"
@@ -191,7 +190,7 @@ export function ConversationSidebar({
                   <button
                     type="button"
                     onClick={() => onSelectConversation(conversation)}
-                    className="min-w-0 flex-1 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="min-w-0 flex-1 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label={`Open conversation with ${conversation.name}`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -204,9 +203,9 @@ export function ConversationSidebar({
                       </span>
                     </div>
 
-                    <div className="mt-0.5 flex items-center justify-between gap-2">
+                    <div className="mt-0.5 flex min-w-0 items-center justify-between gap-2 overflow-hidden">
                       <p
-                        className={`truncate text-sm ${
+                        className={`min-w-0 flex-1 truncate whitespace-nowrap text-sm ${
                           conversation.unreadCount > 0
                             ? "font-medium text-foreground"
                             : "text-muted-foreground"
@@ -227,7 +226,7 @@ export function ConversationSidebar({
             })
           )}
         </div>
-      </ScrollArea>
+      </div>
     </aside>
   );
 }
