@@ -10,8 +10,9 @@ const giphyUrlSchema = z
     );
   }, "GIF media must be hosted by GIPHY");
 
-export const sendGifSchema = z.object({
+export const sendExternalMediaSchema = z.object({
   providerId: z.string().trim().min(1).max(100),
+  mediaType: z.enum(["gif", "sticker"]),
   url: giphyUrlSchema,
   previewUrl: giphyUrlSchema,
   width: z.number().int().min(1).max(4000),

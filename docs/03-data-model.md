@@ -105,7 +105,7 @@ The send controller rejects self-invitations and searches both user directions f
 | `conversation` | ObjectId → Conversation | Required owning conversation; indexed |
 | `sender` | ObjectId → User | Required message author |
 | `content` | String | Trimmed text or attachment caption up to 5,000 characters; attachment captions may be empty |
-| `messageType` | Enum String | `text`, `image`, `video`, `audio`, `file`, or `gif` |
+| `messageType` | Enum String | `text`, `image`, `video`, `audio`, `file`, `gif`, or `sticker` |
 | `attachment` | Embedded object or null | Cloudinary metadata for a multimedia message |
 | `attachment.url` | String | Secure Cloudinary delivery URL |
 | `attachment.publicId` | String | Cloudinary identifier used for cleanup |
@@ -115,10 +115,12 @@ The send controller rejects self-invitations and searches both user directions f
 | `attachment.resourceType` | Enum String | Cloudinary `image`, `video`, or `raw` resource category |
 | `attachment.width`, `attachment.height` | Number or null | Media dimensions when Cloudinary provides them |
 | `attachment.duration` | Number or null | Video/audio duration when Cloudinary provides it |
-| `gif` | Embedded object or null | Server-verified GIPHY metadata |
-| `gif.providerId` | String | GIPHY result identifier supplied by the picker |
-| `gif.url`, `gif.previewUrl` | String | Display and picker-preview URLs hosted by GIPHY |
-| `gif.width`, `gif.height` | Number | GIF display dimensions |
+| `externalMedia` | Embedded object or null | Provider-neutral GIPHY GIF/sticker metadata |
+| `externalMedia.mediaType` | Enum String | `gif` or `sticker`; must match `messageType` |
+| `externalMedia.providerId` | String | GIPHY result identifier supplied by the picker |
+| `externalMedia.url`, `externalMedia.previewUrl` | String | Display and picker-preview URLs hosted by GIPHY |
+| `externalMedia.width`, `externalMedia.height` | Number | Media display dimensions |
+| `gif` | Embedded object or null | Legacy compatibility field for GIF messages created before `externalMedia` |
 | `replyTo` | ObjectId or null → Message | Optional reference to a non-deleted message in the same conversation |
 | `readBy` | Embedded receipt[] | Prepared read-receipt list; sender receipt is inserted on creation |
 | `readBy[].user` | ObjectId → User | User who read the message |

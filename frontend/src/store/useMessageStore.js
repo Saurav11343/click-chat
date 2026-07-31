@@ -11,7 +11,7 @@ export const useMessageStore = create((set, get) => ({
   isLoadingMessages: false,
   isSendingMessage: false,
   isSendingAttachment: false,
-  isSendingGif: false,
+  isSendingExternalMedia: false,
 
   attachmentUploadProgress: 0,
 
@@ -179,17 +179,17 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
-  sendGif: async ({ conversationId, gif }) => {
-    if (!conversationId || !gif?.providerId) {
+  sendExternalMedia: async ({ conversationId, media }) => {
+    if (!conversationId || !media?.providerId) {
       return false;
     }
 
-    set({ isSendingGif: true });
+    set({ isSendingExternalMedia: true });
 
     try {
       const response = await axiosInstance.post(
-        `/conversations/${conversationId}/gifs`,
-        gif,
+        `/conversations/${conversationId}/media`,
+        media,
       );
       const newMessage = response.data.data;
 
@@ -203,10 +203,12 @@ export const useMessageStore = create((set, get) => ({
 
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.message || "Unable to send GIF.");
+      toast.error(
+        error.response?.data?.message || "Unable to send GIPHY media.",
+      );
       return false;
     } finally {
-      set({ isSendingGif: false });
+      set({ isSendingExternalMedia: false });
     }
   },
 
@@ -265,7 +267,7 @@ export const useMessageStore = create((set, get) => ({
       activeConversationId: null,
       isLoadingMessages: false,
       isSendingAttachment: false,
-      isSendingGif: false,
+      isSendingExternalMedia: false,
       attachmentUploadProgress: 0,
     });
   },

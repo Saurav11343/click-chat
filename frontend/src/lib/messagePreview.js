@@ -30,6 +30,8 @@ export function getMessagePreview(
         : "📄 Document";
     case "gif":
       return "GIF";
+    case "sticker":
+      return "Sticker";
     default:
       return fallback;
   }

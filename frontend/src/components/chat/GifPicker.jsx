@@ -14,8 +14,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useMessageStore } from "@/store/useMessageStore";
 
-export function GifPicker({ conversationId, disabled }) {
+export function GiphyPicker({ conversationId, disabled }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mediaType, setMediaType] = useState("gif");
   const [query, setQuery] = useState("");
   const [gifs, setGifs] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
@@ -23,8 +24,12 @@ export function GifPicker({ conversationId, disabled }) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const requestIdRef = useRef(0);
 
-  const isSendingGif = useMessageStore((state) => state.isSendingGif);
-  const sendGif = useMessageStore((state) => state.sendGif);
+  const isSendingExternalMedia = useMessageStore(
+    (state) => state.isSendingExternalMedia,
+  );
+  const sendExternalMedia = useMessageStore(
+    (state) => state.sendExternalMedia,
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -36,7 +41,10 @@ export function GifPicker({ conversationId, disabled }) {
       setIsLoading(true);
 
       try {
-        const response = await fetchGiphyGifs({ query: query.trim() });
+        const response = await fetchGiphyMedia({
+          query: query.trim(),
+          mediaType,
+        });
 
         if (requestId !== requestIdRef.current) {
           return;
@@ -58,7 +66,7 @@ export function GifPicker({ conversationId, disabled }) {
     }, query.trim() ? 400 : 0);
 
     return () => clearTimeout(timeout);
-  }, [isOpen, query]);
+  }, [isOpen, query, mediaType]);
 
   const handleLoadMore = async () => {
     if (!nextCursor || isLoadingMore) {
@@ -68,9 +76,10 @@ export function GifPicker({ conversationId, disabled }) {
     setIsLoadingMore(true);
 
     try {
-      const response = await fetchGiphyGifs({
+      const response = await fetchGiphyMedia({
         query: query.trim(),
         offset: Number(nextCursor) || 0,
+        mediaType,
       });
 
       setGifs((current) => [
@@ -88,12 +97,15 @@ export function GifPicker({ conversationId, disabled }) {
   };
 
   const handleSelectGif = async (gif) => {
-    const wasSent = await sendGif({
+    registerGiphyAction(gif.analytics?.onclick);
+
+    const wasSent = await sendExternalMedia({
       conversationId,
-      gif,
+      media: gif,
     });
 
     if (wasSent) {
+      registerGiphyAction(gif.analytics?.onsent);
       setIsOpen(false);
       setQuery("");
     }
@@ -118,16 +130,36 @@ export function GifPicker({ conversationId, disabled }) {
         <DialogHeader>
           <DialogTitle>Choose a GIF</DialogTitle>
           <DialogDescription>
-            Search GIPHY or choose a trending GIF.
+            Search GIPHY for GIFs and transparent stickers.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="grid grid-cols-2 rounded-xl bg-muted p-1">
+          {[
+            ["gif", "GIFs"],
+            ["sticker", "Stickers"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setMediaType(value)}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                mediaType === value
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value.slice(0, 50))}
-            placeholder="Search GIFs"
+            placeholder={mediaType === "sticker" ? "Search stickers" : "Search GIFs"}
             className="pl-9"
             autoFocus
           />
@@ -153,7 +185,7 @@ export function GifPicker({ conversationId, disabled }) {
                 <button
                   key={gif.providerId}
                   type="button"
-                  disabled={isSendingGif}
+                  disabled={isSendingExternalMedia}
                   onClick={() => handleSelectGif(gif)}
                   className="group relative overflow-hidden rounded-lg bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
                   style={{ aspectRatio: `${gif.width} / ${gif.height}` }}
@@ -163,6 +195,7 @@ export function GifPicker({ conversationId, disabled }) {
                     src={gif.previewUrl}
                     alt={gif.description || "GIF"}
                     loading="lazy"
+                    onLoad={() => registerGiphyAction(gif.analytics?.onload)}
                     className="size-full object-cover transition-transform group-hover:scale-[1.03]"
                   />
                 </button>
@@ -174,7 +207,7 @@ export function GifPicker({ conversationId, disabled }) {
             <Button
               type="button"
               variant="outline"
-              disabled={isLoadingMore || isSendingGif}
+              disabled={isLoadingMore || isSendingExternalMedia}
               onClick={handleLoadMore}
               className="mt-3 w-full"
             >
@@ -192,16 +225,22 @@ export function GifPicker({ conversationId, disabled }) {
   );
 }
 
-async function fetchGiphyGifs({ query = "", offset = 0, limit = 20 }) {
+async function fetchGiphyMedia({
+  query = "",
+  offset = 0,
+  limit = 20,
+  mediaType = "gif",
+}) {
   const apiKey = import.meta.env.VITE_GIPHY_API_KEY;
 
   if (!apiKey) {
     throw new Error("GIF search is not configured.");
   }
 
+  const resource = mediaType === "sticker" ? "stickers" : "gifs";
   const endpoint = query
-    ? "https://api.giphy.com/v1/gifs/search"
-    : "https://api.giphy.com/v1/gifs/trending";
+    ? `https://api.giphy.com/v1/${resource}/search`
+    : `https://api.giphy.com/v1/${resource}/trending`;
   const url = new URL(endpoint);
   url.search = new URLSearchParams({
     api_key: apiKey,
@@ -221,7 +260,9 @@ async function fetchGiphyGifs({ query = "", offset = 0, limit = 20 }) {
   }
 
   const payload = await response.json();
-  const gifs = (payload.data || []).map(normalizeGiphyGif).filter(Boolean);
+  const gifs = (payload.data || [])
+    .map((result) => normalizeGiphyMedia(result, mediaType))
+    .filter(Boolean);
   const count = Number(payload.pagination?.count) || 0;
   const totalCount = Number(payload.pagination?.total_count) || 0;
   const nextOffset = offset + count;
@@ -235,7 +276,7 @@ async function fetchGiphyGifs({ query = "", offset = 0, limit = 20 }) {
   };
 }
 
-function normalizeGiphyGif(result) {
+function normalizeGiphyMedia(result, mediaType) {
   const display =
     result.images?.fixed_width ||
     result.images?.downsized ||
@@ -248,10 +289,28 @@ function normalizeGiphyGif(result) {
 
   return {
     providerId: String(result.id),
+    mediaType,
     url: display.url,
     previewUrl: preview.url,
     width: Math.max(1, Number(display.width) || 1),
     height: Math.max(1, Number(display.height) || 1),
     description: result.title || result.alt_text || "GIF",
+    analytics: {
+      onload: result.analytics?.onload?.url || null,
+      onclick: result.analytics?.onclick?.url || null,
+      onsent: result.analytics?.onsent?.url || null,
+    },
   };
+}
+
+function registerGiphyAction(url) {
+  if (!url || !url.startsWith("https://giphy-analytics.giphy.com/")) {
+    return;
+  }
+
+  void fetch(url, {
+    method: "GET",
+    mode: "no-cors",
+    keepalive: true,
+  }).catch(() => {});
 }
