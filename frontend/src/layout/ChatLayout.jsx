@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
@@ -13,7 +14,9 @@ import { getMessagePreview } from "@/lib/messagePreview";
 import { useMessageStore } from "@/store/useMessageStore";
 
 export function ChatLayout() {
-  const [selectedConversationId, setSelectedConversationId] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const selectedConversationId = searchParams.get("conversation");
 
   const [typingByConversation, setTypingByConversation] = useState({});
 
@@ -185,11 +188,26 @@ export function ChatLayout() {
   ]);
 
   const handleSelectConversation = (conversation) => {
-    setSelectedConversationId(conversation.id);
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+
+      nextParams.set("conversation", conversation.id);
+
+      return nextParams;
+    });
   };
 
   const handleBackToConversations = () => {
-    setSelectedConversationId(null);
+    setSearchParams(
+      (currentParams) => {
+        const nextParams = new URLSearchParams(currentParams);
+
+        nextParams.delete("conversation");
+
+        return nextParams;
+      },
+      { replace: true },
+    );
   };
 
   const sidebarConversations = conversations.map((conversation) => {

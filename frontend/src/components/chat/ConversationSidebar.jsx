@@ -22,9 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/store/useAuthStore";
-import { NewChatDialog } from "./NewChatDialog";
 import { InvitationsDialog } from "./InvitationsDialog";
 import { PublicProfileDialog } from "./PublicProfileDialog";
 
@@ -73,7 +71,13 @@ export function ConversationSidebar({
         </button>
 
         <div className="flex items-center gap-1">
-          <ModeToggle />
+          <div>
+            <ModeToggle />
+          </div>
+
+          <div>
+            <InvitationsDialog />
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -133,31 +137,6 @@ export function ConversationSidebar({
           </DropdownMenu>
         </div>
       </div>
-
-      <div className="flex h-17 shrink-0 items-center justify-between gap-3 px-4">
-        <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold tracking-tight">
-            Messages
-          </h1>
-          <p className="sr-only">Your recent conversations</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <InvitationsDialog />
-
-          <NewChatDialog>
-            <Button
-              type="button"
-              size="icon"
-              aria-label="Start a new conversation"
-              className="shrink-0 rounded-xl"
-            >
-              <MessageSquarePlus className="size-4" />
-            </Button>
-          </NewChatDialog>
-        </div>
-      </div>
-
-      <Separator />
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="space-y-1.5 p-3">
