@@ -27,6 +27,9 @@
 | GET | `/api/auth/logout` | No | None | `200`, clears `jwt` cookie | `500` internal failure |
 | GET | `/api/auth/verify-email?token=...` | No | 64-character hex token | `200`, marks email verified | `400` invalid/expired token |
 | POST | `/api/auth/resend-verification` | No | `{ email }` | `200` generic/sent response | `429` cooldown/rate limit, `503` email provider failure |
+| PATCH | `/api/auth/change-password` | Yes | `{ currentPassword, newPassword, confirmPassword }` | `200`, replaces password and session cookie | `400` incorrect or reused password |
+| POST | `/api/auth/forgot-password` | No | `{ email }` | Generic `200` response | Rate limited; never reveals whether an account exists |
+| POST | `/api/auth/reset-password` | No | `{ token, newPassword, confirmPassword }` | `200`, clears session/reset fields | `400` invalid/expired token or reused password |
 
 ### Registration body
 
@@ -63,6 +66,8 @@ sequenceDiagram
 ```
 
 ## User API
+
+`PATCH /api/user/profile` is authenticated and accepts validated partial updates for inline identity/biography editing and preferred-language selection. It returns the updated user. `PATCH /api/user/profilePic` handles image replacement separately.
 
 | Method | Path | Auth | Request | Success response | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -119,6 +124,8 @@ All routes under `/api/conversations` use protected-route middleware.
 | POST | `/api/conversations/:conversationId/messages` | `{ content, replyTo? }` | `201`, populated message in `data` | Current user must be a participant |
 | POST | `/api/conversations/:conversationId/attachments` | `multipart/form-data`: `file`, optional `content`, optional `replyTo` | `201`, populated attachment message in `data` | One supported file up to 10 MB; current user must be a participant |
 | POST | `/api/conversations/:conversationId/media` | `{ providerId, mediaType, url, previewUrl, width, height, description? }` | `201`, populated GIF or sticker message in `data` | Backend accepts only `gif`/`sticker` types and HTTPS media URLs hosted on GIPHY domains |
+| GET | `/api/conversations/:conversationId/messages/:messageId/attachment` | Optional `?download=1` | `302` to a five-minute Cloudinary URL | Participant-only; attachment must exist |
+| POST | `/api/conversations/:conversationId/messages/:messageId/translate` | None | Translation text, target/detected language, and cache flag | Participant-only; target comes from the authenticated profile |
 | PATCH | `/api/conversations/:conversationId/messages/:messageId` | `{ content }` | Updated message in `data` | Current user must own the non-deleted text message |
 | DELETE | `/api/conversations/:conversationId/messages/:messageId` | None | Soft-deleted message in `data` | Current user must own the non-deleted message |
 
@@ -152,6 +159,11 @@ The query sorts newest first, limits to 50, populates sender/reply/read users, t
 | `403` | Login blocked until email verification |
 | `404` | User, invitation, conversation, or message not found/authorized |
 | `409` | Duplicate email, invitation, or established relationship |
-| `429` | Email request rate limit or resend cooldown |
+| `429` | Email/Translation rate limit or resend cooldown |
+| `502` | External Translation request failed |
 | `500` | Unhandled server failure |
-| `503` | Verification email provider failure during resend |
+| `503` | Email provider failure, missing Translation configuration, or Translation suspended by a usage cap |
+
+### Translation endpoint behavior
+
+The endpoint validates both IDs, verifies conversation membership, loads a non-deleted message containing text, and derives the target from `req.user.preferredLanguage`. Cache lookup occurs before quota reservation. A cache miss reserves monthly and daily characters atomically, calls Google with source-language auto-detection, stores the result, and returns it. See [Translation and cost controls](11-translation-and-cost-controls.md).

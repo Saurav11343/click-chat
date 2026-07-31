@@ -45,6 +45,8 @@ sequenceDiagram
 
 Message, invitation, presence, and `typing:update` events are server-to-client events. `typing:start` and `typing:stop` are client-to-server events. Persisted message and invitation mutations continue to originate as REST requests.
 
+Uploaded attachments and GIPHY GIF/sticker messages use the same `message:new` event as ordinary text. The payload's `messageType`, `attachment`, and `externalMedia` fields determine rendering; no provider-specific socket event is required. Translation produces recipient-local derived text through REST and intentionally emits no socket event because it does not alter the source message.
+
 ## Typing indicator flow
 
 ```mermaid

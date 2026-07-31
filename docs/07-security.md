@@ -9,6 +9,8 @@
 | Cookie | HTTP-only; `secure` and `SameSite=None` in production, `SameSite=Lax` in development |
 | Email verification | Cryptographically random 32-byte token; only SHA-256 hash stored; 24-hour expiry |
 | Resend protection | Per-user 60-second cooldown plus IP rate limit |
+| Password recovery | Random short-lived token; only SHA-256 hash stored; generic forgot-password response |
+| Password-change invalidation | `passwordChangedAt` rejects JWTs issued before the password change |
 | Input validation | Zod schemas for auth, invitations, message IDs/content, and user search |
 | REST authentication | `protectRoute` verifies cookie and reloads user without password |
 | Socket authentication | Independently parses and verifies the same cookie during handshake |
@@ -17,6 +19,8 @@
 | Message ownership | Edit/delete queries require current user as sender |
 | Invitation authorization | Only pending invitation recipient can accept/decline |
 | Upload filtering | Multer hard size/count limits; image-only profile filter; Zod MIME/metadata validation for chat attachments |
+| Translation authorization | Authenticated conversation membership; server-selected preferred target language |
+| Translation cost control | IP rate limit, cache, atomic daily/monthly character reservation, compiled hard caps, and kill switch |
 | Search safety | User input is regex-escaped before MongoDB regex use |
 | Secrets | Environment variables; expected to remain outside source control |
 
@@ -64,11 +68,13 @@ MIME types are client-provided metadata and are not a complete content-security 
 
 | Priority | Gap | Recommendation |
 | --- | --- | --- |
-| High | No password reset/change workflow | Add short-lived hashed reset tokens, rate limits, and session invalidation |
+| High | Chat/profile uploads have no per-user request or byte quota | Add per-user rate limits plus daily/monthly uploaded-byte ledgers before broad public access |
+| High | Cloudinary `upload` URLs are stored and returned with messages | Use authenticated/private delivery and short-lived signed access for sensitive attachments |
 | High | No security headers middleware | Add and configure Helmet, including CSP appropriate to the frontend |
 | High | No account blocking/reporting | Add relationship-level blocks and moderation reporting before public growth |
 | Medium | JWT revocation is unavailable | Add token version/session records for logout-all and compromised-session response |
 | Medium | Login has no dedicated rate limiter | Add IP/account-aware throttling while avoiding user enumeration |
+| Medium | Text/media creation and typing socket events lack dedicated throttles | Add per-user message limits and server-side socket event throttling to protect MongoDB/compute |
 | Medium | Upload validation trusts MIME metadata | Add magic-byte/content inspection and per-feature allow-lists |
 | Medium | In-memory presence assumes one server | Use Redis coordination when horizontally scaling |
 | Low | Some generic `500` responses expose inconsistent wording | Centralize error handling and structured logs |
@@ -80,3 +86,11 @@ MIME types are client-provided metadata and are not a complete content-security 
 - Search returns limited public profile fields and a maximum of 20 users.
 - Passwords, verification hashes, and Cloudinary internal IDs are excluded from normal query results.
 - Email addresses are visible in user search and invitation data; future privacy settings may need to limit this exposure.
+
+## Secret and billing boundary
+
+Backend credentials belong only in `backend/.env` locally and in Railway environment variables in production. Vite exposes every `VITE_*` value to browsers, so secrets such as the Translation key, Cloudinary secret, MongoDB URI, JWT secret, Gmail client secret, and refresh token must never use that prefix. The GIPHY client key is intentionally public and should be restricted in the provider dashboard where supported.
+
+Application Translation caps cannot stop direct use of a leaked key or usage by another application in the same Google project. Restrict the key to Cloud Translation and, when Railway provides stable egress, to the production outbound IP. Google Cloud budgets are notification mechanisms rather than spending caps.
+
+Railway, Cloudinary, MongoDB Atlas, and Vercel have billing/quota systems separate from Google Cloud. Production operators must configure alerts or hard limits in each provider; the Google Cloud budget does not cover them.

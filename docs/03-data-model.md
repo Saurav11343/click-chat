@@ -29,12 +29,17 @@ MongoDB collection names are Mongoose’s pluralized forms: `users`, `invitation
 | `emailVerificationToken` | String or null | SHA-256 hash of the active token; excluded from normal queries |
 | `emailVerificationExpiresAt` | Date or null | Token expiry, currently 24 hours after creation; excluded from normal queries |
 | `emailVerificationSentAt` | Date or null | Used for resend cooldown; excluded from normal queries |
+| `passwordResetToken` | String or null | SHA-256 hash of the active reset token; excluded from normal queries |
+| `passwordResetExpiresAt` | Date or null | Reset-token expiry; excluded from normal queries |
+| `passwordResetSentAt` | Date or null | Reset request timestamp; excluded from normal queries |
+| `passwordChangedAt` | Date or null | Invalidates JWTs issued before the password change |
 | `dateOfBirth` | Date | Required; registration validation requires age 18 or older |
 | `password` | String | Required bcrypt hash; never returned by protected-route user lookup |
 | `profilePic.url` | String | Public Cloudinary URL |
 | `profilePic.publicId` | String | Cloudinary deletion/replacement identifier; excluded from normal queries |
 | `profilePic.resourceType` | String | Cloudinary resource type; excluded from normal queries |
 | `bio` | String | Optional profile text, maximum 150 characters |
+| `preferredLanguage` | String | Lowercase Translation target; defaults to `en` |
 | `isOnline` | Boolean | Persisted presence state; defaults to `false` |
 | `lastSeen` | Date or null | Time the final socket was declared offline |
 | `createdAt` | Date | Mongoose timestamp |
@@ -139,6 +144,29 @@ The send controller rejects self-invitations and searches both user directions f
 | `{ conversation: 1, createdAt: -1 }` | Retrieves recent messages within a conversation |
 | `{ sender: 1, createdAt: -1 }` | Supports sender history/moderation-style queries |
 | Single-field `conversation` index | Added by `index: true` on the field; overlaps with the compound prefix |
+
+## Additional translation collections
+
+Translation adds Mongoose-pluralized `messagetranslations`, `translationusages`, and `translationdailyusages` collections.
+
+### Message translations
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `message` | ObjectId → Message | Source message |
+| `targetLanguage` | String | Lowercase preferred target language |
+| `contentHash` | String | SHA-256 hash of source content at translation time |
+| `translatedText` | String | Decoded translated result |
+| `detectedSourceLanguage` | String | Google-detected source language when available |
+| `createdAt`, `updatedAt` | Date | Cache timestamps |
+
+The unique index `{ message: 1, targetLanguage: 1, contentHash: 1 }` prevents duplicate cache records while permitting a fresh result after a message edit or language change.
+
+### Translation usage
+
+`TranslationUsage` stores one unique `monthKey` record, while `TranslationDailyUsage` stores one unique `dayKey` record. Each contains `charactersUsed` and timestamps. Conditional atomic increments reserve capacity before an external call. Keys use the `America/Los_Angeles` calendar boundary.
+
+These are conservative application accounting records, not Google invoices. They protect only calls passing through backend deployments that share the same MongoDB database.
 
 ## Data lifecycle
 
