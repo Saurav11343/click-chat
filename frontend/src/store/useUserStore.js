@@ -6,6 +6,38 @@ import { useAuthStore } from "./useAuthStore";
 
 export const useUserStore = create((set) => ({
   isUpdatingProfilePic: false,
+  isUpdatingProfile: false,
+
+  updateProfile: async (updates) => {
+    set({ isUpdatingProfile: true });
+
+    try {
+      const response = await axiosInstance.patch("/user/profile", updates);
+
+      if (response.data.success) {
+        useAuthStore.setState({ authUser: response.data.user });
+        toast.success(response.data.message || "Profile updated successfully");
+        return true;
+      }
+
+      toast.error(response.data.message || "Profile update failed");
+      return false;
+    } catch (error) {
+      const validationErrors = error.response?.data?.errors;
+      const firstError = validationErrors
+        ? Object.values(validationErrors).flat().find(Boolean)
+        : null;
+
+      toast.error(
+        firstError ||
+          error.response?.data?.message ||
+          "Unable to update profile",
+      );
+      return false;
+    } finally {
+      set({ isUpdatingProfile: false });
+    }
+  },
 
   updateProfilePic: async (file) => {
     set({ isUpdatingProfilePic: true });

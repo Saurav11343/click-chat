@@ -6,6 +6,9 @@ import {
   register,
   verifyEmail,
   resendVerificationEmail,
+  changePassword,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/auth.controller.js";
 
 import {
@@ -13,6 +16,9 @@ import {
   loginSchema,
   verifyEmailSchema,
   resendVerificationSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from "../validations/auth.validation.js";
 
 import { validate } from "../middleware/validate.middleware.js";
@@ -29,6 +35,27 @@ router.post(
 );
 
 router.post("/login", validate(loginSchema), login);
+
+router.patch(
+  "/change-password",
+  protectRoute,
+  validate(changePasswordSchema),
+  changePassword,
+);
+
+router.post(
+  "/forgot-password",
+  emailVerificationLimiter,
+  validate(forgotPasswordSchema),
+  forgotPassword,
+);
+
+router.post(
+  "/reset-password",
+  emailVerificationLimiter,
+  validate(resetPasswordSchema),
+  resetPassword,
+);
 
 router.get("/check", protectRoute, checkAuth);
 

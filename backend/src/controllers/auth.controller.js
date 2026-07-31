@@ -8,6 +8,8 @@ import {
   hashEmailVerificationToken,
 } from "../utils/emailVerification.js";
 import { sendVerificationEmail } from "../services/email.service.js";
+import { sendPasswordResetEmail } from "../services/email.service.js";
+import { createActionToken, hashActionToken } from "../utils/actionToken.js";
 
 export const register = async (req, res) => {
   try {
@@ -279,6 +281,141 @@ export const resendVerificationEmail = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to resend verification email.",
+    });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id).select(
+      "+password +passwordChangedAt",
+    );
+
+    if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect.",
+      });
+    }
+
+    if (await bcrypt.compare(newPassword, user.password)) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from your current password.",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordChangedAt = new Date();
+    user.passwordResetToken = null;
+    user.passwordResetExpiresAt = null;
+    user.passwordResetSentAt = null;
+    await user.save();
+
+    generateToken(user._id, res);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to change password.",
+    });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  const genericResponse = {
+    success: true,
+    message:
+      "If an account exists for this email, a password reset link has been sent.",
+  };
+
+  try {
+    const user = await User.findOne({ email: req.body.email }).select(
+      "+passwordResetToken +passwordResetExpiresAt +passwordResetSentAt",
+    );
+
+    if (!user) {
+      return res.status(200).json(genericResponse);
+    }
+
+    const { token, hashedToken, expiresAt } = createActionToken({
+      expiresInMinutes: 30,
+    });
+
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpiresAt = expiresAt;
+    user.passwordResetSentAt = new Date();
+    await user.save();
+
+    try {
+      await sendPasswordResetEmail({
+        email: user.email,
+        resetToken: token,
+      });
+    } catch (emailError) {
+      user.passwordResetToken = null;
+      user.passwordResetExpiresAt = null;
+      user.passwordResetSentAt = null;
+      await user.save();
+      console.error("Password reset email error:", emailError.message);
+    }
+
+    return res.status(200).json(genericResponse);
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(200).json(genericResponse);
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const user = await User.findOne({
+      passwordResetToken: hashActionToken(req.body.token),
+      passwordResetExpiresAt: { $gt: new Date() },
+    }).select(
+      "+password +passwordResetToken +passwordResetExpiresAt +passwordResetSentAt +passwordChangedAt",
+    );
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "The password reset link is invalid or has expired.",
+      });
+    }
+
+    if (await bcrypt.compare(req.body.newPassword, user.password)) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from your previous password.",
+      });
+    }
+
+    user.password = await bcrypt.hash(req.body.newPassword, 10);
+    user.passwordChangedAt = new Date();
+    user.passwordResetToken = null;
+    user.passwordResetExpiresAt = null;
+    user.passwordResetSentAt = null;
+    await user.save();
+
+    clearToken(res);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully. You can now log in.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to reset password.",
     });
   }
 };

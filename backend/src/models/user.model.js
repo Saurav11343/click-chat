@@ -48,6 +48,30 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    passwordResetToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    passwordResetExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    passwordResetSentAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
     dateOfBirth: {
       type: Date,
       required: [true, "Date of birth is required"],

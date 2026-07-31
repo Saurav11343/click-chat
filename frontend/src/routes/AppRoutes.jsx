@@ -11,6 +11,8 @@ import { AppLoadingScreen } from "@/components/AppLoadingScreen";
 import Profile from "@/pages/Profile";
 import VerifyEmail from "../pages/VerifyEmail";
 import CheckEmail from "../pages/CheckEmail";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
 function AppRoutes() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -58,6 +60,16 @@ function AppRoutes() {
       <Route
         path="/check-email"
         element={authUser ? <Navigate to="/chat" replace /> : <CheckEmail />}
+      />
+
+      <Route
+        path="/forgot-password"
+        element={authUser ? <Navigate to="/chat" replace /> : <ForgotPassword />}
+      />
+
+      <Route
+        path="/reset-password"
+        element={authUser ? <Navigate to="/chat" replace /> : <ResetPassword />}
       />
     </Routes>
   );
