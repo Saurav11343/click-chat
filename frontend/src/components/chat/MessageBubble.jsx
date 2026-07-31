@@ -26,7 +26,12 @@ import {
 
 import { useMessageStore } from "@/store/useMessageStore";
 
-export function MessageBubble({ message, isMyMessage, conversationId }) {
+export function MessageBubble({
+  message,
+  isMyMessage,
+  conversationId,
+  onMediaLoad,
+}) {
   const [isEditing, setIsEditing] = useState(false);
 
   const [editedContent, setEditedContent] = useState(message.content || "");
@@ -108,6 +113,8 @@ export function MessageBubble({ message, isMyMessage, conversationId }) {
   return (
     <div
       className={`group flex ${isMyMessage ? "justify-end" : "justify-start"}`}
+      onLoadCapture={onMediaLoad}
+      onLoadedMetadataCapture={onMediaLoad}
     >
       <div
         className={`relative max-w-[86%] rounded-2xl sm:max-w-[72%] ${

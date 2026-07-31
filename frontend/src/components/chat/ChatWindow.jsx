@@ -49,6 +49,15 @@ export function ChatWindow({
 
   const messagesEndRef = useRef(null);
 
+  const handleLatestMediaLoad = () => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    });
+  };
+
   // Load messages whenever the selected
   // conversation changes.
   useEffect(() => {
@@ -186,6 +195,11 @@ export function ChatWindow({
                       message={message}
                       isMyMessage={isMyMessage}
                       conversationId={conversationId}
+                      onMediaLoad={
+                        index === messages.length - 1
+                          ? handleLatestMediaLoad
+                          : undefined
+                      }
                     />
                   </Fragment>
                 );
