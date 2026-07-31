@@ -147,7 +147,7 @@ export const useAuthStore = create((set, get) => ({
       }
 
       return true;
-    } catch (error) {
+    } catch {
       socket.disconnect();
 
       set({
@@ -162,3 +162,19 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 }));
+
+socket.on("connect", () => {
+  useAuthStore.setState((state) => {
+    if (!state.authUser) {
+      return state;
+    }
+
+    return {
+      authUser: {
+        ...state.authUser,
+        isOnline: true,
+        lastSeen: null,
+      },
+    };
+  });
+});

@@ -13,6 +13,7 @@
 | REST authentication | `protectRoute` verifies cookie and reloads user without password |
 | Socket authentication | Independently parses and verifies the same cookie during handshake |
 | Conversation authorization | Message operations require authenticated user membership |
+| Typing authorization | Server validates conversation membership before forwarding typing state |
 | Message ownership | Edit/delete queries require current user as sender |
 | Invitation authorization | Only pending invitation recipient can accept/decline |
 | Upload filtering | Multer MIME allow-list, 10 MB limit; profile controller additionally requires image |
@@ -51,6 +52,7 @@ sequenceDiagram
 | Accept/decline invitation | Authenticated pending recipient |
 | Upload profile picture | Authenticated owner |
 | Search users | Authenticated user; current user excluded |
+| Send typing state | Authenticated conversation participant; recipients are other participants only |
 
 ## Upload security
 
@@ -74,6 +76,7 @@ MIME types are client-provided metadata and are not a complete content-security 
 ## Privacy considerations
 
 - Presence events are sent only to users sharing a conversation.
+- Typing events contain no message content and are forwarded only after conversation-membership verification.
 - Search returns limited public profile fields and a maximum of 20 users.
 - Passwords, verification hashes, and Cloudinary internal IDs are excluded from normal query results.
 - Email addresses are visible in user search and invitation data; future privacy settings may need to limit this exposure.

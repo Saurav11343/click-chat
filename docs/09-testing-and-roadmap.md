@@ -55,6 +55,18 @@
 | Reconnect within five seconds | Offline timer is cancelled; no flicker |
 | Backend restarts | Stale online flags reset; reconnecting clients become online again |
 
+### Typing indicators
+
+| Scenario | Expected result |
+| --- | --- |
+| Begin entering text or emoji | Other participants see the sender's first name and typing status |
+| Continue entering content | Sender does not emit a new start event for every keystroke |
+| Stop entering content | Indicator clears after approximately 1.5 seconds |
+| Empty or submit the composer | Indicator clears immediately |
+| Change conversations while typing | Previous conversation receives a stop event |
+| Lost stop event or abrupt disconnect | Recipient safety timer clears the indicator within approximately 3 seconds |
+| Invalid or unrelated conversation ID | Server ignores the event and sends no update |
+
 ### Interface and profile
 
 | Scenario | Expected result |
@@ -91,7 +103,6 @@ flowchart TD
 | Message history | Only latest 50 messages are returned | Older history is inaccessible |
 | Unread state | Counts are fixed at zero in the UI | Users cannot identify unseen conversations |
 | Read receipts | Sender receipt is stored, but no complete update/event/UI workflow exists | Delivery/read state is not visible |
-| Typing | No typing events or UI | Reduced real-time feedback |
 | Replies | Schema, API, and bubble display exist; composer selection does not | Users cannot initiate replies through the current UI |
 | Groups | Schema fields and validation exist; routes/UI are incomplete | Only direct chat is functional |
 | Attachments | Upload helpers and message types exist; message routes/UI are incomplete | Text/emoji only |
@@ -122,9 +133,8 @@ flowchart LR
 1. Cursor-based older-message pagination with scroll-position preservation.
 2. Per-conversation unread counts.
 3. Complete read-receipt API, events, and UI.
-4. Debounced typing indicators with automatic expiry.
-5. Complete reply selection, composer preview, and reply navigation.
-6. Optimistic send state, client IDs, retry, and reconnection resynchronization.
+4. Complete reply selection, composer preview, and reply navigation.
+5. Optimistic send state, client IDs, retry, and reconnection resynchronization.
 
 ### P2 — Conversation features
 

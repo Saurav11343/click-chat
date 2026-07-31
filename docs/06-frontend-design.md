@@ -65,9 +65,11 @@ flowchart LR
     API --> CON["Conversation store"]
     API --> MSG["Message store"]
     SOCKET["Socket.IO"] --> LAYOUT["ChatLayout handlers"]
+    COMP["MessageComposer"] -->|"typing:start / typing:stop"| SOCKET
     LAYOUT --> INV
     LAYOUT --> CON
     LAYOUT --> MSG
+    LAYOUT -->|"typingUser"| WINDOW
     CON --> SIDEBAR["ConversationSidebar"]
     MSG --> WINDOW["ChatWindow"]
     AUTH --> LAYOUT
@@ -104,6 +106,12 @@ flowchart TD
 
 The composer supports text, native emoji insertion, a 5,000-character limit, and submission loading state. Pressing Enter outside other inputs, dialogs, menus, links, and buttons focuses the message input. Enter within the input submits the form normally.
 
+### Typing indicators
+
+`MessageComposer` tracks whether it has already announced a typing session, preventing an event on every keystroke. It starts typing on non-empty text or emoji input, resets a 1.5-second inactivity timer as content changes, and stops on inactivity, empty content, successful submission, conversation change, or unmount.
+
+`ChatLayout` listens for `typing:update` and stores the current typing user by conversation ID. A three-second receiver timeout removes stale state if the stop event is lost. `ChatWindow` gives typing status priority over the ordinary Online/Last seen line while leaving the conversation name unchanged.
+
 ## Responsive layout
 
 - Desktop: conversation sidebar and chat window are shown side by side.
@@ -126,7 +134,6 @@ The composer supports text, native emoji insertion, a 5,000-character limit, and
 
 - Older-message pagination and upward-scroll preservation.
 - Unread badges and read receipt rendering.
-- Typing indicators.
 - Reply selection and composer preview, despite backend/schema support.
 - Group creation and administration interfaces.
 - Attachment, notification, search, and calling interfaces.

@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
@@ -15,6 +14,10 @@ import { useMessageStore } from "@/store/useMessageStore";
 
 export function ChatLayout() {
   const [selectedConversationId, setSelectedConversationId] = useState(null);
+
+  const [typingByConversation, setTypingByConversation] = useState({});
+
+  const typingTimeoutsRef = useRef(new Map());
 
   const authUser = useAuthStore((state) => state.authUser);
 
@@ -57,7 +60,19 @@ export function ChatLayout() {
     getConversations();
   }, [getInvitations, getConversations]);
 
+  const handleTypingChange = useCallback((conversationId, isTyping) => {
+    if (!conversationId || !socket.connected) {
+      return;
+    }
+
+    socket.emit(isTyping ? "typing:start" : "typing:stop", {
+      conversationId,
+    });
+  }, []);
+
   useEffect(() => {
+    const typingTimeouts = typingTimeoutsRef.current;
+
     const handleNewMessage = (message) => {
       addIncomingMessage(message);
       syncLastMessage(message, { isNew: true });
@@ -85,12 +100,65 @@ export function ChatLayout() {
       applyInvitationResponse(payload);
     };
 
+    const handleTypingUpdate = ({
+      conversationId,
+      userId,
+      firstName,
+      isTyping,
+    }) => {
+      if (!conversationId || !userId) {
+        return;
+      }
+
+      const existingTimeout = typingTimeouts.get(conversationId);
+
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+        typingTimeouts.delete(conversationId);
+      }
+
+      if (!isTyping) {
+        setTypingByConversation((currentTyping) => {
+          const nextTyping = { ...currentTyping };
+
+          delete nextTyping[conversationId];
+
+          return nextTyping;
+        });
+
+        return;
+      }
+
+      setTypingByConversation((currentTyping) => ({
+        ...currentTyping,
+        [conversationId]: {
+          userId,
+          firstName: firstName || "Someone",
+        },
+      }));
+
+      const safetyTimeout = setTimeout(() => {
+        setTypingByConversation((currentTyping) => {
+          const nextTyping = { ...currentTyping };
+
+          delete nextTyping[conversationId];
+
+          return nextTyping;
+        });
+
+        typingTimeouts.delete(conversationId);
+      }, 3000);
+
+      typingTimeouts.set(conversationId, safetyTimeout);
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("message:updated", handleUpdatedMessage);
     socket.on("message:deleted", handleDeletedMessage);
     socket.on("presence:update", handlePresenceUpdate);
     socket.on("invitation:new", handleNewInvitation);
     socket.on("invitation:responded", handleInvitationResponse);
+    socket.on("typing:update", handleTypingUpdate);
 
     return () => {
       socket.off("message:new", handleNewMessage);
@@ -99,6 +167,13 @@ export function ChatLayout() {
       socket.off("presence:update", handlePresenceUpdate);
       socket.off("invitation:new", handleNewInvitation);
       socket.off("invitation:responded", handleInvitationResponse);
+      socket.off("typing:update", handleTypingUpdate);
+
+      for (const timeout of typingTimeouts.values()) {
+        clearTimeout(timeout);
+      }
+
+      typingTimeouts.clear();
     };
   }, [
     addIncomingMessage,
@@ -211,6 +286,12 @@ export function ChatLayout() {
           <ChatWindow
             selectedConversation={selectedConversation}
             onBack={handleBackToConversations}
+            typingUser={
+              selectedConversationId
+                ? typingByConversation[selectedConversationId] || null
+                : null
+            }
+            onTypingChange={handleTypingChange}
           />
         </div>
       </main>

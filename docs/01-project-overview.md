@@ -84,6 +84,7 @@ flowchart LR
 - Sender read-receipt entries are stored when a message is created; complete receipt processing is not implemented.
 - Date separators for Today, Yesterday, and earlier calendar dates.
 - Enter-key shortcut to focus the composer when no other interactive control owns the keypress.
+- Real-time typing indicators scoped to conversation participants, with a 1.5-second sender inactivity timeout and a 3-second receiver safety timeout.
 
 #### Presence
 
@@ -109,7 +110,6 @@ flowchart LR
 
 - Cursor-based loading of messages older than the latest 50.
 - Unread counts and complete read-receipt workflows.
-- Typing indicators.
 - Complete reply selection in the composer.
 - Complete group-chat creation and administration.
 - Chat attachments, GIFs, and voice messages.

@@ -15,6 +15,7 @@ This directory contains the detailed technical documentation for ClickChat. The 
 | [Security](07-security.md) | Authentication, email verification, authorization, uploads, and current gaps |
 | [Setup and deployment](08-setup-and-deployment.md) | Local configuration, environment variables, commands, and cloud deployment |
 | [Testing and roadmap](09-testing-and-roadmap.md) | Verification strategy, current limitations, and prioritized future work |
+| [Diagram catalog](10-diagram-catalog.md) | DFD, UML, user, architecture, data, sequence, state, activity, deployment, and event diagrams |
 
 ## Suggested academic report mapping
 

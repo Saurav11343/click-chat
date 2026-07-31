@@ -39,8 +39,36 @@ sequenceDiagram
 | `presence:update` | Socket presence manager | Users sharing a conversation | `{ userId, isOnline, lastSeen }` | Update matching participant objects in every local conversation |
 | `invitation:new` | Invitation send controller | Invitation recipient | Populated invitation | Insert received invitation and update badge |
 | `invitation:responded` | Invitation response controller | Invitation sender | `{ invitation, conversation }` | Remove pending invitation; add conversation when accepted |
+| `typing:start` | Message composer | Socket server | `{ conversationId }` | Request an authenticated typing-state broadcast |
+| `typing:stop` | Message composer | Socket server | `{ conversationId }` | Request typing-state removal |
+| `typing:update` | Socket server | Other conversation participants | `{ conversationId, userId, firstName, isTyping }` | Show or clear typing status for that conversation |
 
-All listed events are server-to-client events. Message creation/edit/delete mutations and invitation mutations originate as REST requests.
+Message, invitation, presence, and `typing:update` events are server-to-client events. `typing:start` and `typing:stop` are client-to-server events. Persisted message and invitation mutations continue to originate as REST requests.
+
+## Typing indicator flow
+
+```mermaid
+sequenceDiagram
+    actor A as Typing user
+    participant C as MessageComposer
+    participant IO as Socket.IO server
+    participant DB as MongoDB
+    participant R as Recipient ChatLayout
+
+    A->>C: Enter non-empty content
+    C->>IO: typing:start { conversationId }
+    IO->>DB: Verify sender is a participant
+    DB-->>IO: Conversation participants
+    IO-->>R: typing:update { isTyping: true }
+    R->>R: Show status and start 3s safety timer
+    Note over C: 1.5s without input
+    C->>IO: typing:stop { conversationId }
+    IO->>DB: Verify sender is a participant
+    IO-->>R: typing:update { isTyping: false }
+    R->>R: Restore online or last-seen status
+```
+
+The composer emits `typing:start` only on the transition from idle to typing rather than on every keystroke. Each change resets its 1.5-second inactivity timer. Emptying the input, sending a message, switching conversations, or unmounting the composer emits `typing:stop`. The recipient also clears stale typing state after three seconds if a stop event is lost.
 
 ## Message event flow
 
@@ -133,6 +161,7 @@ stateDiagram-v2
 | Message events | `useMessageStore` and `useConversationStore` |
 | Presence | `useConversationStore` |
 | Invitations | `useInvitationStore`, with accepted conversations delegated to `useConversationStore` |
+| Typing | Local `ChatLayout` state keyed by conversation ID; not persisted in Zustand or MongoDB |
 
 ## Current scalability boundary
 
