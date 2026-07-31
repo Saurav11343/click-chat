@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { parseCookie } from "cookie";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 import ENV from "../config/env.js";
 import User from "../models/user.model.js";
@@ -64,6 +65,45 @@ const authenticateSocket = async (socket, next) => {
   }
 };
 
+const emitTypingUpdate = async ({ socket, conversationId, isTyping }) => {
+  try {
+    if (
+      typeof conversationId !== "string" ||
+      !mongoose.isValidObjectId(conversationId)
+    ) {
+      return;
+    }
+
+    const userId = socket.user._id.toString();
+
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: userId,
+    }).select("participants");
+
+    if (!conversation) {
+      return;
+    }
+
+    const participantIds = conversation.participants
+      .map((participantId) => participantId.toString())
+      .filter((participantId) => participantId !== userId);
+
+    const typingPayload = {
+      conversationId: conversation._id.toString(),
+      userId,
+      firstName: socket.user.firstName,
+      isTyping,
+    };
+
+    for (const participantId of participantIds) {
+      io.to(`user:${participantId}`).emit("typing:update", typingPayload);
+    }
+  } catch (error) {
+    console.error("Failed to emit typing update:", error.message);
+  }
+};
+
 export const initializeSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
@@ -109,6 +149,22 @@ export const initializeSocket = (httpServer) => {
     }
 
     socket.join(userRoom);
+
+    socket.on("typing:start", async (payload = {}) => {
+      await emitTypingUpdate({
+        socket,
+        conversationId: payload.conversationId,
+        isTyping: true,
+      });
+    });
+
+    socket.on("typing:stop", async (payload = {}) => {
+      await emitTypingUpdate({
+        socket,
+        conversationId: payload.conversationId,
+        isTyping: false,
+      });
+    });
 
     console.log(`${socket.user.firstName} connected with socket ${socket.id}`);
 

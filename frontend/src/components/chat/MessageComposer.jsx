@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SendHorizontal, Smile } from "lucide-react";
 
 import EmojiPicker, { EmojiStyle, Theme } from "emoji-picker-react";
@@ -7,17 +7,60 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMessageStore } from "@/store/useMessageStore";
 
-export function MessageComposer({ conversationId }) {
+export function MessageComposer({ conversationId, onTypingChange }) {
   const [content, setContent] = useState("");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const emojiPickerRef = useRef(null);
   const messageInputRef = useRef(null);
-
+  const typingTimeoutRef = useRef(null);
+  const isTypingRef = useRef(false);
   const isSendingMessage = useMessageStore((state) => state.isSendingMessage);
 
   const sendMessage = useMessageStore((state) => state.sendMessage);
 
   const trimmedContent = content.trim();
+  const stopTyping = useCallback(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    if (isTypingRef.current && conversationId && onTypingChange) {
+      onTypingChange(conversationId, false);
+    }
+
+    isTypingRef.current = false;
+  }, [conversationId, onTypingChange]);
+
+  const scheduleTypingStop = useCallback(() => {
+    if (!conversationId || !onTypingChange) {
+      return;
+    }
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      onTypingChange(conversationId, true);
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isTypingRef.current) {
+        onTypingChange(conversationId, false);
+        isTypingRef.current = false;
+      }
+
+      typingTimeoutRef.current = null;
+    }, 1500);
+  }, [conversationId, onTypingChange]);
+
+  useEffect(() => {
+    return () => {
+      stopTyping();
+    };
+  }, [stopTyping]);
 
   useEffect(() => {
     if (!isEmojiPickerOpen) {
@@ -81,11 +124,29 @@ export function MessageComposer({ conversationId }) {
   }, [conversationId]);
 
   const handleEmojiClick = (emojiData) => {
-    setContent((currentContent) => {
-      const nextContent = currentContent + emojiData.emoji;
+    const nextContent = `${content}${emojiData.emoji}`.slice(0, 5000);
 
-      return nextContent.slice(0, 5000);
-    });
+    setContent(nextContent);
+
+    if (nextContent.trim()) {
+      scheduleTypingStop();
+    } else {
+      stopTyping();
+    }
+
+    messageInputRef.current?.focus();
+  };
+
+  const handleContentChange = (event) => {
+    const nextContent = event.target.value;
+
+    setContent(nextContent);
+
+    if (nextContent.trim()) {
+      scheduleTypingStop();
+    } else {
+      stopTyping();
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -94,6 +155,8 @@ export function MessageComposer({ conversationId }) {
     if (!trimmedContent || !conversationId || isSendingMessage) {
       return;
     }
+
+    stopTyping();
 
     const wasSent = await sendMessage(conversationId, trimmedContent);
 
@@ -145,7 +208,7 @@ export function MessageComposer({ conversationId }) {
         ref={messageInputRef}
         type="text"
         value={content}
-        onChange={(event) => setContent(event.target.value)}
+        onChange={handleContentChange}
         placeholder="Type a message..."
         maxLength={5000}
         disabled={!conversationId || isSendingMessage}

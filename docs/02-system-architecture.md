@@ -62,6 +62,8 @@ sequenceDiagram
 
 REST is authoritative for mutations. Socket.IO distributes changes only after persistence for message operations. The sender normally updates from the REST response; other participants update from socket events.
 
+Typing state is an exception because it is ephemeral. The composer emits `typing:start` and `typing:stop` directly through Socket.IO. The server verifies conversation membership and forwards `typing:update` only to the other participants; no typing state is written to MongoDB.
+
 ## Backend layering
 
 ```mermaid
@@ -132,6 +134,8 @@ flowchart LR
     CL["ChatLayout"] --> IS["useInvitationStore"]
     CL --> CS["useConversationStore"]
     CW["ChatWindow"] --> MS["useMessageStore"]
+    MC["MessageComposer"] -->|"typing:start / typing:stop"| SO
+    SO -->|"typing:update"| CL
     PP["Profile picture UI"] --> US["useUserStore"]
 
     AX["Axios instance"] --> API["Express API"]

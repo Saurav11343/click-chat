@@ -23,6 +23,7 @@ The project is being developed as a Master’s project and as a practical demons
 - Latest-message previews without full conversation-list refreshes
 - WhatsApp-style message date separators
 - Multi-tab online/offline presence with a five-second reconnect grace period
+- Real-time typing indicators with sender inactivity and receiver safety timeouts
 - Persisted last-seen timestamps and stale-presence cleanup after server restarts
 - Light, dark, and system themes
 - Responsive landing, authentication, chat, and profile interfaces
@@ -138,7 +139,7 @@ click-chat/
 ## Current limitations
 
 - Message retrieval is limited to the latest 50 messages; older-message pagination is next.
-- Unread counts, complete read receipts, and typing indicators are not implemented.
+- Unread counts and complete read receipts are not implemented.
 - Reply storage/rendering exists, but reply selection in the composer is incomplete.
 - Group and attachment schema/service foundations exist, but their complete workflows are not implemented.
 - Presence and Socket.IO currently assume one backend instance.
@@ -149,9 +150,8 @@ click-chat/
 1. Automated integration and Socket.IO tests
 2. Cursor-based message-history pagination
 3. Unread counts and read receipts
-4. Typing indicators
-5. Complete reply interactions
-6. Attachments and group chat
+4. Complete reply interactions
+5. Attachments and group chat
 
 See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritized plan.
 

@@ -19,7 +19,12 @@ import { MessageBubble } from "@/components/chat/MessageBubble";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMessageStore } from "@/store/useMessageStore";
 
-export function ChatWindow({ selectedConversation, onBack }) {
+export function ChatWindow({
+  selectedConversation,
+  onBack,
+  typingUser,
+  onTypingChange,
+}) {
   const authUser = useAuthStore((state) => state.authUser);
 
   const messages = useMessageStore((state) => state.messages);
@@ -31,6 +36,18 @@ export function ChatWindow({ selectedConversation, onBack }) {
   const clearMessages = useMessageStore((state) => state.clearMessages);
 
   const conversationId = selectedConversation?.conversationId;
+
+  const isTyping = Boolean(typingUser);
+
+  const conversationStatus = selectedConversation?.isGroup
+    ? isTyping
+      ? `${typingUser.firstName} is typing…`
+      : "Group conversation"
+    : isTyping
+      ? `${typingUser.firstName} is typing…`
+      : selectedConversation?.online
+        ? "Online"
+        : formatLastSeen(selectedConversation?.lastSeen);
 
   const messagesEndRef = useRef(null);
 
@@ -75,18 +92,18 @@ export function ChatWindow({ selectedConversation, onBack }) {
           </Button>
 
           <div className="relative shrink-0">
-          <Avatar className="size-10 ring-2 ring-background sm:size-11">
-            <AvatarImage
-              src={selectedConversation.image}
-              alt={selectedConversation.name}
-              className="object-cover"
-            />
+            <Avatar className="size-10 ring-2 ring-background sm:size-11">
+              <AvatarImage
+                src={selectedConversation.image}
+                alt={selectedConversation.name}
+                className="object-cover"
+              />
 
-            <AvatarFallback>{selectedConversation.initials}</AvatarFallback>
-          </Avatar>
-          {selectedConversation.online && !selectedConversation.isGroup && (
-            <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
-          )}
+              <AvatarFallback>{selectedConversation.initials}</AvatarFallback>
+            </Avatar>
+            {selectedConversation.online && !selectedConversation.isGroup && (
+              <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
+            )}
           </div>
 
           <div className="min-w-0">
@@ -95,12 +112,18 @@ export function ChatWindow({ selectedConversation, onBack }) {
             </h2>
 
             <div className="flex items-center gap-1.5">
-              <p className="truncate text-xs text-muted-foreground">
-                {selectedConversation.isGroup
-                  ? "Group conversation"
-                  : selectedConversation.online
-                    ? "Online"
-                    : formatLastSeen(selectedConversation.lastSeen)}
+              {isTyping && (
+                <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-emerald-500" />
+              )}
+
+              <p
+                className={`truncate text-xs ${
+                  isTyping
+                    ? "font-medium text-emerald-600 dark:text-emerald-400"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {conversationStatus}
               </p>
             </div>
           </div>
@@ -139,9 +162,9 @@ export function ChatWindow({ selectedConversation, onBack }) {
 
           <Button
             type="button"
-          variant="ghost"
-          size="icon"
-          className="rounded-xl"
+            variant="ghost"
+            size="icon"
+            className="rounded-xl"
             aria-label="Conversation options"
           >
             <EllipsisVertical className="size-5" />
@@ -201,7 +224,11 @@ export function ChatWindow({ selectedConversation, onBack }) {
       <Separator />
 
       <footer className="shrink-0 bg-background/95 p-2.5 backdrop-blur-xl sm:p-4">
-        <MessageComposer key={conversationId} conversationId={conversationId} />
+        <MessageComposer
+          key={conversationId}
+          conversationId={conversationId}
+          onTypingChange={onTypingChange}
+        />
       </footer>
     </section>
   );
@@ -211,10 +238,7 @@ function isSameDay(firstValue, secondValue) {
   const firstDate = new Date(firstValue);
   const secondDate = new Date(secondValue);
 
-  if (
-    Number.isNaN(firstDate.getTime()) ||
-    Number.isNaN(secondDate.getTime())
-  ) {
+  if (Number.isNaN(firstDate.getTime()) || Number.isNaN(secondDate.getTime())) {
     return false;
   }
 
@@ -311,10 +335,13 @@ function EmptyChat() {
           <SendHorizontal className="size-8" />
         </div>
 
-        <h2 className="mt-6 text-2xl font-semibold tracking-tight">Your conversations, one click away</h2>
+        <h2 className="mt-6 text-2xl font-semibold tracking-tight">
+          Your conversations, one click away
+        </h2>
 
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Choose a conversation from the sidebar and pick up exactly where you left off.
+          Choose a conversation from the sidebar and pick up exactly where you
+          left off.
         </p>
       </div>
     </section>
