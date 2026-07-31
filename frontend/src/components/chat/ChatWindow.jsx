@@ -3,15 +3,13 @@ import { Fragment, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   EllipsisVertical,
-  Phone,
-  Search,
   SendHorizontal,
-  Video,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { MessageComposer } from "@/components/chat/MessageComposer";
+import { PublicProfileDialog } from "@/components/chat/PublicProfileDialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MessageBubble } from "@/components/chat/MessageBubble";
@@ -78,7 +76,7 @@ export function ChatWindow({
 
   return (
     <section className="flex h-full min-h-0 min-w-0 flex-col bg-muted/25">
-      <header className="flex min-h-18 shrink-0 items-center justify-between gap-2 bg-background/95 px-2 backdrop-blur-xl sm:px-5">
+      <header className="flex h-16 shrink-0 items-center justify-between gap-2 bg-background/95 px-2 backdrop-blur-xl sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Button
             type="button"
@@ -91,20 +89,28 @@ export function ChatWindow({
             <ArrowLeft className="size-5" />
           </Button>
 
-          <div className="relative shrink-0">
-            <Avatar className="size-10 ring-2 ring-background sm:size-11">
-              <AvatarImage
-                src={selectedConversation.image}
-                alt={selectedConversation.name}
-                className="object-cover"
-              />
+          <PublicProfileDialog user={selectedConversation}>
+            <button
+              type="button"
+              disabled={selectedConversation.isGroup}
+              className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default disabled:hover:scale-100"
+              aria-label={`View ${selectedConversation.name}'s profile`}
+            >
+              <Avatar className="size-9 ring-2 ring-background sm:size-10">
+                <AvatarImage
+                  src={selectedConversation.image}
+                  alt={selectedConversation.name}
+                  className="object-cover"
+                />
 
-              <AvatarFallback>{selectedConversation.initials}</AvatarFallback>
-            </Avatar>
-            {selectedConversation.online && !selectedConversation.isGroup && (
-              <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
-            )}
-          </div>
+                <AvatarFallback>{selectedConversation.initials}</AvatarFallback>
+              </Avatar>
+              {selectedConversation.online &&
+                !selectedConversation.isGroup && (
+                  <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
+                )}
+            </button>
+          </PublicProfileDialog>
 
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold tracking-tight sm:text-base">
@@ -134,36 +140,6 @@ export function ChatWindow({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Search messages"
-            className="hidden rounded-xl sm:inline-flex"
-          >
-            <Search className="size-4" />
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Start audio call"
-            className="hidden rounded-xl sm:inline-flex"
-          >
-            <Phone className="size-4" />
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Start video call"
-            className="hidden rounded-xl md:inline-flex"
-          >
-            <Video className="size-4" />
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
             className="rounded-xl"
             aria-label="Conversation options"
           >
@@ -174,7 +150,7 @@ export function ChatWindow({
 
       <Separator />
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-[radial-gradient(circle_at_50%_0%,color-mix(in_oklab,var(--primary)_4%,transparent),transparent_35%)] px-3 py-5 sm:px-6">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-[radial-gradient(circle_at_50%_0%,color-mix(in_oklab,var(--primary)_4%,transparent),transparent_35%)] px-3 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
         <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col justify-end gap-2.5">
           {isLoadingMessages ? (
             <MessagesLoadingState />

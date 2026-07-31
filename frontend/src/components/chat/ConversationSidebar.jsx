@@ -1,14 +1,32 @@
 "use client";
 
-import { MessageSquarePlus } from "lucide-react";
+import {
+  LogOut,
+  MessageCircleMore,
+  MessageSquarePlus,
+  Settings,
+  UserRound,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ModeToggle } from "@/components/ui/ModeToggle";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useAuthStore } from "@/store/useAuthStore";
 import { NewChatDialog } from "./NewChatDialog";
 import { InvitationsDialog } from "./InvitationsDialog";
+import { PublicProfileDialog } from "./PublicProfileDialog";
 
 export function ConversationSidebar({
   conversations,
@@ -16,13 +34,111 @@ export function ConversationSidebar({
   onSelectConversation,
   isLoading = false,
 }) {
+  const navigate = useNavigate();
+  const authUser = useAuthStore((state) => state.authUser);
+  const logout = useAuthStore((state) => state.logout);
+  const isLoggingOut = useAuthStore((state) => state.isLoggingOut);
+
+  const fullName = [authUser?.firstName, authUser?.lastName]
+    .filter(Boolean)
+    .join(" ");
+  const initials = `${authUser?.firstName?.charAt(0) || ""}${
+    authUser?.lastName?.charAt(0) || ""
+  }`.toUpperCase();
+  const profilePicUrl =
+    typeof authUser?.profilePic === "string"
+      ? authUser.profilePic
+      : authUser?.profilePic?.url || "";
+
+  const handleLogout = async () => {
+    if (await logout()) {
+      navigate("/", { replace: true });
+    }
+  };
+
   return (
     <aside className="flex h-full min-h-0 w-full flex-col bg-background">
-      <div className="flex min-h-22 shrink-0 items-center justify-between gap-3 px-4 py-4 sm:px-5">
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Your inbox</p>
-          <h1 className="mt-1 truncate text-xl font-semibold tracking-tight">Messages</h1>
+      <div className="flex h-16 shrink-0 items-center justify-between border-b px-3 sm:px-4">
+        <button
+          type="button"
+          onClick={() => navigate("/chat")}
+          className="flex min-w-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <MessageCircleMore className="size-5" />
+          </span>
+          <span className="truncate text-base font-semibold tracking-tight">
+            ClickChat
+          </span>
+        </button>
 
+        <div className="flex items-center gap-1">
+          <ModeToggle />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-xl"
+                aria-label="Open account menu"
+              >
+                <Avatar className="size-8 border">
+                  <AvatarImage
+                    src={profilePicUrl}
+                    alt={fullName || "User"}
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="text-xs">
+                    {initials || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-60 rounded-xl p-2"
+            >
+              <DropdownMenuLabel className="font-normal">
+                <p className="truncate text-sm font-medium">
+                  {fullName || "User"}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {authUser?.email}
+                </p>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => navigate("/profile")}>
+                <UserRound className="size-4" /> Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => navigate("/settings")}>
+                <Settings className="size-4" /> Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={isLoggingOut}
+                className="text-destructive focus:text-destructive"
+                onSelect={(event) => {
+                  event.preventDefault();
+                  handleLogout();
+                }}
+              >
+                <LogOut className="size-4" />
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <div className="flex h-17 shrink-0 items-center justify-between gap-3 px-4">
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-semibold tracking-tight">
+            Messages
+          </h1>
           <p className="sr-only">Your recent conversations</p>
         </div>
         <div className="flex items-center gap-2">
@@ -54,33 +170,51 @@ export function ConversationSidebar({
               const isSelected = selectedConversation?.id === conversation.id;
 
               return (
-                <button
+                <div
                   key={conversation.id}
-                  type="button"
-                  onClick={() => onSelectConversation(conversation)}
                   className={`group/conversation flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     isSelected
                       ? "bg-primary/8 shadow-sm ring-1 ring-primary/15"
-                      : "hover:bg-muted/70 active:scale-[0.99] active:bg-muted"
+                      : "hover:bg-muted/70"
                   }`}
                 >
-                  <div className="relative shrink-0">
-                    <Avatar className="size-11 ring-2 ring-background sm:size-12">
-                      <AvatarImage
-                        src={conversation.image}
-                        alt={conversation.name}
-                        className="object-cover"
-                      />
+                  <PublicProfileDialog user={conversation}>
+                    <button
+                      type="button"
+                      onClick={
+                        conversation.isGroup
+                          ? () => onSelectConversation(conversation)
+                          : undefined
+                      }
+                      className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label={
+                        conversation.isGroup
+                          ? `Open ${conversation.name}`
+                          : `View ${conversation.name}'s profile`
+                      }
+                    >
+                      <Avatar className="size-11 ring-2 ring-background sm:size-12">
+                        <AvatarImage
+                          src={conversation.image}
+                          alt={conversation.name}
+                          className="object-cover"
+                        />
 
-                      <AvatarFallback>{conversation.initials}</AvatarFallback>
-                    </Avatar>
+                        <AvatarFallback>{conversation.initials}</AvatarFallback>
+                      </Avatar>
 
-                    {conversation.online && !conversation.isGroup && (
-                      <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
-                    )}
-                  </div>
+                      {conversation.online && !conversation.isGroup && (
+                        <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
+                      )}
+                    </button>
+                  </PublicProfileDialog>
 
-                  <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => onSelectConversation(conversation)}
+                    className="min-w-0 flex-1 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label={`Open conversation with ${conversation.name}`}
+                  >
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-semibold sm:text-[15px]">
                         {conversation.name}
@@ -108,8 +242,8 @@ export function ConversationSidebar({
                         </Badge>
                       )}
                     </div>
-                  </div>
-                </button>
+                  </button>
+                </div>
               );
             })
           )}
