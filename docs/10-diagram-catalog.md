@@ -686,3 +686,41 @@ flowchart TD
 ```
 
 Resource authorization includes checks such as conversation membership, invitation recipient ownership, and message authorship.
+
+## 25. Translation quota and cache flow
+
+```mermaid
+flowchart TD
+    Request["Recipient requests translation"] --> Auth{"Conversation member and message valid?"}
+    Auth -->|"No"| Reject["Reject request"]
+    Auth -->|"Yes"| Cache{"Cached by message, language, and content hash?"}
+    Cache -->|"Yes"| Return["Return cached translation"]
+    Cache -->|"No"| Enabled{"Translation enabled and key configured?"}
+    Enabled -->|"No"| Suspended["503 service suspended/unavailable"]
+    Enabled -->|"Yes"| Month{"Atomically reserve monthly characters"}
+    Month -->|"Cap reached"| Suspended
+    Month -->|"Reserved"| Day{"Atomically reserve daily characters"}
+    Day -->|"Cap reached"| Release["Release monthly reservation"]
+    Release --> Suspended
+    Day -->|"Reserved"| Google["Call Google Translation Basic v2"]
+    Google --> Persist["Persist translation cache"]
+    Persist --> Return
+```
+
+## 26. Rich-message delivery paths
+
+```mermaid
+flowchart LR
+    Composer["Message composer"] --> Text["Text/emoji"]
+    Composer --> Upload["Image, video, audio, or document"]
+    Composer --> External["GIPHY GIF/sticker"]
+    Text --> API["Express message API"]
+    Upload --> Multer["Multer memory limit"]
+    Multer --> Zod["Zod MIME/metadata validation"]
+    Zod --> Cloudinary["Cloudinary upload"]
+    Cloudinary --> API
+    External --> Giphy["GIPHY API/CDN"]
+    Giphy --> API
+    API --> Mongo[("MongoDB message")]
+    Mongo --> Socket["message:new to recipient room"]
+```
