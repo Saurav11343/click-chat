@@ -16,7 +16,7 @@
 | Typing authorization | Server validates conversation membership before forwarding typing state |
 | Message ownership | Edit/delete queries require current user as sender |
 | Invitation authorization | Only pending invitation recipient can accept/decline |
-| Upload filtering | Multer MIME allow-list, 10 MB limit; profile controller additionally requires image |
+| Upload filtering | Multer hard size/count limits; image-only profile filter; Zod MIME/metadata validation for chat attachments |
 | Search safety | User input is regex-escaped before MongoDB regex use |
 | Secrets | Environment variables; expected to remain outside source control |
 
@@ -56,9 +56,9 @@ sequenceDiagram
 
 ## Upload security
 
-Multer stores uploads in memory and rejects files over 10 MB or outside the configured MIME allow-list. The profile endpoint then checks that the MIME type begins with `image/`. Cloudinary transforms the image and replaces the user’s previous asset. If persistence fails after upload, the new asset is cleaned up where possible.
+Multer stores uploads in memory and enforces hard count and size limits: 5 MB for profile pictures and 10 MB for chat attachments. Profile uploads use an image-only filter. Chat uploads are parsed by Multer and then validated with Zod before Cloudinary receives them. Conversation membership is checked before upload, and partial Cloudinary assets are cleaned up when message persistence fails.
 
-MIME types are client-provided metadata and are not a complete content-security check. Production attachment work should add file-signature inspection, malware scanning for documents, stricter per-route allow-lists, and secure download headers.
+MIME types are client-provided metadata and are not a complete content-security check. Production hardening should add file-signature inspection, malware scanning for documents, and secure download headers.
 
 ## Current risks and recommended improvements
 

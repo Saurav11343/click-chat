@@ -7,8 +7,14 @@ import { useConversationStore } from "./useConversationStore";
 export const useMessageStore = create((set, get) => ({
   messages: [],
   activeConversationId: null,
+
   isLoadingMessages: false,
   isSendingMessage: false,
+  isSendingAttachment: false,
+  isSendingGif: false,
+
+  attachmentUploadProgress: 0,
+
   editingMessageId: null,
   deletingMessageId: null,
 
@@ -24,8 +30,10 @@ export const useMessageStore = create((set, get) => ({
         `/conversations/${conversationId}/messages`,
       );
 
-      // Prevent an older request from replacing
-      // messages for a newer selected conversation
+      /*
+       * Prevent an older request from replacing messages belonging to a newly
+       * selected conversation.
+       */
       if (get().activeConversationId !== conversationId) {
         return false;
       }
@@ -86,6 +94,122 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
+  sendAttachment: async ({
+    conversationId,
+    file,
+    content = "",
+    replyTo = null,
+  }) => {
+    if (!conversationId || !file) {
+      toast.error("Please select a file.");
+
+      return false;
+    }
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+    formData.append("content", content.trim());
+
+    if (replyTo) {
+      formData.append("replyTo", replyTo);
+    }
+
+    set({
+      isSendingAttachment: true,
+      attachmentUploadProgress: 0,
+    });
+
+    try {
+      const response = await axiosInstance.post(
+        `/conversations/${conversationId}/attachments`,
+        formData,
+        {
+          onUploadProgress: (progressEvent) => {
+            if (!progressEvent.total) {
+              return;
+            }
+
+            const percentage = Math.min(
+              100,
+              Math.round((progressEvent.loaded * 100) / progressEvent.total),
+            );
+
+            set({
+              attachmentUploadProgress: percentage,
+            });
+          },
+        },
+      );
+
+      const newMessage = response.data.data;
+
+      if (get().activeConversationId === conversationId) {
+        set((state) => {
+          const alreadyExists = state.messages.some(
+            (message) => message._id === newMessage._id,
+          );
+
+          if (alreadyExists) {
+            return {};
+          }
+
+          return {
+            messages: [...state.messages, newMessage],
+          };
+        });
+      }
+
+      useConversationStore
+        .getState()
+        .syncLastMessage(newMessage, { isNew: true });
+
+      return true;
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Unable to upload the attachment.",
+      );
+
+      return false;
+    } finally {
+      set({
+        isSendingAttachment: false,
+        attachmentUploadProgress: 0,
+      });
+    }
+  },
+
+  sendGif: async ({ conversationId, gif }) => {
+    if (!conversationId || !gif?.providerId) {
+      return false;
+    }
+
+    set({ isSendingGif: true });
+
+    try {
+      const response = await axiosInstance.post(
+        `/conversations/${conversationId}/gifs`,
+        gif,
+      );
+      const newMessage = response.data.data;
+
+      if (get().activeConversationId === conversationId) {
+        set((state) => ({ messages: [...state.messages, newMessage] }));
+      }
+
+      useConversationStore
+        .getState()
+        .syncLastMessage(newMessage, { isNew: true });
+
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to send GIF.");
+      return false;
+    } finally {
+      set({ isSendingGif: false });
+    }
+  },
+
   addIncomingMessage: (incomingMessage) => {
     set((state) => {
       const alreadyExists = state.messages.some(
@@ -140,6 +264,9 @@ export const useMessageStore = create((set, get) => ({
       messages: [],
       activeConversationId: null,
       isLoadingMessages: false,
+      isSendingAttachment: false,
+      isSendingGif: false,
+      attachmentUploadProgress: 0,
     });
   },
 

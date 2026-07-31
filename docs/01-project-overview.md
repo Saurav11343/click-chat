@@ -27,7 +27,7 @@ Users need a lightweight web application in which they can register securely, di
 | Registered user | Account holder whose email may still require verification |
 | Authenticated user | Verified user with access to profile, invitations, conversations, messages, and presence |
 | Gmail API | Delivers verification emails through Google OAuth 2.0 |
-| Cloudinary | Stores and transforms profile pictures; chat upload helpers are prepared for future attachment work |
+| Cloudinary | Stores and transforms profile pictures and chat attachments |
 | MongoDB Atlas | Stores users, invitations, conversations, and messages |
 
 ## Functional scope
@@ -79,6 +79,7 @@ flowchart LR
 - Text and emoji messages up to 5,000 characters.
 - Retrieval of the latest 50 messages.
 - Real-time message creation, editing, and soft deletion.
+- Single-file image, video, audio, PDF, Office-document, text, and CSV messages up to 10 MB, with optional captions and upload progress.
 - Edited and deleted UI states.
 - Reply references supported by the API, schema, and message rendering; composer selection is not complete.
 - Sender read-receipt entries are stored when a message is created; complete receipt processing is not implemented.
@@ -112,7 +113,7 @@ flowchart LR
 - Unread counts and complete read-receipt workflows.
 - Complete reply selection in the composer.
 - Complete group-chat creation and administration.
-- Chat attachments, GIFs, and voice messages.
+- Multi-file attachment galleries, GIF search, and recorded voice messages.
 - Push notifications, message search, and calling.
 - Redis-backed multi-instance presence and Socket.IO fan-out.
 

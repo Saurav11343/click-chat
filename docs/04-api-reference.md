@@ -69,7 +69,7 @@ sequenceDiagram
 | PATCH | `/api/user/profilePic` | Yes | `multipart/form-data`, field `file` | `200`, success message | In-memory Multer upload; controller requires image; Cloudinary transforms to 500×500 |
 | GET | `/api/user/search?q=query` | Yes | Query `q` | `200`, `count`, `users` | `q` length 2–50; excludes current user; maximum 20 results |
 
-The shared upload middleware accepts several 10 MB media/document MIME types, but the current profile route additionally rejects anything that is not an image.
+Profile pictures use an image-only Multer filter and a 5 MB limit. Chat attachments use a 10 MB Multer transport limit followed by Zod validation of file metadata and supported MIME types.
 
 ## Invitation API
 
@@ -117,6 +117,8 @@ All routes under `/api/conversations` use protected-route middleware.
 | GET | `/api/conversations` | None | Populated `conversations` array | Returns conversations containing current user |
 | GET | `/api/conversations/:conversationId/messages` | None | Latest 50 messages in ascending display order | Current user must be a participant |
 | POST | `/api/conversations/:conversationId/messages` | `{ content, replyTo? }` | `201`, populated message in `data` | Current user must be a participant |
+| POST | `/api/conversations/:conversationId/attachments` | `multipart/form-data`: `file`, optional `content`, optional `replyTo` | `201`, populated attachment message in `data` | One supported file up to 10 MB; current user must be a participant |
+| POST | `/api/conversations/:conversationId/gifs` | `{ providerId, url, previewUrl, width, height, description? }` | `201`, populated GIF message in `data` | Backend accepts only HTTPS media URLs hosted on GIPHY domains |
 | PATCH | `/api/conversations/:conversationId/messages/:messageId` | `{ content }` | Updated message in `data` | Current user must own the non-deleted text message |
 | DELETE | `/api/conversations/:conversationId/messages/:messageId` | None | Soft-deleted message in `data` | Current user must own the non-deleted message |
 

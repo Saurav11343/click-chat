@@ -19,6 +19,8 @@ The project is being developed as a Master’s project and as a practical demons
 - User search and real-time chat invitations
 - Automatic direct-conversation creation on invitation acceptance
 - Persistent text and emoji messages
+- Image, video, audio, PDF, Office-document, text, and CSV attachments with captions and upload progress
+- GIPHY picker with trending results, debounced search, pagination, and real-time delivery
 - Real-time message creation, editing, and soft deletion
 - Latest-message previews without full conversation-list refreshes
 - WhatsApp-style message date separators
@@ -141,7 +143,8 @@ click-chat/
 - Message retrieval is limited to the latest 50 messages; older-message pagination is next.
 - Unread counts and complete read receipts are not implemented.
 - Reply storage/rendering exists, but reply selection in the composer is incomplete.
-- Group and attachment schema/service foundations exist, but their complete workflows are not implemented.
+- Group-chat schema foundations exist, but group workflows are not implemented.
+- Attachments are limited to one file and 10 MB per message; cancellation and retry are not yet implemented.
 - Presence and Socket.IO currently assume one backend instance.
 - Automated test coverage has not yet been configured.
 
@@ -151,7 +154,7 @@ click-chat/
 2. Cursor-based message-history pagination
 3. Unread counts and read receipts
 4. Complete reply interactions
-5. Attachments and group chat
+5. Group chat and multi-file attachment galleries
 
 See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritized plan.
 
