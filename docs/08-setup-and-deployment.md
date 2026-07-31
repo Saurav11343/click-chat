@@ -58,9 +58,11 @@ Create `frontend/.env`.
 | Name | Required | Description |
 | --- | --- | --- |
 | `VITE_API_URL` | Yes | Backend origin without `/api`, used by Axios and Socket.IO |
+| `VITE_GIPHY_API_KEY` | For GIF search | GIPHY developer API key used by the client-side picker as required by GIPHY |
 
 ```env
 VITE_API_URL=http://localhost:5000
+VITE_GIPHY_API_KEY=giphy_api_key
 ```
 
 ## Gmail OAuth token generation

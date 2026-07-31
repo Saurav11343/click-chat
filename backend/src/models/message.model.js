@@ -18,6 +18,113 @@ const readReceiptSchema = new mongoose.Schema(
   },
 );
 
+const attachmentSchema = new mongoose.Schema(
+  {
+    url: {
+      type: String,
+      required: [true, "Attachment URL is required"],
+      trim: true,
+    },
+
+    publicId: {
+      type: String,
+      required: [true, "Attachment public ID is required"],
+      trim: true,
+    },
+
+    originalName: {
+      type: String,
+      required: [true, "Attachment filename is required"],
+      trim: true,
+      maxlength: [255, "Attachment filename cannot exceed 255 characters"],
+    },
+
+    mimeType: {
+      type: String,
+      required: [true, "Attachment MIME type is required"],
+      trim: true,
+    },
+
+    size: {
+      type: Number,
+      required: [true, "Attachment size is required"],
+      min: [1, "Attachment cannot be empty"],
+    },
+
+    resourceType: {
+      type: String,
+      required: [true, "Attachment resource type is required"],
+      enum: {
+        values: ["image", "video", "raw"],
+        message: "{VALUE} is not a valid Cloudinary resource type",
+      },
+    },
+
+    width: {
+      type: Number,
+      default: null,
+      min: [0, "Attachment width cannot be negative"],
+    },
+
+    height: {
+      type: Number,
+      default: null,
+      min: [0, "Attachment height cannot be negative"],
+    },
+
+    duration: {
+      type: Number,
+      default: null,
+      min: [0, "Attachment duration cannot be negative"],
+    },
+  },
+  {
+    _id: false,
+  },
+);
+
+const gifSchema = new mongoose.Schema(
+  {
+    provider: {
+      type: String,
+      enum: ["giphy"],
+      required: true,
+    },
+    providerId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    url: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    previewUrl: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    width: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    height: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    description: {
+      type: String,
+      default: "GIF",
+      trim: true,
+      maxlength: 300,
+    },
+  },
+  { _id: false },
+);
+
 const messageSchema = new mongoose.Schema(
   {
     conversation: {
@@ -33,14 +140,12 @@ const messageSchema = new mongoose.Schema(
       required: [true, "Message sender is required"],
     },
 
+    /*
+     * Text for normal messages or an optional caption for attachments.
+     */
     content: {
       type: String,
-      required: [
-        function () {
-          return !this.isDeleted;
-        },
-        "Message content is required",
-      ],
+      default: "",
       trim: true,
       maxlength: [5000, "Message cannot exceed 5000 characters"],
     },
@@ -48,10 +153,20 @@ const messageSchema = new mongoose.Schema(
     messageType: {
       type: String,
       enum: {
-        values: ["text", "image", "file"],
+        values: ["text", "image", "video", "audio", "file", "gif"],
         message: "{VALUE} is not a valid message type",
       },
       default: "text",
+    },
+
+    attachment: {
+      type: attachmentSchema,
+      default: null,
+    },
+
+    gif: {
+      type: gifSchema,
+      default: null,
     },
 
     replyTo: {
@@ -74,6 +189,7 @@ const messageSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
     isDeleted: {
       type: Boolean,
       default: false,
@@ -88,6 +204,55 @@ const messageSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+messageSchema.pre("validate", function validateMessage() {
+  if (this.isDeleted) {
+    return;
+  }
+
+  const hasContent =
+    typeof this.content === "string" && this.content.trim().length > 0;
+
+  const hasAttachment = Boolean(
+    this.attachment?.url && this.attachment?.publicId,
+  );
+
+  const hasGif = Boolean(this.gif?.providerId && this.gif?.url);
+
+  if (this.messageType === "text") {
+    if (!hasContent) {
+      this.invalidate("content", "Text message content is required");
+    }
+
+    if (hasAttachment) {
+      this.invalidate(
+        "attachment",
+        "A text message cannot contain an attachment",
+      );
+    }
+
+    return;
+  }
+
+  if (this.messageType === "gif") {
+    if (!hasGif) {
+      this.invalidate("gif", "GIF metadata is required for GIF messages");
+    }
+
+    if (hasAttachment) {
+      this.invalidate("attachment", "A GIF message cannot contain an upload");
+    }
+
+    return;
+  }
+
+  if (!hasAttachment) {
+    this.invalidate(
+      "attachment",
+      "Attachment metadata is required for multimedia messages",
+    );
+  }
+});
 
 messageSchema.index({
   conversation: 1,

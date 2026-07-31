@@ -136,4 +136,4 @@ The composer supports text, native emoji insertion, a 5,000-character limit, and
 - Unread badges and read receipt rendering.
 - Reply selection and composer preview, despite backend/schema support.
 - Group creation and administration interfaces.
-- Attachment, notification, search, and calling interfaces.
+- Multi-file galleries, upload cancellation/retry, notification, search, and calling interfaces.

@@ -37,6 +37,8 @@
 | Scenario | Expected result |
 | --- | --- |
 | Send text/emoji | Persisted once and delivered in real time |
+| Send supported attachment | Upload progress is shown; media persists and reaches the other participant in real time |
+| Reject invalid attachment | Unsupported, empty, or oversized files return a clear validation error |
 | Edit own latest message | Both message and preview update |
 | Edit older message | Message updates; latest preview remains unchanged |
 | Delete latest message | Both clients show deleted bubble and “Message deleted” preview |
@@ -105,7 +107,7 @@ flowchart TD
 | Read receipts | Sender receipt is stored, but no complete update/event/UI workflow exists | Delivery/read state is not visible |
 | Replies | Schema, API, and bubble display exist; composer selection does not | Users cannot initiate replies through the current UI |
 | Groups | Schema fields and validation exist; routes/UI are incomplete | Only direct chat is functional |
-| Attachments | Upload helpers and message types exist; message routes/UI are incomplete | Text/emoji only |
+| Attachments | One file up to 10 MB per message; no cancellation, retry, signature inspection, or malware scan | Rich media works, but production hardening and multi-file UX remain |
 | Presence scale | Counts/timers are process-local | Single backend instance only |
 | Testing | No automated suite | Regression risk grows with new features |
 | Platform packaging | Android/Capacitor source is not maintained in this repository | New APK builds require a separate packaging phase later |
@@ -146,7 +148,7 @@ flowchart LR
 
 ### P3 — Rich media and groups
 
-- Secure image and document attachments with progress and previews.
+- Multi-file attachment galleries, cancellation, retry, signature inspection, and malware scanning.
 - Complete group creation, membership, roles, images, and system messages.
 - GIF picker.
 - Voice messages.

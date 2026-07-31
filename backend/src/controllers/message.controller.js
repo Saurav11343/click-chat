@@ -1,10 +1,12 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { deleteCloudinaryFile } from "../services/cloudinary.service.js";
 import { getIO } from "../socket/socket.js";
 
 const senderFields = "_id firstName lastName profilePic";
 
-const replyFields = "_id content sender messageType isDeleted createdAt";
+const replyFields =
+  "_id content sender messageType attachment gif isDeleted createdAt";
 
 const populateMessage = async (message) => {
   await message.populate("sender", senderFields);
@@ -266,6 +268,13 @@ export const deleteMessage = async (req, res) => {
       });
     }
 
+    const deletedAttachment = message.attachment
+      ? {
+          publicId: message.attachment.publicId,
+          resourceType: message.attachment.resourceType,
+        }
+      : null;
+
     message.content = "";
     message.isDeleted = true;
     message.deletedAt = new Date();
@@ -273,6 +282,23 @@ export const deleteMessage = async (req, res) => {
     message.editedAt = null;
 
     await message.save();
+
+    if (deletedAttachment?.publicId) {
+      try {
+        await deleteCloudinaryFile(deletedAttachment);
+        message.attachment = null;
+
+        await Message.updateOne(
+          { _id: message._id },
+          { $set: { attachment: null } },
+        );
+      } catch (attachmentDeleteError) {
+        console.error(
+          "Deleted message attachment cleanup failed:",
+          attachmentDeleteError,
+        );
+      }
+    }
 
     const conversation = await Conversation.findOne({
       _id: conversationId,

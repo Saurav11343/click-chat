@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useConversationStore } from "@/store/useConversationStore";
 
 import { socket } from "@/lib/socket";
+import { getMessagePreview } from "@/lib/messagePreview";
 import { useMessageStore } from "@/store/useMessageStore";
 
 export function ChatLayout() {
@@ -210,9 +211,10 @@ export function ChatLayout() {
         name: groupName,
         initials: initials || "G",
         image: conversation.groupImage?.url || "",
-        lastMessage: conversation.lastMessage?.isDeleted
-          ? "Message deleted"
-          : conversation.lastMessage?.content || "Group conversation created.",
+        lastMessage: getMessagePreview(
+          conversation.lastMessage,
+          "Group conversation created.",
+        ),
         time: formatConversationTime(
           conversation.lastMessage?.createdAt || conversation.updatedAt,
         ),
@@ -241,10 +243,7 @@ export function ChatLayout() {
       name: fullName || "Unknown user",
       initials: initials || "U",
       image: otherUser?.profilePic?.url || "",
-      lastMessage: conversation.lastMessage?.isDeleted
-        ? "Message deleted"
-        : conversation.lastMessage?.content ||
-          "Conversation created. Say hello!",
+      lastMessage: getMessagePreview(conversation.lastMessage),
       time: formatConversationTime(
         conversation.lastMessage?.createdAt || conversation.updatedAt,
       ),
