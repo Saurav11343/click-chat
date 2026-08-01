@@ -1,0 +1,23 @@
+{
+  "appId": "com.clickchat.app",
+  "appName": "ClickChat",
+  "webDir": "dist",
+  "backgroundColor": "#09090b",
+  "loggingBehavior": "debug",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#09090b",
+    "webContentsDebuggingEnabled": false,
+    "zoomEnabled": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK",
+      "insetsHandling": "css"
+    },
+    "Keyboard": {
+      "resize": "body",
+      "resizeOnFullScreen": true
+    }
+  }
+}

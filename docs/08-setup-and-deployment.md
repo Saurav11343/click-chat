@@ -91,7 +91,7 @@ Open the printed authorization URL, approve `gmail.send` with the sender account
 2. Create a dedicated API key named for the ClickChat backend.
 3. Apply an API restriction allowing only **Cloud Translation API**.
 4. Apply an IP restriction to the production backend's fixed outbound IP when available. Do not use the browser/Vercel IP.
-5. Store the key only as `GOOGLE_TRANSLATE_API_KEY` in `backend/.env` and Railway variables.
+5. Store the key only as `GOOGLE_TRANSLATE_API_KEY` in `backend/.env` and Railway/Render variables.
 6. Set the internal daily/monthly values shown above and restart the backend.
 7. Configure Google Cloud budget email alerts. Treat them as delayed notifications, not hard caps.
 
@@ -116,7 +116,44 @@ npm run dev
 
 Open `http://localhost:5173`.
 
-The maintained source tree is web-only. It does not include an Android project or Capacitor build scripts, so the commands above are the complete supported local workflow.
+### Android APK
+
+The Capacitor wrapper is maintained under `frontend/android`. Build the frontend with the deployed HTTPS backend URL, synchronize it into Android, and compile a debug APK:
+
+```powershell
+cd click-chat/frontend
+$env:VITE_API_URL="https://click-chat-64j1.onrender.com"
+npm run build
+npx cap sync android
+cd android
+./gradlew.bat assembleDebug
+```
+
+The generated installable APK is written to `frontend/android/app/build/outputs/apk/debug/app-debug.apk`. The Android build requires JDK 21 and the Android SDK. A debug APK is suitable for installation and testing; publishing requires a separately signed release bundle or APK and secure signing-key management.
+
+### Android Google Sign-In
+
+Android uses the native Credential Manager flow through `@capawesome/capacitor-google-sign-in`; it does not attempt Google OAuth inside the embedded WebView. The existing web OAuth client ID remains `VITE_GOOGLE_CLIENT_ID` and is passed as the server client ID so the backend can verify the same ID-token audience.
+
+Create an additional OAuth client in the same Google Cloud project:
+
+1. Select application type **Android**.
+2. Set package name to `com.clickchat.app`.
+3. For the current debug APK, register SHA-1 `9A:41:7F:89:E1:B3:8B:EB:93:A8:83:3D:BB:06:5C:F8:2F:D3:13:A6`.
+4. Keep the existing web client ID in `VITE_GOOGLE_CLIENT_ID` and `GOOGLE_AUTH_CLIENT_ID`; do not replace it with the Android client ID.
+5. When producing a release build, create or update the Android OAuth client with the release signing certificate SHA-1. If Google Play App Signing is enabled, also register the Play Console app-signing SHA-1.
+
+The debug fingerprint is machine/signing-key specific. Recalculate it if the debug keystore changes.
+
+### Android navigation and display behavior
+
+- Android hardware Back and the system back gesture close an open dialog/menu first.
+- Back from an open conversation returns to the conversation list.
+- Back on another page uses router history; Back at the app root exits the app.
+- Predictive-back callbacks are enabled in the Android manifest.
+- Capacitor System Bars inject safe-area values for notches and gesture navigation.
+- The keyboard resizes the document body so the message composer remains visible.
+- Mixed HTTP/HTTPS content, WebView zoom, and production WebView debugging are disabled.
 
 ## Available commands
 
@@ -129,6 +166,8 @@ The maintained source tree is web-only. It does not include an Android project o
 | `frontend` | `npm run build` | Create production frontend build |
 | `frontend` | `npm run lint` | Run ESLint |
 | `frontend` | `npm run preview` | Preview Vite production build |
+| `frontend` | `npx cap sync android` | Copy the current web build and plugins into Android |
+| `frontend/android` | `./gradlew.bat assembleDebug` | Compile an installable debug APK |
 
 The backend currently has no automated test or lint script.
 
@@ -198,14 +237,14 @@ flowchart LR
 ## Cost and quota checklist
 
 - Google Cloud: budget email thresholds, API-key restrictions, Translation internal caps, and billing reports.
-- Railway: compute usage alert and hard usage limit where the active plan supports it.
+- Railway/Render: compute usage alert and hard usage limit where the active plan supports it.
 - MongoDB Atlas: confirm `M0` if free-only operation is intended; otherwise configure organization billing alerts.
 - Cloudinary: monitor storage, transformation, and bandwidth usage; add application upload quotas before public growth.
 - Vercel: confirm Hobby/free status or configure spend controls for a paid team.
 - GIPHY/Gmail: monitor quota exhaustion because it can disable features even when it does not create a direct usage bill.
 
-Provider alerts are independent. A Google Cloud budget does not monitor Railway, Atlas, Cloudinary, Vercel, or GIPHY.
+Provider alerts are independent. A Google Cloud budget does not monitor Railway/Render, Atlas, Cloudinary, Vercel, or GIPHY.
 
 For Render, set the service's **Health Check Path** to `/health`. The endpoint returns a fast `200` response with process status, uptime, and a timestamp. This health check helps Render validate deployments and restart an unresponsive process; it does not prevent a free service from sleeping after inactivity.
 
-The backend CORS configuration also permits `http://localhost` and `https://localhost` for compatibility with the previously installed experimental APK. Those origins do not mean the Android/Capacitor source is maintained in this repository.
+The backend CORS configuration permits `http://localhost` and `https://localhost`, which cover local browser development and Capacitor's local Android web origin. Production web access still requires the exact deployed `CLIENT_URL`.

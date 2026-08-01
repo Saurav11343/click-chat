@@ -32,7 +32,7 @@ This directory contains the detailed technical documentation for ClickChat. The 
 
 ## Current repository scope
 
-These documents describe the maintained web frontend and backend in the current branch. Generated Android/Capacitor files from the earlier APK experiment have been removed and are not part of the supported project structure or build instructions.
+These documents describe the maintained web frontend, backend, and Capacitor Android wrapper in the current branch. Android build instructions and requirements are documented in [Setup and deployment](08-setup-and-deployment.md#android-apk).
 
 ## Documentation rule
 
