@@ -71,7 +71,7 @@ function VerifyEmail() {
   }, [token]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted px-4">
+    <div className="flex min-h-full items-center justify-center bg-muted px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">

@@ -152,6 +152,7 @@ The debug fingerprint is machine/signing-key specific. Recalculate it if the deb
 - Back on another page uses router history; Back at the app root exits the app.
 - Predictive-back callbacks are enabled in the Android manifest.
 - Capacitor System Bars inject safe-area values for notches and gesture navigation.
+- Android navigation controls use immersive mode and reappear temporarily when the user swipes from the bottom edge.
 - The keyboard resizes the document body so the message composer remains visible.
 - Mixed HTTP/HTTPS content, WebView zoom, and production WebView debugging are disabled.
 

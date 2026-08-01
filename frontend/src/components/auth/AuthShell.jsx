@@ -12,7 +12,7 @@ const benefits = [
 
 function AuthShell({ children }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative min-h-full overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_16%,color-mix(in_oklab,var(--primary)_9%,transparent),transparent_28%),radial-gradient(circle_at_88%_82%,color-mix(in_oklab,var(--primary)_7%,transparent),transparent_24%)]" />
 
       <header className="absolute inset-x-0 top-0 z-10">
@@ -36,7 +36,7 @@ function AuthShell({ children }) {
         </div>
       </header>
 
-      <main className="mx-auto grid min-h-screen max-w-7xl items-center gap-14 px-4 pb-10 pt-24 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-24">
+      <main className="mx-auto grid min-h-full max-w-7xl items-center gap-14 px-4 pb-10 pt-24 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-24">
         <section className="hidden max-w-lg lg:block">
           <span className="mb-7 flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/15">
             <MessagesSquare className="size-7" />

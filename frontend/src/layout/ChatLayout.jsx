@@ -279,7 +279,7 @@ export function ChatLayout() {
     ) || null;
 
   return (
-    <div className="h-dvh w-full overflow-hidden bg-muted/30">
+    <div className="h-full w-full overflow-hidden bg-muted/30">
       <main className="relative flex h-full min-h-0 gap-3 overflow-hidden md:p-3">
         <div
           className={`h-full w-full overflow-hidden bg-background md:block md:w-[320px] md:rounded-2xl md:shadow-sm md:ring-1 md:ring-foreground/10 lg:w-[340px] xl:w-[360px] ${
