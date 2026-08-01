@@ -25,6 +25,14 @@ app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use("/api/name", nameRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);

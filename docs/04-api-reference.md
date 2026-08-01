@@ -15,6 +15,7 @@
 | Method | Path | Auth | Request | Success |
 | --- | --- | --- | --- | --- |
 | GET | `/` | No | None | Plain text `Backend is running` |
+| GET | `/health` | No | None | `200` with `status`, process `uptime` in seconds, and an ISO `timestamp` |
 | POST | `/api/name` | No | `{ name }` | Development greeting; not used by the production UI |
 
 ## Authentication API

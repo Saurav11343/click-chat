@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
     U["Desktop or mobile browser"] -->|"HTTPS"| V["React 19 + Vite on Vercel"]
-    V -->|"REST with credentials"| E["Express 5 API on Railway"]
+    V -->|"REST with credentials"| E["Express 5 API on Railway/Render"]
     V <-->|"Authenticated Socket.IO"| S["Socket.IO server"]
     E --> M[("MongoDB Atlas")]
     E --> C["Cloudinary"]
@@ -165,7 +165,7 @@ flowchart LR
 flowchart TD
     DEV["Source push"] --> GH["GitHub repository"]
     GH --> VE["Vercel build and deploy"]
-    GH --> RW["Railway build and deploy"]
+    GH --> RW["Railway/Render build and deploy"]
     VE --> BR["User browser"]
     BR -->|"HTTPS REST and Socket.IO"| RW
     RW --> MA[("MongoDB Atlas")]
@@ -174,9 +174,10 @@ flowchart TD
     RW --> GM["Gmail REST API"]
 ```
 
-Vercel rewrites frontend routes to `/` so React Router can handle direct navigation. Railway runs `node src/server.js`. The current presence algorithm assumes one Railway backend process.
+Vercel rewrites frontend routes to `/` so React Router can handle direct navigation. Railway/Render runs `node src/server.js`. The current presence algorithm assumes one Railway/Render backend process.
 
 The maintained deployment targets are:
 
 - Web application: `https://clickchat-ldrp.vercel.app/`
-- Backend API and Socket.IO server: `https://click-chat-production.up.railway.app/`
+- Backend API and Socket.IO server — Render (active): `https://click-chat-64j1.onrender.com/`
+- Backend API and Socket.IO server — Railway (inactive): `https://click-chat-production.up.railway.app/`
