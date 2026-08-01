@@ -131,4 +131,4 @@ flowchart LR
 
 ## Maintained platforms
 
-The maintained repository contains the browser-based React frontend and Node.js backend. An Android APK was produced during an earlier Capacitor experiment, but the generated Android project and Capacitor configuration are no longer part of the source tree. Native packaging is therefore outside the current documented build workflow.
+The maintained repository contains the browser-based React frontend, Node.js backend, and a Capacitor Android wrapper under `frontend/android`. Android packages the same Vite application and communicates with the deployed HTTPS backend; it is not a separate native messaging implementation.

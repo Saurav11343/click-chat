@@ -132,7 +132,7 @@ flowchart TD
 | Attachments | One file up to 10 MB per message; no cancellation, retry, signature inspection, or malware scan | Rich media works, but production hardening and multi-file UX remain |
 | Presence scale | Counts/timers are process-local | Single backend instance only |
 | Testing | No automated suite | Regression risk grows with new features |
-| Platform packaging | Android/Capacitor source is not maintained in this repository | New APK builds require a separate packaging phase later |
+| Platform packaging | Capacitor Android wrapper and debug APK build are maintained | Store publication still requires release signing, store assets, and native OAuth validation |
 | Security | Upload/message quotas, login throttling, private attachment delivery, blocking/reporting, and security headers remain incomplete | Not ready for untrusted broad public traffic |
 
 ## Prioritized roadmap

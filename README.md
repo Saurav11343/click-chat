@@ -137,6 +137,8 @@ click-chat/
 |       |-- utils/
 |       `-- validations/
 |-- frontend/
+|   |-- android/             # Capacitor Android wrapper
+|   |-- capacitor.config.json
 |   `-- src/
 |       |-- api/
 |       |-- components/
@@ -174,6 +176,6 @@ See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritiz
 
 ## Deployment
 
-The web frontend is deployed to Vercel, the backend to Railway/Render, data to MongoDB Atlas, profile media to Cloudinary, and verification email through the Gmail REST API. This repository currently contains the web application and backend only; the earlier experimental Android/Capacitor project is not part of the maintained source tree.
+The web frontend is deployed to Vercel, the backend to Railway/Render, data to MongoDB Atlas, profile media to Cloudinary, and verification email through the Gmail REST API. A maintained Capacitor Android wrapper packages the same React frontend as an installable APK.
 
 When deploying the backend on Render, configure `/health` as the **Health Check Path**. It provides a lightweight process-health response and does not expose credentials or application data.
