@@ -256,16 +256,16 @@ flowchart LR
 flowchart LR
     Browser["Desktop or mobile browser"]
     Vercel["Vercel\nReact production build"]
-    Railway["Railway\nExpress and Socket.IO"]
+    Backend["Railway/Render\nExpress and Socket.IO"]
     Atlas[("MongoDB Atlas")]
     Cloudinary["Cloudinary"]
     Google["Google OAuth and Gmail API"]
 
     Browser -->|"HTTPS pages"| Vercel
-    Browser <-->|"HTTPS REST and Socket.IO"| Railway
-    Railway -->|"Mongoose connection"| Atlas
-    Railway -->|"Image API"| Cloudinary
-    Railway -->|"OAuth and email API"| Google
+    Browser <-->|"HTTPS REST and Socket.IO"| Backend
+    Backend -->|"Mongoose connection"| Atlas
+    Backend -->|"Image API"| Cloudinary
+    Backend -->|"OAuth and email API"| Google
 ```
 
 ## 10. UML package diagram

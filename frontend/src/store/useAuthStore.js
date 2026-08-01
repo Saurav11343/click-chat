@@ -4,6 +4,23 @@ import { toast } from "sonner";
 
 import { socket } from "@/lib/socket";
 
+const AUTH_CHECK_ATTEMPTS = 6;
+const AUTH_CHECK_TIMEOUT = 15000;
+const AUTH_CHECK_RETRY_DELAY = 2500;
+
+const wait = (milliseconds) =>
+  new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+const isTemporaryStartupError = (error) => {
+  const status = error.response?.status;
+
+  return (
+    !error.response ||
+    error.code === "ECONNABORTED" ||
+    [502, 503, 504].includes(status)
+  );
+};
+
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isCheckingAuth: false,
@@ -208,23 +225,32 @@ export const useAuthStore = create((set, get) => ({
     });
 
     try {
-      const res = await axiosInstance.get("/auth/check");
+      for (let attempt = 1; attempt <= AUTH_CHECK_ATTEMPTS; attempt += 1) {
+        try {
+          const res = await axiosInstance.get("/auth/check", {
+            timeout: AUTH_CHECK_TIMEOUT,
+          });
 
-      set({
-        authUser: res.data.user,
-      });
+          set({ authUser: res.data.user });
 
-      if (!socket.connected) {
-        socket.connect();
+          if (!socket.connected) {
+            socket.connect();
+          }
+
+          return true;
+        } catch (error) {
+          const shouldRetry =
+            isTemporaryStartupError(error) && attempt < AUTH_CHECK_ATTEMPTS;
+
+          if (!shouldRetry) {
+            socket.disconnect();
+            set({ authUser: null });
+            return false;
+          }
+
+          await wait(AUTH_CHECK_RETRY_DELAY);
+        }
       }
-
-      return true;
-    } catch {
-      socket.disconnect();
-
-      set({
-        authUser: null,
-      });
 
       return false;
     } finally {

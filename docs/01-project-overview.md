@@ -104,7 +104,7 @@ flowchart LR
 | Consistency | MongoDB is updated before real-time message events are emitted |
 | Responsiveness | Mobile/desktop layouts, a full-screen authentication loader, local Zustand updates, and targeted socket events |
 | Maintainability | MVC-style backend, dedicated services and validation, feature stores, and reusable UI components |
-| Availability | Vercel frontend, Railway backend, MongoDB Atlas, Cloudinary, and Gmail REST API |
+| Availability | Vercel frontend, Railway/Render backend, MongoDB Atlas, Cloudinary, and Gmail REST API |
 | Scalability | Suitable for one backend instance; distributed presence and Socket.IO require Redis later |
 
 ## Out of scope or incomplete

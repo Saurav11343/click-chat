@@ -7,9 +7,10 @@ The project is being developed as a Master’s project and as a practical demons
 ## Live demo
 
 - Web application: [clickchat-ldrp.vercel.app](https://clickchat-ldrp.vercel.app/)
-- Backend API: [click-chat-production.up.railway.app](https://click-chat-production.up.railway.app/)
+- Backend API — Render (active): [click-chat-64j1.onrender.com](https://click-chat-64j1.onrender.com/)
+- Backend API — Railway (inactive): [click-chat-production.up.railway.app](https://click-chat-production.up.railway.app/)
 
-> The Railway service may take a few seconds to respond after inactivity.
+> A free Railway/Render service may take additional time to respond after inactivity while the backend wakes up.
 
 ## Highlights
 
@@ -53,7 +54,7 @@ REST handles validation, authorization, persistence, uploads, and error response
 | Frontend | React 19, Vite, React Router, Zustand, Axios, React Hook Form, Zod, Tailwind CSS, shadcn/ui, Radix UI, Socket.IO Client |
 | Backend | Node.js, Express 5, Socket.IO, Mongoose, JWT, bcrypt, Zod, Multer |
 | Data and cloud | MongoDB Atlas, Cloudinary, Gmail REST API with Google OAuth 2.0 |
-| Deployment | Vercel frontend and Railway backend |
+| Deployment | Vercel frontend and Railway/Render backend |
 
 ## Quick start
 
@@ -160,4 +161,6 @@ See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritiz
 
 ## Deployment
 
-The web frontend is deployed to Vercel, the backend to Railway, data to MongoDB Atlas, profile media to Cloudinary, and verification email through the Gmail REST API. This repository currently contains the web application and backend only; the earlier experimental Android/Capacitor project is not part of the maintained source tree.
+The web frontend is deployed to Vercel, the backend to Railway/Render, data to MongoDB Atlas, profile media to Cloudinary, and verification email through the Gmail REST API. This repository currently contains the web application and backend only; the earlier experimental Android/Capacitor project is not part of the maintained source tree.
+
+When deploying the backend on Render, configure `/health` as the **Health Check Path**. It provides a lightweight process-health response and does not expose credentials or application data.

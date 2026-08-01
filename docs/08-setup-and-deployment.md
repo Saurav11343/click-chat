@@ -73,7 +73,7 @@ From `backend`:
 npm run gmail:token
 ```
 
-Open the printed authorization URL, approve `gmail.send` with the sender account, and store the returned refresh token in local and Railway environment variables. Never commit OAuth credentials or refresh tokens.
+Open the printed authorization URL, approve `gmail.send` with the sender account, and store the returned refresh token in local and Railway/Render environment variables. Never commit OAuth credentials or refresh tokens.
 
 ## Local installation
 
@@ -136,20 +136,21 @@ Resetting presence at startup is correct for the current single backend instance
 | Service | URL |
 | --- | --- |
 | Web application | [https://clickchat-ldrp.vercel.app/](https://clickchat-ldrp.vercel.app/) |
-| Backend API and Socket.IO | [https://click-chat-production.up.railway.app/](https://click-chat-production.up.railway.app/) |
+| Backend API and Socket.IO — Render (active) | [https://click-chat-64j1.onrender.com/](https://click-chat-64j1.onrender.com/) |
+| Backend API and Socket.IO — Railway (inactive) | [https://click-chat-production.up.railway.app/](https://click-chat-production.up.railway.app/) |
 
 | Layer | Service | Configuration |
 | --- | --- | --- |
 | Frontend | Vercel | Vite build; `vercel.json` rewrites all paths to `/` for React Router |
-| Backend | Railway | Node process running the Express/Socket.IO server |
-| Database | MongoDB Atlas | `MONGO_URI` supplied to Railway |
-| Media | Cloudinary | API credentials supplied to Railway |
-| Email | Gmail REST API | OAuth credentials and sender refresh token supplied to Railway |
+| Backend | Railway/Render | Node process running the Express/Socket.IO server |
+| Database | MongoDB Atlas | `MONGO_URI` supplied to Railway/Render |
+| Media | Cloudinary | API credentials supplied to Railway/Render |
+| Email | Gmail REST API | OAuth credentials and sender refresh token supplied to Railway/Render |
 
 ```mermaid
 flowchart LR
     B["Browser"] -->|"HTTPS"| V["Vercel frontend"]
-    B <-->|"REST + Socket.IO"| R["Railway backend"]
+    B <-->|"REST + Socket.IO"| R["Railway/Render backend"]
     R --> M[("MongoDB Atlas")]
     R --> C["Cloudinary"]
     R --> G["Gmail API"]
@@ -158,11 +159,13 @@ flowchart LR
 ## Deployment checks
 
 1. Confirm `CLIENT_URL` exactly matches the deployed frontend origin.
-2. Confirm `VITE_API_URL` points to the Railway backend origin.
+2. Confirm `VITE_API_URL` points to the Railway/Render backend origin.
 3. Set `NODE_ENV=production` so the cross-site JWT cookie is secure and `SameSite=None`.
-4. Confirm Railway supports WebSocket connections and the frontend reaches Socket.IO.
+4. Confirm the Railway/Render service supports WebSocket connections and the frontend reaches Socket.IO.
 5. Verify the Gmail refresh token belongs to the configured sender.
 6. Verify MongoDB and Cloudinary network/credential configuration.
 7. Test registration, email verification, login, profile upload, invitation, messaging, and presence after deployment.
+
+For Render, set the service's **Health Check Path** to `/health`. The endpoint returns a fast `200` response with process status, uptime, and a timestamp. This health check helps Render validate deployments and restart an unresponsive process; it does not prevent a free service from sleeping after inactivity.
 
 The backend CORS configuration also permits `http://localhost` and `https://localhost` for compatibility with the previously installed experimental APK. Those origins do not mean the Android/Capacitor source is maintained in this repository.
