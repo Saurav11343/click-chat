@@ -29,6 +29,8 @@ Users need a lightweight web application in which they can register securely, di
 | Gmail API | Delivers verification emails through Google OAuth 2.0 |
 | Cloudinary | Stores and transforms profile pictures and chat attachments |
 | MongoDB Atlas | Stores users, invitations, conversations, and messages |
+| Google Cloud Translation | Translates selected message text with automatic source-language detection |
+| GIPHY | Supplies externally hosted GIF and sticker search results |
 
 ## Functional scope
 
@@ -59,6 +61,10 @@ flowchart LR
 - JWT authentication through an HTTP-only cookie.
 - Protected frontend routes and persistent authentication checks.
 - Profile display and Cloudinary profile-picture replacement.
+- Inline first-name, last-name, and biography editing without a separate edit modal.
+- Preferred-language selection for message translation.
+- Authenticated password change and generic-response forgot/reset-password flows.
+- Clickable avatars that open a basic public-profile dialog.
 - Drag-and-drop or file-picker profile-image selection with immediate upload, local validation, progress feedback, and automatic dialog closure after success.
 - Light, dark, and system theme support.
 - A branded responsive landing page, shared authentication shell, application loading screen, chat dashboard, and account profile interface built from reusable shadcn/Radix primitives.
@@ -79,7 +85,12 @@ flowchart LR
 - Text and emoji messages up to 5,000 characters.
 - Retrieval of the latest 50 messages.
 - Real-time message creation, editing, and soft deletion.
+- Per-bubble actions for copy, translate, edit, delete, and media download.
 - Single-file image, video, audio, PDF, Office-document, text, and CSV messages up to 10 MB, with optional captions and upload progress.
+- GIPHY GIF/sticker discovery with trending results, debounced search, pagination, analytics, and real-time delivery.
+- Clickable YouTube previews for supported URLs.
+- On-demand Translation to the recipient's preferred language with caching and hard usage caps.
+- Sidebar previews normalized to one line and shortened to 42 Unicode characters.
 - Edited and deleted UI states.
 - Reply references supported by the API, schema, and message rendering; composer selection is not complete.
 - Sender read-receipt entries are stored when a message is created; complete receipt processing is not implemented.
@@ -113,7 +124,8 @@ flowchart LR
 - Unread counts and complete read-receipt workflows.
 - Complete reply selection in the composer.
 - Complete group-chat creation and administration.
-- Multi-file attachment galleries, GIF search, and recorded voice messages.
+- Multi-file attachment galleries and recorded voice messages.
+- Per-user upload/storage quotas and private Cloudinary delivery for sensitive attachments.
 - Push notifications, message search, and calling.
 - Redis-backed multi-instance presence and Socket.IO fan-out.
 

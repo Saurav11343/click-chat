@@ -21,6 +21,9 @@
 | Expired/invalid link | `400` error |
 | Rapid resend | Cooldown or rate-limit response |
 | Logout | Cookie cleared, socket disconnected, protected route unavailable |
+| Forgot password for known/unknown email | Same generic response; known account receives a time-limited link |
+| Reset with valid token | Password changes, reset fields clear, old session is unavailable |
+| Change password while authenticated | Current password verified; JWT is reissued and older JWTs are rejected |
 
 ### Invitations
 
@@ -45,6 +48,21 @@
 | Delete older message | Bubble changes; latest preview remains unchanged |
 | Date boundary | Separator appears when calendar day changes |
 | Switch conversation during history request | Stale response does not replace active conversation messages |
+| Send GIF/sticker | GIPHY result is stored as external metadata and delivered to the recipient without Cloudinary upload |
+| Long latest message | Sidebar shows one line, at most 42 Unicode characters plus `...`, without row overflow |
+| Open/download attachment | Participant receives a short-lived redirect; unrelated user is rejected |
+
+### Translation
+
+| Scenario | Expected result |
+| --- | --- |
+| Translate received text | Original remains visible and translated text appears below it |
+| Repeat same message/language | Cached result returns without another Google call or quota reservation |
+| Edit then translate | Content hash changes and a fresh translation is stored |
+| Daily/monthly limit reached | `503 TRANSLATION_SERVICE_SUSPENDED`; Google is not called |
+| Translation disabled/missing key | Clear service-unavailable response |
+| Excessive attempts | `429 TRANSLATION_RATE_LIMITED` |
+| Two concurrent reservations near cap | Atomic counter permits only requests that fit remaining allowance |
 
 ### Presence
 
@@ -79,6 +97,10 @@
 | Valid profile image selection | Upload starts immediately and the dialog closes after success |
 | Invalid profile image | Unsupported type or image over 5 MB is rejected before upload |
 | Upload in progress | Dialog cannot be dismissed accidentally and progress state remains visible |
+| Inline name/bio edit | Only the selected section enters edit mode and persists validated data |
+| Preferred language update | Profile refreshes and subsequent translations target the new language |
+| Avatar click | Public profile opens; clicking ordinary row content selects conversation instead |
+| Mobile browser Back | Open conversation returns to conversation list through URL history |
 
 ## Recommended automated test architecture
 
@@ -111,7 +133,7 @@ flowchart TD
 | Presence scale | Counts/timers are process-local | Single backend instance only |
 | Testing | No automated suite | Regression risk grows with new features |
 | Platform packaging | Android/Capacitor source is not maintained in this repository | New APK builds require a separate packaging phase later |
-| Security | Password recovery, session management, blocking/reporting, and security headers are incomplete | Not ready for broad public production use |
+| Security | Upload/message quotas, login throttling, private attachment delivery, blocking/reporting, and security headers remain incomplete | Not ready for untrusted broad public traffic |
 
 ## Prioritized roadmap
 
@@ -129,6 +151,8 @@ flowchart LR
 - Add frontend store/component tests and a CI workflow.
 - Add centralized error handling, structured logging, and health checks.
 - Add login rate limiting and security headers.
+- Add per-user upload-byte/message quotas and socket typing-event throttling.
+- Move sensitive attachments to authenticated/private Cloudinary delivery.
 
 ### P1 — Messaging fundamentals
 
@@ -150,7 +174,6 @@ flowchart LR
 
 - Multi-file attachment galleries, cancellation, retry, signature inspection, and malware scanning.
 - Complete group creation, membership, roles, images, and system messages.
-- GIF picker.
 - Voice messages.
 - Voice and video calling.
 

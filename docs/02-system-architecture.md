@@ -10,6 +10,8 @@ flowchart LR
     E --> M[("MongoDB Atlas")]
     E --> C["Cloudinary"]
     E --> G["Gmail REST API"]
+    E --> T["Google Cloud Translation API"]
+    V --> Y["GIPHY API/CDN"]
     G --> I["Email inbox"]
     E --> S
 
@@ -35,8 +37,10 @@ flowchart LR
 | Express API | Routing, validation, authentication, authorization, persistence, upload handling, and responses |
 | Socket.IO | Authenticates the JWT cookie, joins user rooms, delivers real-time events, and tracks presence |
 | MongoDB/Mongoose | Persistent source of truth and schema validation |
-| Gmail API | Sends email-verification links using Google OAuth 2.0 |
-| Cloudinary | Stores and transforms profile pictures |
+| Gmail API | Sends email-verification and password-reset links using Google OAuth 2.0 |
+| Cloudinary | Stores/transforms profile pictures and chat attachments and deletes message assets during cleanup |
+| Google Cloud Translation | Translates cache misses after atomic daily/monthly character reservation |
+| GIPHY | Provides client-side GIF/sticker discovery and externally hosted media delivery |
 
 ## REST and Socket.IO boundary
 
@@ -64,6 +68,10 @@ REST is authoritative for mutations. Socket.IO distributes changes only after pe
 
 Typing state is an exception because it is ephemeral. The composer emits `typing:start` and `typing:stop` directly through Socket.IO. The server verifies conversation membership and forwards `typing:update` only to the other participants; no typing state is written to MongoDB.
 
+Translation is REST-only. It produces a derived view of existing message content and does not mutate or emit the message. Cache entries include the source content hash, so an edited message cannot reuse stale translated text.
+
+Attachment upload is a compound mutation: membership and reply checks run before the Cloudinary upload, metadata is persisted with the message, the conversation's `lastMessage` is updated, and only then is `message:new` emitted. If persistence fails before completion, the controller attempts to remove the new Cloudinary asset.
+
 ## Backend layering
 
 ```mermaid
@@ -78,7 +86,7 @@ flowchart TD
     UP --> CTRL
     CTRL --> SERVICE["Service or utility"]
     CTRL --> MODEL["Mongoose model"]
-    SERVICE --> EXT["Cloudinary or Gmail API"]
+    SERVICE --> EXT["Cloudinary, Gmail, or Translation API"]
     MODEL --> DB[("MongoDB")]
     CTRL --> SOCKET["Socket.IO event emission"]
 ```

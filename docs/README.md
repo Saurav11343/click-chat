@@ -16,6 +16,7 @@ This directory contains the detailed technical documentation for ClickChat. The 
 | [Setup and deployment](08-setup-and-deployment.md) | Local configuration, environment variables, commands, and cloud deployment |
 | [Testing and roadmap](09-testing-and-roadmap.md) | Verification strategy, current limitations, and prioritized future work |
 | [Diagram catalog](10-diagram-catalog.md) | DFD, UML, user, architecture, data, sequence, state, activity, deployment, and event diagrams |
+| [Translation and cost controls](11-translation-and-cost-controls.md) | Translation flow, cache, atomic quota accounting, failure behavior, and billing safeguards |
 
 ## Suggested academic report mapping
 

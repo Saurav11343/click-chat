@@ -8,6 +8,8 @@
 - Cloudinary account
 - Google Cloud project with Gmail API enabled
 - Dedicated Gmail sender account and OAuth 2.0 credentials
+- Google Cloud project with Cloud Translation API enabled when Translation is required
+- GIPHY developer key when GIF/sticker discovery is required
 
 ## Environment variables
 
@@ -31,6 +33,10 @@ Create `backend/.env`.
 | `GOOGLE_CLIENT_SECRET` | For verification email | Google OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | For token generation | OAuth redirect URI |
 | `GOOGLE_REFRESH_TOKEN` | For verification email | Sender account refresh token with `gmail.send` scope |
+| `GOOGLE_TRANSLATE_API_KEY` | For Translation | Backend-only key restricted to Cloud Translation API |
+| `TRANSLATION_ENABLED` | No | Emergency switch; set to `false` to suspend new external translations |
+| `TRANSLATION_DAILY_CHARACTER_LIMIT` | No | Requested daily cap, clamped by code to at most `12000` |
+| `TRANSLATION_MONTHLY_CHARACTER_LIMIT` | No | Requested monthly cap, clamped by code to at most `400000` |
 
 Example without real secrets:
 
@@ -49,6 +55,10 @@ GOOGLE_CLIENT_ID=oauth_client_id
 GOOGLE_CLIENT_SECRET=oauth_client_secret
 GOOGLE_REDIRECT_URI=http://localhost:3000/oauth2callback
 GOOGLE_REFRESH_TOKEN=oauth_refresh_token
+GOOGLE_TRANSLATE_API_KEY=backend_only_translation_key
+TRANSLATION_ENABLED=true
+TRANSLATION_DAILY_CHARACTER_LIMIT=12000
+TRANSLATION_MONTHLY_CHARACTER_LIMIT=400000
 ```
 
 ### Frontend
@@ -74,6 +84,18 @@ npm run gmail:token
 ```
 
 Open the printed authorization URL, approve `gmail.send` with the sender account, and store the returned refresh token in local and Railway/Render environment variables. Never commit OAuth credentials or refresh tokens.
+
+## Cloud Translation setup
+
+1. Enable **Cloud Translation API** in the same Google Cloud project used for the backend key.
+2. Create a dedicated API key named for the ClickChat backend.
+3. Apply an API restriction allowing only **Cloud Translation API**.
+4. Apply an IP restriction to the production backend's fixed outbound IP when available. Do not use the browser/Vercel IP.
+5. Store the key only as `GOOGLE_TRANSLATE_API_KEY` in `backend/.env` and Railway variables.
+6. Set the internal daily/monthly values shown above and restart the backend.
+7. Configure Google Cloud budget email alerts. Treat them as delayed notifications, not hard caps.
+
+The Translation implementation uses Basic v2 and omits `source`, allowing Google to detect the source language. The user's validated profile preference supplies `target`. See [Translation and cost controls](11-translation-and-cost-controls.md).
 
 ## Local installation
 
@@ -142,10 +164,12 @@ Resetting presence at startup is correct for the current single backend instance
 | Layer | Service | Configuration |
 | --- | --- | --- |
 | Frontend | Vercel | Vite build; `vercel.json` rewrites all paths to `/` for React Router |
-| Backend | Railway/Render | Node process running the Express/Socket.IO server |
-| Database | MongoDB Atlas | `MONGO_URI` supplied to Railway/Render |
-| Media | Cloudinary | API credentials supplied to Railway/Render |
-| Email | Gmail REST API | OAuth credentials and sender refresh token supplied to Railway/Render |
+| Backend | Railway | Node process running the Express/Socket.IO server |
+| Database | MongoDB Atlas | `MONGO_URI` supplied to Railway |
+| Media | Cloudinary | API credentials supplied to Railway |
+| Email | Gmail REST API | OAuth credentials and sender refresh token supplied to Railway |
+| Translation | Google Cloud Translation Basic v2 | Restricted API key and internal caps supplied to Railway |
+| GIF/sticker discovery | GIPHY | Public client key supplied to Vercel at build time |
 
 ```mermaid
 flowchart LR
@@ -154,6 +178,8 @@ flowchart LR
     R --> M[("MongoDB Atlas")]
     R --> C["Cloudinary"]
     R --> G["Gmail API"]
+    R --> T["Translation API"]
+    V --> Y["GIPHY API/CDN"]
 ```
 
 ## Deployment checks
@@ -164,7 +190,21 @@ flowchart LR
 4. Confirm the Railway/Render service supports WebSocket connections and the frontend reaches Socket.IO.
 5. Verify the Gmail refresh token belongs to the configured sender.
 6. Verify MongoDB and Cloudinary network/credential configuration.
-7. Test registration, email verification, login, profile upload, invitation, messaging, and presence after deployment.
+7. Confirm Translation usage models use the same production MongoDB database across every backend instance.
+8. Confirm the Translation key does not appear in the frontend bundle or browser network configuration.
+9. Test registration, verification, password recovery/change, profile editing, preferred language, invitations, text/media/GIF messages, Translation, downloads, mobile Back behavior, and presence.
+10. Verify Translation suspension using small limits in a non-production database before relying on the production caps.
+
+## Cost and quota checklist
+
+- Google Cloud: budget email thresholds, API-key restrictions, Translation internal caps, and billing reports.
+- Railway: compute usage alert and hard usage limit where the active plan supports it.
+- MongoDB Atlas: confirm `M0` if free-only operation is intended; otherwise configure organization billing alerts.
+- Cloudinary: monitor storage, transformation, and bandwidth usage; add application upload quotas before public growth.
+- Vercel: confirm Hobby/free status or configure spend controls for a paid team.
+- GIPHY/Gmail: monitor quota exhaustion because it can disable features even when it does not create a direct usage bill.
+
+Provider alerts are independent. A Google Cloud budget does not monitor Railway, Atlas, Cloudinary, Vercel, or GIPHY.
 
 For Render, set the service's **Health Check Path** to `/health`. The endpoint returns a fast `200` response with process status, uptime, and a timestamp. This health check helps Render validate deployments and restart an unresponsive process; it does not prevent a free service from sleeping after inactivity.
 

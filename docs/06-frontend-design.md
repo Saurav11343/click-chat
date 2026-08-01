@@ -9,6 +9,8 @@
 | `/register` | Public-only | `Register` | Creates an account and begins verification |
 | `/check-email` | Public-only | `CheckEmail` | Displays delivery state and supports resend cooldown |
 | `/verify-email` | Public-only | `VerifyEmail` | Consumes the emailed verification token |
+| `/forgot-password` | Public-only | `ForgotPassword` | Requests a generic-response reset email |
+| `/reset-password` | Public-only | `ResetPassword` | Validates the emailed token and replaces the password |
 | `/chat` | Protected | `Chat` → `ChatLayout` | Main conversations and messaging interface |
 | `/profile` | Protected | `Profile` | Displays account information and updates profile picture |
 
@@ -27,14 +29,15 @@ flowchart TD
     RT --> CHAT["Chat"]
     RT --> PROFILE["Profile"]
     CHAT --> LAYOUT["ChatLayout"]
-    LAYOUT --> NAV["Navbar"]
     LAYOUT --> SIDE["ConversationSidebar"]
     LAYOUT --> WIN["ChatWindow"]
     SIDE --> INV["InvitationsDialog"]
     SIDE --> NEW["NewChatDialog"]
+    SIDE --> PUBPRO["PublicProfileDialog"]
     WIN --> BUB["MessageBubble"]
     WIN --> COMP["MessageComposer"]
     COMP --> EMOJI["EmojiPicker"]
+    COMP --> GIPHY["GiphyPicker"]
     PROFILE --> PIC["ProfilePictureUpload"]
 ```
 
@@ -42,8 +45,8 @@ flowchart TD
 
 - The landing page uses a branded header, responsive hero, product preview, trust points, feature cards, call to action, and footer.
 - Login and registration share `AuthShell`, which supplies consistent branding, theme control, navigation, benefits, and responsive two-column composition.
-- The authenticated dashboard uses the original stable navbar structure with updated theme-aware styling, a conversation panel, and a focused chat panel.
-- The profile page presents account status, verification state, biography, identity fields, membership information, and profile-image controls in the same visual system.
+- The authenticated dashboard avoids a separate global navbar. A compact ClickChat header is integrated into the conversation sidebar, while the selected conversation has one focused chat header.
+- The profile page presents account status, verification state, biography, preferred language, password management, membership information, and profile-image controls. Name and biography sections enter local inline-edit mode rather than opening a second modal.
 - Tailwind theme tokens and shadcn/Radix primitives provide consistent borders, cards, menus, dialogs, avatars, spacing, focus states, and light/dark behavior.
 
 ## Zustand stores
@@ -97,14 +100,16 @@ flowchart TD
     DAY -->|"No"| BUBBLE["MessageBubble"]
     SEP --> BUBBLE
     BUBBLE --> OWN{"Current user owns message?"}
-    OWN -->|"Yes"| MENU["Edit/delete menu"]
-    OWN -->|"No"| VIEW["Read-only bubble"]
+    OWN -->|"Yes"| MENU["Copy/edit/delete menu"]
+    OWN -->|"No"| VIEW["Copy/translate menu"]
     BUBBLE --> STATE{"Deleted or edited?"}
     STATE --> DEL["Deleted placeholder"]
     STATE --> EDIT["Edited label"]
 ```
 
-The composer supports text, native emoji insertion, a 5,000-character limit, and submission loading state. Pressing Enter outside other inputs, dialogs, menus, links, and buttons focuses the message input. Enter within the input submits the form normally.
+The composer supports text, native emoji insertion, GIF/sticker selection, attachment upload, a 5,000-character limit, and submission loading state. Pressing Enter outside other inputs, dialogs, menus, links, and buttons focuses the message input. Enter within the input submits normally.
+
+`MessageBubble` renders text links, YouTube previews, uploaded images/video/audio/files, and external GIF/sticker media. Its top-right menu is capability-based: copy is limited to text/link content, translate is limited to received text, edit/delete require ownership, and uploaded media includes a download action. Translation appears below the original and can be hidden without mutating message state.
 
 ### Typing indicators
 
@@ -116,12 +121,21 @@ The composer supports text, native emoji insertion, a 5,000-character limit, and
 
 - Desktop: conversation sidebar and chat window are shown side by side.
 - Mobile: the sidebar is shown until a conversation is selected; the chat header provides a back button.
+- Conversation selection is reflected in `?conversation=<id>`, allowing the browser/smartphone Back action to return from the open conversation to the list.
 - `h-dvh`, bounded scrolling areas, and flex layouts keep the composer and header visible.
+- The conversation list uses a native vertical scroller and width-constrained rows. Preview text is whitespace-normalized, limited to 42 Unicode characters, and visually ellipsized.
+- The message viewport retains scrolling behavior while hiding the scrollbar chrome.
 - shadcn/Radix primitives provide dialogs, dropdowns, scroll areas, avatars, badges, and form controls.
 
 ## Profile-picture interaction
 
 `ProfilePictureUpload` accepts JPEG, PNG, and WebP images up to 5 MB at the client. A user can click the drop zone or drag an image onto it. Selection starts the upload immediately: the component displays a local preview and progress state, prevents accidental dialog closure during the request, refreshes the authenticated user after success, and closes the dialog automatically. Validation or upload failure keeps the interaction available for another selection.
+
+## Profile and public identity
+
+The authenticated profile page separates editable concerns: profile picture, name, biography, preferred language, and password. Local edit buttons affect only their own section, which avoids a large all-fields modal and limits accidental changes. Password reset remains available from the public login flow.
+
+In chat, only explicit avatar buttons open `PublicProfileDialog`; the entire conversation row remains dedicated to selecting the conversation. The dialog shows basic public identity data already available to conversation participants.
 
 ## Validation and feedback
 
