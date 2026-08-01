@@ -38,7 +38,7 @@ export function AppLoadingScreen() {
 
   return (
     <div
-      className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background px-6"
+      className="relative flex min-h-full items-center justify-center overflow-hidden bg-background px-6"
       role="status"
       aria-live="polite"
       aria-label={stage.title}

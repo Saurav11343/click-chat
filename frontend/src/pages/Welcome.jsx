@@ -149,7 +149,7 @@ function ChatPreview() {
 
 function Welcome() {
   return (
-    <div className="min-h-screen overflow-hidden bg-background">
+    <div className="min-h-full overflow-hidden bg-background">
       <header className="relative z-20 border-b bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Brand />
