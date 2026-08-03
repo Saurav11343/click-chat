@@ -132,6 +132,15 @@ The composer supports text, native emoji insertion, GIF/sticker selection, attac
 - `pushNotifications.js` owns capability checks, service-worker registration, subscription persistence, and unsubscribe behavior.
 - `public/sw.js` displays background notifications and deep-links clicks to a conversation.
 
+## Appearance themes
+
+- The Profile page contains a centralized `AppearanceSettings` panel with six visual theme previews.
+- ClickChat, Ocean, Forest, Sunset, Lavender, and Midnight coordinate application surfaces, accents, chat canvases, and message bubbles.
+- Each preset defines separate sent, received, and typing-bubble backgrounds with readable foreground colors in both light and dark modes.
+- Light, dark, and system remain independent color-mode choices, so toggling mode does not discard the selected visual theme.
+- `ThemeProvider` persists the visual choice under `clickchat:appearance-theme:v1`, applies it through `data-clickchat-theme`, and synchronizes it across tabs.
+- The former per-conversation wallpaper control was removed to keep appearance decisions centralized and the chat header uncluttered.
+
 ## Responsive layout
 
 - Desktop: conversation sidebar and chat window are shown side by side.

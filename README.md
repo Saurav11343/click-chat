@@ -32,8 +32,9 @@ The project is being developed as a Master’s project and as a practical demons
 - Multi-tab online/offline presence with a five-second reconnect grace period
 - Animated message-bubble typing indicators for direct and group conversations
 - Free standards-based Web Push notifications with per-browser enable/disable controls, VAPID authentication, notification discovery prompts, deep links, and stale-subscription cleanup
+- Six coordinated appearance themes controlling application surfaces, chat canvases, and contrast-safe message bubbles
 - Persisted last-seen timestamps and stale-presence cleanup after server restarts
-- Light, dark, and system themes
+- Light, dark, and system color modes that preserve the selected appearance theme
 - Responsive landing, authentication, chat, and profile interfaces
 - Compact single-header chat layout, mobile browser Back support, hidden message scrollbar, and media-aware automatic scrolling
 - Clickable avatars with a basic public-profile dialog

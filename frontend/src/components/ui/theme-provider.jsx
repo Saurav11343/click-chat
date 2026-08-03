@@ -1,5 +1,41 @@
+import { useEffect, useState } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
+import {
+  APPEARANCE_EVENT,
+  APPEARANCE_STORAGE_KEY,
+  readAppearanceTheme,
+} from "@/lib/appearanceThemes";
+import { AppearanceThemeContext } from "@/lib/appearanceThemeContext";
+
 export function ThemeProvider({ children, ...props }) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+  const [appearanceTheme, setAppearanceThemeState] = useState(readAppearanceTheme);
+
+  useEffect(() => {
+    document.documentElement.dataset.clickchatTheme = appearanceTheme;
+  }, [appearanceTheme]);
+
+  useEffect(() => {
+    const refresh = () => setAppearanceThemeState(readAppearanceTheme());
+    window.addEventListener("storage", refresh);
+    window.addEventListener(APPEARANCE_EVENT, refresh);
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener(APPEARANCE_EVENT, refresh);
+    };
+  }, []);
+
+  const setAppearanceTheme = (themeId) => {
+    window.localStorage.setItem(APPEARANCE_STORAGE_KEY, themeId);
+    setAppearanceThemeState(themeId);
+    window.dispatchEvent(new Event(APPEARANCE_EVENT));
+  };
+
+  return (
+    <NextThemesProvider {...props}>
+      <AppearanceThemeContext.Provider value={{ appearanceTheme, setAppearanceTheme }}>
+        {children}
+      </AppearanceThemeContext.Provider>
+    </NextThemesProvider>
+  );
 }

@@ -21,6 +21,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import ProfilePictureUpload from "@/components/profile/ProfilePictureUpload";
+import { AppearanceSettings } from "@/components/profile/AppearanceSettings";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -361,6 +362,8 @@ function Profile() {
             </CardContent>
           </Card>
         </div>
+
+        <AppearanceSettings />
 
         <Card className="mt-6 rounded-2xl py-6">
           <CardHeader>

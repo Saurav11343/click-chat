@@ -9,7 +9,7 @@ export function TypingIndicator({ typingUser, isGroup = false }) {
       role="status"
       aria-label={`${typingUser.firstName || "Someone"} is typing`}
     >
-      <div className="rounded-2xl rounded-bl-sm bg-background px-4 py-2.5 shadow-sm ring-1 ring-foreground/8">
+      <div className="message-bubble-received rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm ring-1 ring-foreground/8">
         {isGroup && (
           <p className="mb-1.5 max-w-40 truncate text-[11px] font-medium text-primary">
             {typingUser.firstName || "Someone"}
