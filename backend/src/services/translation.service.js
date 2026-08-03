@@ -55,7 +55,7 @@ const reserveUsage = async ({
     Model.findOneAndUpdate(
       filter,
       { $inc: { charactersUsed: characterCount } },
-      { new: true },
+      { returnDocument: "after" },
     );
 
   let usage = await updateExisting();

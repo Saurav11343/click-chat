@@ -187,7 +187,7 @@ export const respondToInvitation = async (req, res) => {
           },
         },
         {
-          new: true,
+          returnDocument: "after",
           upsert: true,
           runValidators: true,
           setDefaultsOnInsert: true,
