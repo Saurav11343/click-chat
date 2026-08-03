@@ -1,6 +1,16 @@
 import express from "express";
 
-import { getConversations } from "../controllers/conversation.controller.js";
+import {
+  addGroupParticipants,
+  createGroup,
+  deleteGroup,
+  getConversations,
+  leaveGroup,
+  removeGroupParticipant,
+  updateGroup,
+  updateGroupAdmin,
+  updateGroupImage,
+} from "../controllers/conversation.controller.js";
 
 import {
   deleteMessage,
@@ -18,7 +28,7 @@ import { translateMessage } from "../controllers/translation.controller.js";
 
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { translationLimiter } from "../middleware/rateLimit.middleware.js";
-import { uploadChatFile } from "../middleware/upload.middleware.js";
+import upload, { uploadChatFile } from "../middleware/upload.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
 
 import { validateChatAttachment } from "../validations/attachment.validation.js";
@@ -30,12 +40,68 @@ import {
   messageParamsSchema,
   sendMessageSchema,
 } from "../validations/message.validation.js";
+import {
+  addGroupParticipantsSchema,
+  createGroupSchema,
+  groupConversationParamsSchema,
+  groupParticipantParamsSchema,
+  updateGroupAdminSchema,
+  updateGroupSchema,
+} from "../validations/conversation.validation.js";
 
 const router = express.Router();
 
 router.use(protectRoute);
 
 router.get("/", getConversations);
+
+router.post("/groups", validate(createGroupSchema), createGroup);
+
+router.patch(
+  "/:conversationId/group",
+  validate(groupConversationParamsSchema, "params"),
+  validate(updateGroupSchema),
+  updateGroup,
+);
+
+router.patch(
+  "/:conversationId/group/image",
+  validate(groupConversationParamsSchema, "params"),
+  upload.single("file"),
+  updateGroupImage,
+);
+
+router.post(
+  "/:conversationId/group/participants",
+  validate(groupConversationParamsSchema, "params"),
+  validate(addGroupParticipantsSchema),
+  addGroupParticipants,
+);
+
+router.delete(
+  "/:conversationId/group/participants/:participantId",
+  validate(groupParticipantParamsSchema, "params"),
+  removeGroupParticipant,
+);
+
+router.patch(
+  "/:conversationId/group/admins/:participantId",
+  validate(groupParticipantParamsSchema, "params"),
+  validate(updateGroupAdminSchema),
+  updateGroupAdmin,
+);
+
+router.post(
+  "/:conversationId/group/leave",
+  validate(groupConversationParamsSchema, "params"),
+  leaveGroup,
+);
+
+router.delete(
+  "/:conversationId/group",
+  validate(groupConversationParamsSchema, "params"),
+  deleteGroup,
+);
 
 router.get(
   "/:conversationId/messages",

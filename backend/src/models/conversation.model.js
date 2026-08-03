@@ -98,10 +98,10 @@ conversationSchema.pre("validate", function () {
     this.invalidate("directKey", "A direct conversation requires a direct key");
   }
 
-  if (this.type === "group" && participantIds.length < 3) {
+  if (this.type === "group" && participantIds.length < 1) {
     this.invalidate(
       "participants",
-      "A group conversation requires at least three participants",
+      "A group conversation requires at least one participant",
     );
   }
 
@@ -114,6 +114,15 @@ conversationSchema.pre("validate", function () {
       "groupAdmins",
       "A group conversation requires an administrator",
     );
+  }
+
+  if (
+    this.type === "group" &&
+    this.groupAdmins.some(
+      (adminId) => !uniqueParticipantIds.has(adminId.toString()),
+    )
+  ) {
+    this.invalidate("groupAdmins", "Group admins must be group participants");
   }
 });
 
