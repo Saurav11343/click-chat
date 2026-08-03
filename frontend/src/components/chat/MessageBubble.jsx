@@ -160,8 +160,8 @@ export function MessageBubble({
           isSticker && !message.isDeleted
             ? "bg-transparent px-0 py-0 text-foreground shadow-none"
             : isMyMessage
-            ? "rounded-br-sm bg-primary text-primary-foreground shadow-primary/10"
-            : "rounded-bl-sm bg-background ring-1 ring-foreground/8"
+            ? "message-bubble-sent rounded-br-sm"
+            : "message-bubble-received rounded-bl-sm ring-1 ring-foreground/8"
         } ${
           !isSticker || message.isDeleted ? "px-3.5 py-2.5 sm:px-4" : ""
         }`}

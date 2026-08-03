@@ -164,8 +164,10 @@ export function ChatWindow({
 
       <Separator />
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-[radial-gradient(circle_at_50%_0%,color-mix(in_oklab,var(--primary)_4%,transparent),transparent_35%)] px-3 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
-        <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col justify-end gap-2.5">
+      <div
+        className="chat-canvas relative min-h-0 flex-1 overflow-y-auto px-3 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6"
+      >
+        <div className="relative mx-auto flex min-h-full w-full max-w-5xl flex-col justify-end gap-2.5">
           {isLoadingMessages ? (
             <MessagesLoadingState />
           ) : messages.length === 0 ? (

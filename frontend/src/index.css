@@ -81,6 +81,11 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --chat-canvas: radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--primary) 6%, transparent), transparent 38%), var(--muted);
+    --message-sent: var(--primary);
+    --message-sent-foreground: var(--primary-foreground);
+    --message-received: var(--background);
+    --message-received-foreground: var(--foreground);
 }
 
 .dark {
@@ -116,6 +121,72 @@
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
 }
+
+[data-clickchat-theme="ocean"] {
+    --background: #f8fcff; --foreground: #102632; --card: #ffffff; --card-foreground: #102632; --popover: #ffffff; --popover-foreground: #102632; --muted: #eaf6fb; --muted-foreground: #527080; --border: #d7eaf2; --input: #c8e0ea;
+    --primary: oklch(0.49 0.15 240); --primary-foreground: white;
+    --ring: oklch(0.67 0.14 230); --accent: oklch(0.95 0.035 220);
+    --chat-canvas: radial-gradient(circle at 12% 12%, rgb(34 211 238 / 22%), transparent 32%), linear-gradient(145deg, rgb(240 249 255), rgb(236 254 255));
+    --message-sent: #0369a1; --message-sent-foreground: #ffffff; --message-received: #ffffff; --message-received-foreground: #172033;
+}
+.dark[data-clickchat-theme="ocean"] {
+    --background: #071b27; --foreground: #ecfeff; --card: #0c2635; --card-foreground: #ecfeff; --popover: #0c2635; --popover-foreground: #ecfeff; --muted: #123445; --muted-foreground: #9bc5d2; --border: rgb(207 250 254 / 12%); --input: rgb(207 250 254 / 16%);
+    --primary: oklch(0.76 0.12 220); --primary-foreground: #082f49; --accent: #164e63;
+    --chat-canvas: radial-gradient(circle at 12% 12%, rgb(6 182 212 / 18%), transparent 32%), #082f49;
+    --message-sent: #0e7490; --message-sent-foreground: #ffffff; --message-received: #164e63; --message-received-foreground: #ecfeff;
+}
+[data-clickchat-theme="forest"] {
+    --background: #f8fdf9; --foreground: #14251d; --card: #ffffff; --card-foreground: #14251d; --popover: #ffffff; --popover-foreground: #14251d; --muted: #e9f7ed; --muted-foreground: #577064; --border: #d6eadc; --input: #c6dfce;
+    --primary: oklch(0.48 0.13 160); --primary-foreground: white; --ring: oklch(0.65 0.13 155); --accent: #dcfce7;
+    --chat-canvas: radial-gradient(circle at 85% 8%, rgb(52 211 153 / 22%), transparent 34%), linear-gradient(145deg, #f0fdf4, #ecfdf5);
+    --message-sent: #047857; --message-sent-foreground: #ffffff; --message-received: #ffffff; --message-received-foreground: #14251d;
+}
+.dark[data-clickchat-theme="forest"] {
+    --background: #071b10; --foreground: #f0fdf4; --card: #0d2818; --card-foreground: #f0fdf4; --popover: #0d2818; --popover-foreground: #f0fdf4; --muted: #153923; --muted-foreground: #a7cbb2; --border: rgb(220 252 231 / 12%); --input: rgb(220 252 231 / 16%);
+    --primary: oklch(0.74 0.15 155); --primary-foreground: #052e16; --accent: #14532d;
+    --chat-canvas: radial-gradient(circle at 85% 8%, rgb(16 185 129 / 16%), transparent 34%), #052e16;
+    --message-sent: #047857; --message-sent-foreground: #ffffff; --message-received: #14532d; --message-received-foreground: #f0fdf4;
+}
+[data-clickchat-theme="sunset"] {
+    --background: #fffaf6; --foreground: #302019; --card: #ffffff; --card-foreground: #302019; --popover: #ffffff; --popover-foreground: #302019; --muted: #fff0e5; --muted-foreground: #7d6255; --border: #f2ddd1; --input: #e9cdbd;
+    --primary: oklch(0.55 0.18 40); --primary-foreground: white; --ring: oklch(0.68 0.16 45); --accent: #ffedd5;
+    --chat-canvas: radial-gradient(circle at 12% 10%, rgb(251 146 60 / 24%), transparent 34%), linear-gradient(145deg, #fff7ed, #fff1f2);
+    --message-sent: #c2410c; --message-sent-foreground: #ffffff; --message-received: #ffffff; --message-received-foreground: #2d1b15;
+}
+.dark[data-clickchat-theme="sunset"] {
+    --background: #24110b; --foreground: #fff7ed; --card: #351910; --card-foreground: #fff7ed; --popover: #351910; --popover-foreground: #fff7ed; --muted: #4a2115; --muted-foreground: #d8b09d; --border: rgb(255 237 213 / 12%); --input: rgb(255 237 213 / 16%);
+    --primary: oklch(0.72 0.17 50); --primary-foreground: #431407; --accent: #7c2d12;
+    --chat-canvas: radial-gradient(circle at 12% 10%, rgb(249 115 22 / 16%), transparent 34%), #431407;
+    --message-sent: #c2410c; --message-sent-foreground: #ffffff; --message-received: #7c2d12; --message-received-foreground: #fff7ed;
+}
+[data-clickchat-theme="lavender"] {
+    --background: #fcfaff; --foreground: #291d38; --card: #ffffff; --card-foreground: #291d38; --popover: #ffffff; --popover-foreground: #291d38; --muted: #f1ebfa; --muted-foreground: #705f82; --border: #e5d8f2; --input: #dac9e9;
+    --primary: oklch(0.54 0.22 290); --primary-foreground: white; --ring: oklch(0.68 0.17 290); --accent: #ede9fe;
+    --chat-canvas: radial-gradient(circle at 88% 8%, rgb(167 139 250 / 25%), transparent 34%), linear-gradient(145deg, #faf5ff, #f5f3ff);
+    --message-sent: #7c3aed; --message-sent-foreground: #ffffff; --message-received: #ffffff; --message-received-foreground: #24153a;
+}
+.dark[data-clickchat-theme="lavender"] {
+    --background: #1b1029; --foreground: #faf5ff; --card: #29163d; --card-foreground: #faf5ff; --popover: #29163d; --popover-foreground: #faf5ff; --muted: #3a2052; --muted-foreground: #c7addc; --border: rgb(243 232 255 / 12%); --input: rgb(243 232 255 / 16%);
+    --primary: oklch(0.76 0.15 290); --primary-foreground: #2e1065; --accent: #4c1d95;
+    --chat-canvas: radial-gradient(circle at 88% 8%, rgb(139 92 246 / 18%), transparent 34%), #2e1065;
+    --message-sent: #6d28d9; --message-sent-foreground: #ffffff; --message-received: #4c1d95; --message-received-foreground: #faf5ff;
+}
+[data-clickchat-theme="midnight"] {
+    --background: #f7f8ff; --foreground: #1e2440; --card: #ffffff; --card-foreground: #1e2440; --popover: #ffffff; --popover-foreground: #1e2440; --muted: #eaecfa; --muted-foreground: #606987; --border: #daddf0; --input: #cbd0e8;
+    --primary: #4338ca; --primary-foreground: white; --ring: #6366f1; --accent: #e0e7ff;
+    --chat-canvas: radial-gradient(circle at 50% 0%, rgb(99 102 241 / 24%), transparent 38%), #e0e7ff;
+    --message-sent: #4338ca; --message-sent-foreground: #ffffff; --message-received: #ffffff; --message-received-foreground: #172033;
+}
+.dark[data-clickchat-theme="midnight"] {
+    --background: #080d1a; --foreground: #f8fafc; --card: #111827; --card-foreground: #f8fafc; --popover: #111827; --popover-foreground: #f8fafc; --muted: #1e293b; --muted-foreground: #aab6ca; --border: rgb(226 232 240 / 12%); --input: rgb(226 232 240 / 16%);
+    --primary: #a5b4fc; --primary-foreground: #1e1b4b; --accent: #312e81;
+    --chat-canvas: radial-gradient(circle at 50% 0%, rgb(99 102 241 / 24%), transparent 38%), #0f172a;
+    --message-sent: #4338ca; --message-sent-foreground: #ffffff; --message-received: #1e293b; --message-received-foreground: #f8fafc;
+}
+
+.chat-canvas { background: var(--chat-canvas); }
+.message-bubble-sent { background: var(--message-sent); color: var(--message-sent-foreground); box-shadow: 0 8px 24px color-mix(in srgb, var(--message-sent) 14%, transparent); }
+.message-bubble-received { background: var(--message-received); color: var(--message-received-foreground); }
 
 @layer base {
   * {

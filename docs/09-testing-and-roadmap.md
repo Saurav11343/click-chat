@@ -74,6 +74,17 @@
 | Disable | Browser unsubscribes and backend endpoint is removed |
 | Expired subscription | `404`/`410` delivery result removes stale endpoint |
 
+### Appearance themes
+
+| Scenario | Expected result |
+| --- | --- |
+| Apply a preset | Application surfaces, chat canvas, and message bubbles use the selected theme |
+| Sent and received messages | Both bubble types retain readable foreground/background contrast |
+| Typing indicator | Uses the themed received-bubble treatment |
+| Change color mode | Light, dark, and system modes retain the selected visual preset |
+| Restore default | ClickChat with system mode is applied immediately |
+| Reload or another tab | Saved appearance remains and synchronizes through storage events |
+
 ### Translation
 
 | Scenario | Expected result |
