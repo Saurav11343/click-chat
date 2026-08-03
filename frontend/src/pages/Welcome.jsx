@@ -1,16 +1,18 @@
 import {
   ArrowRight,
+  BellRing,
   Check,
   CircleUserRound,
   MessageCircle,
-  MessagesSquare,
+  Languages,
+  Images,
   MonitorSmartphone,
-  Pencil,
   Radio,
   Send,
   ShieldCheck,
   Sparkles,
   UserPlus,
+  UsersRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -45,6 +47,24 @@ const features = [
     description:
       "Verified accounts and secure cookie sessions keep access simple and protected.",
   },
+  {
+    icon: UsersRound,
+    title: "Groups that stay organized",
+    description:
+      "Create groups, manage members and admins, personalize the image, or leave whenever you choose.",
+  },
+  {
+    icon: BellRing,
+    title: "Messages find you",
+    description:
+      "Optional browser notifications keep you updated when ClickChat is in the background.",
+  },
+  {
+    icon: Languages,
+    title: "Translate when needed",
+    description:
+      "Translate received messages into your preferred language without replacing the original.",
+  },
 ];
 
 function Brand() {
@@ -69,11 +89,8 @@ function ChatPreview() {
             <AvatarBadge className="bg-emerald-500" />
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">Alex Rivera</p>
-            <p className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-              <span className="size-1.5 rounded-full bg-emerald-500" />
-              Online now
-            </p>
+            <p className="truncate font-medium">Weekend Crew</p>
+            <p className="text-xs text-muted-foreground">5 members</p>
           </div>
           <div className="flex gap-1.5">
             <span className="size-2 rounded-full bg-muted-foreground/25" />
@@ -93,7 +110,8 @@ function ChatPreview() {
             </Avatar>
             <div>
               <div className="max-w-64 rounded-2xl rounded-bl-sm bg-background px-4 py-2.5 text-sm shadow-sm ring-1 ring-foreground/5">
-                Hey! Are we still on for tonight?
+                <span className="mb-1 block text-[11px] font-semibold text-primary">Alex</span>
+                Are we still on for tonight?
               </div>
               <span className="ml-1 mt-1 block text-[10px] text-muted-foreground">7:42 PM</span>
             </div>
@@ -102,7 +120,7 @@ function ChatPreview() {
           <div className="flex justify-end">
             <div className="text-right">
               <div className="max-w-64 rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-left text-sm text-primary-foreground shadow-sm">
-                Absolutely — I just sent everyone an invite.
+                Absolutely — I’ll share the location here.
               </div>
               <span className="mr-1 mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
                 7:43 PM <Check className="size-3" />
@@ -115,6 +133,7 @@ function ChatPreview() {
               <AvatarFallback>AR</AvatarFallback>
             </Avatar>
             <div className="rounded-2xl rounded-bl-sm bg-background px-4 py-3 shadow-sm ring-1 ring-foreground/5">
+              <p className="mb-1.5 text-[11px] font-medium text-primary">Alex</p>
               <div className="flex gap-1">
                 <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.3s]" />
                 <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.15s]" />
@@ -139,8 +158,8 @@ function ChatPreview() {
           <CircleUserRound className="size-5" />
         </span>
         <div>
-          <p className="text-xs font-medium">Friends online</p>
-          <p className="text-[11px] text-muted-foreground">Ready when you are</p>
+          <p className="text-xs font-medium">Background alerts enabled</p>
+          <p className="text-[11px] text-muted-foreground">Never miss the group</p>
         </div>
       </div>
     </div>
@@ -174,7 +193,7 @@ function Welcome() {
             <div className="max-w-2xl">
               <Badge variant="secondary" className="mb-6 h-7 gap-1.5 px-3">
                 <Sparkles data-icon="inline-start" />
-                Conversation, without the clutter
+                Direct chats, groups, and rich media
               </Badge>
 
               <h1 className="text-5xl font-semibold tracking-[-0.045em] text-balance sm:text-6xl lg:text-7xl">
@@ -182,7 +201,7 @@ function Welcome() {
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground sm:text-xl">
-                A focused space for real-time conversations with the people who matter—fast, familiar, and easy to use.
+                Real-time conversations with the people who matter—complete with groups, media, translation, and optional browser notifications.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -225,10 +244,10 @@ function Welcome() {
         <section className="border-y bg-muted/35">
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px px-4 py-8 sm:px-6 md:grid-cols-4 lg:px-8">
             {[
-              [MessagesSquare, "Instant messages"],
-              [Radio, "Live presence"],
-              [Pencil, "Edit with ease"],
-              [UserPlus, "Invite friends"],
+              [UsersRound, "Managed groups"],
+              [BellRing, "Push notifications"],
+              [Images, "Rich media"],
+              [Languages, "Message translation"],
             ].map(([Icon, label]) => (
               <div key={label} className="flex items-center justify-center gap-2.5 py-3 text-sm font-medium text-muted-foreground">
                 <Icon className="size-4 text-foreground" />
@@ -249,7 +268,7 @@ function Welcome() {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
+          <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {features.map(({ icon: Icon, title, description }) => (
               <Card key={title} className="rounded-2xl py-6 transition-transform duration-300 hover:-translate-y-1">
                 <CardHeader>

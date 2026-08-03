@@ -74,6 +74,8 @@ sequenceDiagram
 | --- | --- | --- | --- | --- | --- |
 | PATCH | `/api/user/profilePic` | Yes | `multipart/form-data`, field `file` | `200`, success message | In-memory Multer upload; controller requires image; Cloudinary transforms to 500×500 |
 | GET | `/api/user/search?q=query` | Yes | Query `q` | `200`, `count`, `users` | `q` length 2–50; excludes current user; maximum 20 results |
+| POST | `/api/user/push-subscriptions` | Yes | Browser PushSubscription JSON | `200`, success message | Replaces the same endpoint for the current user |
+| DELETE | `/api/user/push-subscriptions` | Yes | `{ endpoint }` | `200`, success message | Removes the current browser endpoint |
 
 Profile pictures use an image-only Multer filter and a 5 MB limit. Chat attachments use a 10 MB Multer transport limit followed by Zod validation of file metadata and supported MIME types.
 
@@ -129,6 +131,21 @@ All routes under `/api/conversations` use protected-route middleware.
 | POST | `/api/conversations/:conversationId/messages/:messageId/translate` | None | Translation text, target/detected language, and cache flag | Participant-only; target comes from the authenticated profile |
 | PATCH | `/api/conversations/:conversationId/messages/:messageId` | `{ content }` | Updated message in `data` | Current user must own the non-deleted text message |
 | DELETE | `/api/conversations/:conversationId/messages/:messageId` | None | Soft-deleted message in `data` | Current user must own the non-deleted message |
+
+### Group API
+
+| Method | Path | Request | Success response | Authorization |
+| --- | --- | --- | --- | --- |
+| POST | `/api/conversations/groups` | `{ groupName, participantIds }` | `201`, populated `conversation` | Creator; selected users must be accepted contacts |
+| PATCH | `/api/conversations/:conversationId/group` | `{ groupName }` | Updated `conversation` | Group administrator |
+| PATCH | `/api/conversations/:conversationId/group/image` | `multipart/form-data`, field `file` | Updated `conversation` | Group administrator |
+| POST | `/api/conversations/:conversationId/group/participants` | `{ participantIds }` | Updated `conversation` | Group administrator; accepted contacts only |
+| DELETE | `/api/conversations/:conversationId/group/participants/:participantId` | None | Updated `conversation` | Group administrator |
+| PATCH | `/api/conversations/:conversationId/group/admins/:participantId` | `{ action: "add" | "remove" }` | Updated `conversation` | Group administrator |
+| POST | `/api/conversations/:conversationId/group/leave` | None | Success message | Current group member |
+| DELETE | `/api/conversations/:conversationId/group` | None | Success message | Group administrator |
+
+Group creation requires the creator plus at least two accepted contacts. Groups are capped at 100 members. Administrator removal cannot leave a stored group without an administrator. Leaving the final-member group and administrator deletion clean up messages and Cloudinary resources.
 
 ### Message body fields
 

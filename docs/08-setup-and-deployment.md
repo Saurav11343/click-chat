@@ -10,6 +10,7 @@
 - Dedicated Gmail sender account and OAuth 2.0 credentials
 - Google Cloud project with Cloud Translation API enabled when Translation is required
 - GIPHY developer key when GIF/sticker discovery is required
+- Generated VAPID key pair when browser push notifications are required
 
 ## Environment variables
 
@@ -37,6 +38,9 @@ Create `backend/.env`.
 | `TRANSLATION_ENABLED` | No | Emergency switch; set to `false` to suspend new external translations |
 | `TRANSLATION_DAILY_CHARACTER_LIMIT` | No | Requested daily cap, clamped by code to at most `12000` |
 | `TRANSLATION_MONTHLY_CHARACTER_LIMIT` | No | Requested monthly cap, clamped by code to at most `400000` |
+| `VAPID_PUBLIC_KEY` | For Web Push | Public application-server key generated with `web-push` |
+| `VAPID_PRIVATE_KEY` | For Web Push | Backend-only application-server private key |
+| `VAPID_EMAIL` | For Web Push | Operator contact formatted as `mailto:address@example.com` |
 
 Example without real secrets:
 
@@ -59,6 +63,9 @@ GOOGLE_TRANSLATE_API_KEY=backend_only_translation_key
 TRANSLATION_ENABLED=true
 TRANSLATION_DAILY_CHARACTER_LIMIT=12000
 TRANSLATION_MONTHLY_CHARACTER_LIMIT=400000
+VAPID_PUBLIC_KEY=generated_public_key
+VAPID_PRIVATE_KEY=generated_private_key
+VAPID_EMAIL=mailto:operator@example.com
 ```
 
 ### Frontend
@@ -69,11 +76,23 @@ Create `frontend/.env`.
 | --- | --- | --- |
 | `VITE_API_URL` | Yes | Backend origin without `/api`, used by Axios and Socket.IO |
 | `VITE_GIPHY_API_KEY` | For GIF search | GIPHY developer API key used by the client-side picker as required by GIPHY |
+| `VITE_VAPID_PUBLIC_KEY` | For Web Push | Same public VAPID key configured on the backend; safe for browser exposure |
 
 ```env
 VITE_API_URL=http://localhost:5000
 VITE_GIPHY_API_KEY=giphy_api_key
+VITE_VAPID_PUBLIC_KEY=generated_public_key
 ```
+
+## Web Push setup
+
+From `backend`, generate one key pair:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Store both values on the backend and copy only the public value to `VITE_VAPID_PUBLIC_KEY`. Vite embeds frontend variables during the build, so redeploy the frontend after changing the public key. Production push requires HTTPS. Rotating keys invalidates existing browser subscriptions.
 
 ## Gmail OAuth token generation
 
@@ -232,7 +251,7 @@ flowchart LR
 6. Verify MongoDB and Cloudinary network/credential configuration.
 7. Confirm Translation usage models use the same production MongoDB database across every backend instance.
 8. Confirm the Translation key does not appear in the frontend bundle or browser network configuration.
-9. Test registration, verification, password recovery/change, profile editing, preferred language, invitations, text/media/GIF messages, Translation, downloads, mobile Back behavior, and presence.
+9. Test registration, verification, password recovery/change, profile editing, preferred language, invitations, direct/group text/media/GIF messages, Translation, Web Push, downloads, mobile Back behavior, and presence.
 10. Verify Translation suspension using small limits in a non-production database before relying on the production caps.
 
 ## Cost and quota checklist

@@ -57,6 +57,9 @@ sequenceDiagram
 | Upload profile picture | Authenticated owner |
 | Search users | Authenticated user; current user excluded |
 | Send typing state | Authenticated conversation participant; recipients are other participants only |
+| Rename/image/add/remove/admin/delete group | Authenticated current group administrator |
+| Leave group | Authenticated current group member |
+| Save/delete push subscription | Authenticated owner of the current session |
 
 ## Upload security
 
@@ -88,6 +91,8 @@ MIME types are client-provided metadata and are not a complete content-security 
 - Email addresses are visible in user search and invitation data; future privacy settings may need to limit this exposure.
 
 ## Secret and billing boundary
+
+The VAPID public key is intentionally exposed to the browser. `VAPID_PRIVATE_KEY` is a backend-only secret and must never use a `VITE_*` name or enter a client bundle. Push endpoints and encryption keys are user-associated delivery credentials and are not returned by ordinary profile or search queries.
 
 Backend credentials belong only in `backend/.env` locally and in Railway environment variables in production. Vite exposes every `VITE_*` value to browsers, so secrets such as the Translation key, Cloudinary secret, MongoDB URI, JWT secret, Gmail client secret, and refresh token must never use that prefix. The GIPHY client key is intentionally public and should be restricted in the provider dashboard where supported.
 

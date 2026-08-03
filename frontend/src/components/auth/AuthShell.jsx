@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 
 const benefits = [
-  "Messages delivered in real time",
-  "Live online and last-seen presence",
-  "Private conversations with people you accept",
+  "Direct and managed group conversations",
+  "Rich media, GIFs, stickers, and translation",
+  "Optional background browser notifications",
 ];
 
 function AuthShell({ children }) {

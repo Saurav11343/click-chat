@@ -99,7 +99,7 @@ function Register() {
           </span>
           <CardTitle className="text-2xl font-semibold tracking-tight">Create your account</CardTitle>
           <CardDescription className="text-base">
-            Join ClickChat and start conversations that feel effortless.
+            Join ClickChat for direct chats, groups, rich media, and real-time updates.
           </CardDescription>
         </CardHeader>
 

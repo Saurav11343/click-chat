@@ -11,6 +11,7 @@ flowchart LR
     E --> C["Cloudinary"]
     E --> G["Gmail REST API"]
     E --> T["Google Cloud Translation API"]
+    E --> P["Browser push services"]
     V --> Y["GIPHY API/CDN"]
     G --> I["Email inbox"]
     E --> S
@@ -41,6 +42,7 @@ flowchart LR
 | Cloudinary | Stores/transforms profile pictures and chat attachments and deletes message assets during cleanup |
 | Google Cloud Translation | Translates cache misses after atomic daily/monthly character reservation |
 | GIPHY | Provides client-side GIF/sticker discovery and externally hosted media delivery |
+| Web Push | Uses VAPID-authenticated delivery to browser-managed endpoints and removes expired subscriptions |
 
 ## REST and Socket.IO boundary
 
@@ -72,6 +74,10 @@ Translation is REST-only. It produces a derived view of existing message content
 
 Attachment upload is a compound mutation: membership and reply checks run before the Cloudinary upload, metadata is persisted with the message, the conversation's `lastMessage` is updated, and only then is `message:new` emitted. If persistence fails before completion, the controller attempts to remove the new Cloudinary asset.
 
+Group mutations follow the same persistence-first boundary. Administrators mutate membership, roles, names, and images through REST; Socket.IO then emits `conversation:created`, `conversation:updated`, or `conversation:removed` to affected private user rooms.
+
+After a message is persisted, the push-notification service resolves recipient subscriptions and submits encrypted payloads to browser push endpoints. Push failure does not roll back a saved message. Expired endpoints are removed asynchronously.
+
 ## Backend layering
 
 ```mermaid
@@ -87,6 +93,7 @@ flowchart TD
     CTRL --> SERVICE["Service or utility"]
     CTRL --> MODEL["Mongoose model"]
     SERVICE --> EXT["Cloudinary, Gmail, or Translation API"]
+    SERVICE --> PUSH["Browser push service"]
     MODEL --> DB[("MongoDB")]
     CTRL --> SOCKET["Socket.IO event emission"]
 ```
@@ -172,6 +179,7 @@ flowchart TD
     RW --> CL["Cloudinary"]
     RW --> GO["Google OAuth"]
     RW --> GM["Gmail REST API"]
+    RW --> PS["Browser push services"]
 ```
 
 Vercel rewrites frontend routes to `/` so React Router can handle direct navigation. Railway/Render runs `node src/server.js`. The current presence algorithm assumes one Railway/Render backend process.

@@ -115,7 +115,22 @@ The composer supports text, native emoji insertion, GIF/sticker selection, attac
 
 `MessageComposer` tracks whether it has already announced a typing session, preventing an event on every keystroke. It starts typing on non-empty text or emoji input, resets a 1.5-second inactivity timer as content changes, and stops on inactivity, empty content, successful submission, conversation change, or unmount.
 
-`ChatLayout` listens for `typing:update` and stores the current typing user by conversation ID. A three-second receiver timeout removes stale state if the stop event is lost. `ChatWindow` gives typing status priority over the ordinary Online/Last seen line while leaving the conversation name unchanged.
+`ChatLayout` listens for `typing:update` and stores the current typing user by conversation ID. A three-second receiver timeout removes stale state if the stop event is lost. `ChatWindow` renders an incoming three-dot message bubble; group bubbles include the writer's first name.
+
+## Group interfaces
+
+- `CreateGroupDialog` loads accepted contacts, validates a name and at least two selections, and inserts the REST result through `useConversationStore`.
+- `GroupDetailsDialog` manages the name, image, members, administrator roles, leaving, and deletion.
+- Group avatars open group details; normal row content selects the conversation.
+- Destructive actions use a ClickChat confirmation modal with action-specific loading feedback.
+- `conversation:created`, `conversation:updated`, and `conversation:removed` update Zustand state without refetching the entire list.
+
+## Push-notification interfaces
+
+- `PushNotificationPrompt` offers contextual enablement and a seven-day per-account dismissal.
+- Profile contains the permanent per-browser enable/disable control.
+- `pushNotifications.js` owns capability checks, service-worker registration, subscription persistence, and unsubscribe behavior.
+- `public/sw.js` displays background notifications and deep-links clicks to a conversation.
 
 ## Responsive layout
 
@@ -123,7 +138,7 @@ The composer supports text, native emoji insertion, GIF/sticker selection, attac
 - Mobile: the sidebar is shown until a conversation is selected; the chat header provides a back button.
 - Conversation selection is reflected in `?conversation=<id>`, allowing the browser/smartphone Back action to return from the open conversation to the list.
 - `h-dvh`, bounded scrolling areas, and flex layouts keep the composer and header visible.
-- The conversation list uses a native vertical scroller and width-constrained rows. Preview text is whitespace-normalized, limited to 42 Unicode characters, and visually ellipsized.
+- The conversation list retains native scrolling while hiding scrollbar chrome. Preview text is whitespace-normalized, limited to 42 Unicode characters, and visually ellipsized.
 - The message viewport retains scrolling behavior while hiding the scrollbar chrome.
 - shadcn/Radix primitives provide dialogs, dropdowns, scroll areas, avatars, badges, and form controls.
 
@@ -149,5 +164,4 @@ In chat, only explicit avatar buttons open `PublicProfileDialog`; the entire con
 - Older-message pagination and upward-scroll preservation.
 - Unread badges and read receipt rendering.
 - Reply selection and composer preview, despite backend/schema support.
-- Group creation and administration interfaces.
-- Multi-file galleries, upload cancellation/retry, notification, search, and calling interfaces.
+- Multi-file galleries, upload cancellation/retry, search, and calling interfaces.

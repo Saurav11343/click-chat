@@ -31,6 +31,7 @@ Users need a lightweight web application in which they can register securely, di
 | MongoDB Atlas | Stores users, invitations, conversations, and messages |
 | Google Cloud Translation | Translates selected message text with automatic source-language detection |
 | GIPHY | Supplies externally hosted GIF and sticker search results |
+| Browser push services | Deliver encrypted Web Push payloads to subscribed browsers |
 
 ## Functional scope
 
@@ -44,7 +45,9 @@ flowchart LR
     AUTH --> SEA["Search users"]
     SEA --> INV["Send and respond to invitations"]
     INV --> CON["Direct conversation"]
+    AUTH --> GRP["Create and manage groups"]
     CON --> MSG["Send, edit, and delete messages"]
+    GRP --> MSG
     CON --> PRE["View online and last-seen state"]
 ```
 
@@ -80,7 +83,8 @@ flowchart LR
 
 #### Messaging
 
-- Persistent one-to-one conversations.
+- Persistent one-to-one and group conversations.
+- Group creation with accepted contacts, names, Cloudinary images, membership management, administrator promotion/demotion, leave, and permanent deletion workflows.
 - Latest-message conversation previews.
 - Text and emoji messages up to 5,000 characters.
 - Retrieval of the latest 50 messages.
@@ -97,6 +101,9 @@ flowchart LR
 - Date separators for Today, Yesterday, and earlier calendar dates.
 - Enter-key shortcut to focus the composer when no other interactive control owns the keypress.
 - Real-time typing indicators scoped to conversation participants, with a 1.5-second sender inactivity timeout and a 3-second receiver safety timeout.
+- Animated typing bubbles for direct chats and named typing bubbles for groups.
+- Background browser notifications for text, attachments, GIFs, and stickers through Web Push and VAPID.
+- Per-browser notification enable/disable controls and a seven-day dismissible discovery prompt.
 
 #### Presence
 
@@ -123,10 +130,9 @@ flowchart LR
 - Cursor-based loading of messages older than the latest 50.
 - Unread counts and complete read-receipt workflows.
 - Complete reply selection in the composer.
-- Complete group-chat creation and administration.
 - Multi-file attachment galleries and recorded voice messages.
 - Per-user upload/storage quotas and private Cloudinary delivery for sensitive attachments.
-- Push notifications, message search, and calling.
+- Message search and calling.
 - Redis-backed multi-instance presence and Socket.IO fan-out.
 
 ## Maintained platforms

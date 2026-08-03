@@ -52,6 +52,28 @@
 | Long latest message | Sidebar shows one line, at most 42 Unicode characters plus `...`, without row overflow |
 | Open/download attachment | Participant receives a short-lived redirect; unrelated user is rejected |
 
+### Groups
+
+| Scenario | Expected result |
+| --- | --- |
+| Create group | Creator plus at least two accepted contacts receive one synchronized group |
+| Rename/change image | Admin mutation updates all current members without refresh |
+| Add/remove member | Added member receives the group; removed member loses access and local state |
+| Promote/demote admin | Role updates live and at least one administrator remains |
+| Admin leaves | Another member is promoted when necessary |
+| Delete group | Conversation, messages, group image, and stored message files are removed |
+
+### Web Push
+
+| Scenario | Expected result |
+| --- | --- |
+| Enable from prompt/profile | Browser subscription is stored for the authenticated user |
+| Background recipient | Text, attachment, GIF, and sticker sends produce a system notification |
+| Visible ClickChat window | Service worker suppresses redundant system notification |
+| Click notification | Existing/new window opens the target conversation |
+| Disable | Browser unsubscribes and backend endpoint is removed |
+| Expired subscription | `404`/`410` delivery result removes stale endpoint |
+
 ### Translation
 
 | Scenario | Expected result |
@@ -79,7 +101,7 @@
 
 | Scenario | Expected result |
 | --- | --- |
-| Begin entering text or emoji | Other participants see the sender's first name and typing status |
+| Begin entering text or emoji | Other participants see an animated typing bubble; groups label the sender |
 | Continue entering content | Sender does not emit a new start event for every keystroke |
 | Stop entering content | Indicator clears after approximately 1.5 seconds |
 | Empty or submit the composer | Indicator clears immediately |
@@ -128,7 +150,6 @@ flowchart TD
 | Unread state | Counts are fixed at zero in the UI | Users cannot identify unseen conversations |
 | Read receipts | Sender receipt is stored, but no complete update/event/UI workflow exists | Delivery/read state is not visible |
 | Replies | Schema, API, and bubble display exist; composer selection does not | Users cannot initiate replies through the current UI |
-| Groups | Schema fields and validation exist; routes/UI are incomplete | Only direct chat is functional |
 | Attachments | One file up to 10 MB per message; no cancellation, retry, signature inspection, or malware scan | Rich media works, but production hardening and multi-file UX remain |
 | Presence scale | Counts/timers are process-local | Single backend instance only |
 | Testing | No automated suite | Regression risk grows with new features |
@@ -141,7 +162,7 @@ flowchart TD
 flowchart LR
     P0["P0 Reliability"] --> P1["P1 Messaging fundamentals"]
     P1 --> P2["P2 Rich messaging"]
-    P2 --> P3["P3 Groups and media"]
+    P2 --> P3["P3 Rich media and calls"]
     P3 --> P4["P4 Scale and operations"]
 ```
 
@@ -167,13 +188,12 @@ flowchart LR
 - Message reactions.
 - Message search.
 - Pin, mute, archive, and per-user conversation settings.
-- Browser/push notifications and notification preferences.
 - Blocking and reporting.
 
-### P3 — Rich media and groups
+### P3 — Rich media and calls
 
 - Multi-file attachment galleries, cancellation, retry, signature inspection, and malware scanning.
-- Complete group creation, membership, roles, images, and system messages.
+- Group system messages and membership audit history.
 - Voice messages.
 - Voice and video calling.
 
