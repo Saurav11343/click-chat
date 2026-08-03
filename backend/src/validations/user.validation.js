@@ -30,6 +30,20 @@ export const updateProfileValidation = z
         "zh", "ar", "bn", "gu", "mr", "pa", "ta", "te", "ur", "ne",
       ])
       .optional(),
+    appearance: z
+      .object({
+        preset: z.enum([
+          "clickchat",
+          "ocean",
+          "forest",
+          "sunset",
+          "lavender",
+          "midnight",
+        ]),
+        colorMode: z.enum(["light", "dark", "system"]),
+      })
+      .strict()
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Provide at least one profile field to update.",

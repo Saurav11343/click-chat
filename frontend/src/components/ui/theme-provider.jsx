@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { useTheme } from "next-themes";
 
 import {
   APPEARANCE_EVENT,
   APPEARANCE_STORAGE_KEY,
+  COLOR_MODE_EVENT,
   readAppearanceTheme,
 } from "@/lib/appearanceThemes";
 import { AppearanceThemeContext } from "@/lib/appearanceThemeContext";
@@ -33,9 +35,22 @@ export function ThemeProvider({ children, ...props }) {
 
   return (
     <NextThemesProvider {...props}>
+      <ColorModeSync />
       <AppearanceThemeContext.Provider value={{ appearanceTheme, setAppearanceTheme }}>
         {children}
       </AppearanceThemeContext.Provider>
     </NextThemesProvider>
   );
+}
+
+function ColorModeSync() {
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    const syncColorMode = (event) => setTheme(event.detail?.colorMode || "system");
+    window.addEventListener(COLOR_MODE_EVENT, syncColorMode);
+    return () => window.removeEventListener(COLOR_MODE_EVENT, syncColorMode);
+  }, [setTheme]);
+
+  return null;
 }

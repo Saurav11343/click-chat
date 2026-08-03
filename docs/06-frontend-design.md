@@ -13,6 +13,7 @@
 | `/reset-password` | Public-only | `ResetPassword` | Validates the emailed token and replaces the password |
 | `/chat` | Protected | `Chat` → `ChatLayout` | Main conversations and messaging interface |
 | `/profile` | Protected | `Profile` | Displays account information and updates profile picture |
+| `/settings` | Protected | `Settings` | Appearance, language, notifications, and password security |
 
 `AppRoutes` calls `checkAuth()` on mount. Authenticated users are redirected away from public-only pages, while unauthenticated users are redirected away from protected pages.
 
@@ -28,6 +29,7 @@ flowchart TD
     RT --> PUB["Welcome / AuthShell / Verification"]
     RT --> CHAT["Chat"]
     RT --> PROFILE["Profile"]
+    RT --> SETTINGS["Settings"]
     CHAT --> LAYOUT["ChatLayout"]
     LAYOUT --> SIDE["ConversationSidebar"]
     LAYOUT --> WIN["ChatWindow"]
@@ -46,7 +48,8 @@ flowchart TD
 - The landing page uses a branded header, responsive hero, product preview, trust points, feature cards, call to action, and footer.
 - Login and registration share `AuthShell`, which supplies consistent branding, theme control, navigation, benefits, and responsive two-column composition.
 - The authenticated dashboard avoids a separate global navbar. A compact ClickChat header is integrated into the conversation sidebar, while the selected conversation has one focused chat header.
-- The profile page presents account status, verification state, biography, preferred language, password management, membership information, and profile-image controls. Name and biography sections enter local inline-edit mode rather than opening a second modal.
+- The profile page presents identity, account status, verification state, biography, membership information, and profile-image controls. Name and biography sections enter local inline-edit mode rather than opening a second modal.
+- The settings page groups appearance, translation language, browser notifications, and password security away from public-facing identity controls.
 - Tailwind theme tokens and shadcn/Radix primitives provide consistent borders, cards, menus, dialogs, avatars, spacing, focus states, and light/dark behavior.
 
 ## Zustand stores
@@ -128,17 +131,18 @@ The composer supports text, native emoji insertion, GIF/sticker selection, attac
 ## Push-notification interfaces
 
 - `PushNotificationPrompt` offers contextual enablement and a seven-day per-account dismissal.
-- Profile contains the permanent per-browser enable/disable control.
+- Settings contains the permanent per-browser enable/disable control.
 - `pushNotifications.js` owns capability checks, service-worker registration, subscription persistence, and unsubscribe behavior.
 - `public/sw.js` displays background notifications and deep-links clicks to a conversation.
 
 ## Appearance themes
 
-- The Profile page contains a centralized `AppearanceSettings` panel with six visual theme previews.
+- The Settings page contains a centralized `AppearanceSettings` panel with six visual theme previews.
 - ClickChat, Ocean, Forest, Sunset, Lavender, and Midnight coordinate application surfaces, accents, chat canvases, and message bubbles.
 - Each preset defines separate sent, received, and typing-bubble backgrounds with readable foreground colors in both light and dark modes.
 - Light, dark, and system remain independent color-mode choices, so toggling mode does not discard the selected visual theme.
-- `ThemeProvider` persists the visual choice under `clickchat:appearance-theme:v1`, applies it through `data-clickchat-theme`, and synchronizes it across tabs.
+- MongoDB stores `{ appearance: { preset, colorMode } }` on the user. `checkAuth()` returns it and hydrates the theme after login, so the selection follows the account across devices.
+- `ThemeProvider` also caches the visual choice under `clickchat:appearance-theme:v1`, applies it through `data-clickchat-theme`, and synchronizes it across tabs for fast startup.
 - The former per-conversation wallpaper control was removed to keep appearance decisions centralized and the chat header uncluttered.
 
 ## Responsive layout
@@ -157,7 +161,7 @@ The composer supports text, native emoji insertion, GIF/sticker selection, attac
 
 ## Profile and public identity
 
-The authenticated profile page separates editable concerns: profile picture, name, biography, preferred language, and password. Local edit buttons affect only their own section, which avoids a large all-fields modal and limits accidental changes. Password reset remains available from the public login flow.
+The authenticated Profile page contains public-facing identity concerns: profile picture, name, biography, account facts, and verification state. The separate Settings page contains private preferences and security controls. This keeps identity editing focused while giving appearance, language, notifications, and password changes a predictable home. Password reset remains available from the public login flow.
 
 In chat, only explicit avatar buttons open `PublicProfileDialog`; the entire conversation row remains dedicated to selecting the conversation. The dialog shows basic public identity data already available to conversation participants.
 

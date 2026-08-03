@@ -7,21 +7,34 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APPEARANCE_THEMES } from "@/lib/appearanceThemes";
 import { useAppearanceTheme } from "@/lib/appearanceThemeContext";
+import { useUserStore } from "@/store/useUserStore";
 
 export function AppearanceSettings() {
   const { theme: colorMode, setTheme: setColorMode } = useTheme();
   const { appearanceTheme, setAppearanceTheme } = useAppearanceTheme();
+  const updateProfile = useUserStore((state) => state.updateProfile);
+  const isUpdatingProfile = useUserStore((state) => state.isUpdatingProfile);
   const [draftTheme, setDraftTheme] = useState(appearanceTheme);
   const [draftMode, setDraftMode] = useState(colorMode || "system");
   const hasChanges = draftTheme !== appearanceTheme || draftMode !== colorMode;
 
-  const handleApply = () => {
+  const handleApply = async () => {
+    const saved = await updateProfile(
+      { appearance: { preset: draftTheme, colorMode: draftMode } },
+      { silent: true },
+    );
+    if (!saved) return;
     setAppearanceTheme(draftTheme);
     setColorMode(draftMode);
-    toast.success("Appearance updated.");
+    toast.success("Appearance saved across your devices.");
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    const saved = await updateProfile(
+      { appearance: { preset: "clickchat", colorMode: "system" } },
+      { silent: true },
+    );
+    if (!saved) return;
     setDraftTheme("clickchat");
     setDraftMode("system");
     setAppearanceTheme("clickchat");
@@ -87,8 +100,8 @@ export function AppearanceSettings() {
         </div>
 
         <div className="flex flex-col-reverse gap-2 border-t pt-5 sm:flex-row sm:justify-between">
-          <Button type="button" variant="ghost" onClick={handleReset}><RotateCcw className="size-4" /> Restore default</Button>
-          <Button type="button" onClick={handleApply} disabled={!hasChanges}><Check className="size-4" /> Apply appearance</Button>
+          <Button type="button" variant="ghost" onClick={handleReset} disabled={isUpdatingProfile}><RotateCcw className="size-4" />{isUpdatingProfile ? "Saving..." : "Restore default"}</Button>
+          <Button type="button" onClick={handleApply} disabled={!hasChanges || isUpdatingProfile}><Check className="size-4" />{isUpdatingProfile ? "Saving..." : "Apply appearance"}</Button>
         </div>
       </CardContent>
     </Card>

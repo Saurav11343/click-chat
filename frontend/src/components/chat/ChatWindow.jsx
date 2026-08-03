@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { GroupDetailsDialog } from "@/components/chat/GroupDetailsDialog";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
+import { DirectConversationMenu } from "@/components/chat/DirectConversationMenu";
 
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMessageStore } from "@/store/useMessageStore";
@@ -149,15 +150,20 @@ export function ChatWindow({
               </Button>
             </GroupDetailsDialog>
           ) : (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="rounded-xl"
-              aria-label="Conversation options"
+            <DirectConversationMenu
+              conversationId={conversationId}
+              onDeleted={onBack}
             >
-              <EllipsisVertical className="size-5" />
-            </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-xl"
+                aria-label="Conversation options"
+              >
+                <EllipsisVertical className="size-5" />
+              </Button>
+            </DirectConversationMenu>
           )}
         </div>
       </header>

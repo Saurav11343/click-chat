@@ -16,7 +16,7 @@ The project is being developed as a Master’s project and as a practical demons
 
 - Registration, Gmail API email verification, login, logout, password change, password reset, and protected routes
 - HTTP-only JWT authentication shared by REST and Socket.IO
-- Inline name, bio, preferred-language, password, and Cloudinary profile-picture management
+- Dedicated Profile identity management plus centralized Settings for appearance, language, notifications, and password security
 - User search and real-time chat invitations
 - Automatic direct-conversation creation on invitation acceptance
 - Complete group creation, naming, images, membership, administrator roles, leaving, and deletion

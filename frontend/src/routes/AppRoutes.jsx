@@ -13,6 +13,7 @@ import VerifyEmail from "../pages/VerifyEmail";
 import CheckEmail from "../pages/CheckEmail";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import Settings from "@/pages/Settings";
 
 function AppRoutes() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -50,6 +51,11 @@ function AppRoutes() {
       <Route
         path="/profile"
         element={authUser ? <Profile /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/settings"
+        element={authUser ? <Settings /> : <Navigate to="/login" replace />}
       />
 
       <Route

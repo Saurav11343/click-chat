@@ -43,15 +43,34 @@ export const sendInvitation = async (req, res) => {
       ],
     });
 
-    if (existingInvitation) {
-      const message =
-        existingInvitation.status === "accepted"
-          ? "You are already connected with this user."
-          : "An invitation is already pending between these users.";
+    if (existingInvitation?.status === "accepted") {
+      const directKey = [senderId.toString(), recipientId].sort().join(":");
+      const conversationExists = await Conversation.exists({
+        type: "direct",
+        directKey,
+      });
 
+      if (conversationExists) {
+        return res.status(409).json({
+          success: false,
+          message: "You are already connected with this user.",
+        });
+      }
+
+      // A direct conversation may have been deleted before accepted-invitation
+      // cleanup was introduced. Remove that stale connection record so users
+      // can reconnect without manual database repair.
+      await Invitation.deleteMany({
+        status: "accepted",
+        $or: [
+          { sender: senderId, recipient: recipientId },
+          { sender: recipientId, recipient: senderId },
+        ],
+      });
+    } else if (existingInvitation) {
       return res.status(409).json({
         success: false,
-        message,
+        message: "An invitation is already pending between these users.",
       });
     }
 

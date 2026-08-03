@@ -7,6 +7,7 @@ export const useConversationStore = create((set) => ({
   conversations: [],
   isLoadingConversations: false,
   isUpdatingGroup: false,
+  isManagingConversation: false,
 
   addConversation: (conversation) => {
     if (!conversation?._id) {
@@ -125,6 +126,51 @@ export const useConversationStore = create((set) => ({
       return false;
     } finally {
       set({ isLoadingConversations: false });
+    }
+  },
+
+  clearDirectConversation: async (conversationId) => {
+    set({ isManagingConversation: true });
+    try {
+      const response = await axiosInstance.post(
+        `/conversations/${conversationId}/clear`,
+      );
+      const conversation = response.data.conversation;
+      set((state) => ({
+        conversations: state.conversations.map((item) =>
+          item._id === conversationId ? conversation : item,
+        ),
+      }));
+      toast.success(response.data.message || "Chat cleared.");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to clear the chat.");
+      return false;
+    } finally {
+      set({ isManagingConversation: false });
+    }
+  },
+
+  deleteDirectConversation: async (conversationId) => {
+    set({ isManagingConversation: true });
+    try {
+      const response = await axiosInstance.delete(
+        `/conversations/${conversationId}/direct`,
+      );
+      set((state) => ({
+        conversations: state.conversations.filter(
+          (item) => item._id !== conversationId,
+        ),
+      }));
+      toast.success(response.data.message || "Conversation deleted.");
+      return true;
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Unable to delete the conversation.",
+      );
+      return false;
+    } finally {
+      set({ isManagingConversation: false });
     }
   },
 
