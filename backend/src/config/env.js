@@ -27,6 +27,9 @@ const ENV = {
   TRANSLATION_DAILY_CHARACTER_LIMIT: Number(
     process.env.TRANSLATION_DAILY_CHARACTER_LIMIT || 12000,
   ),
+  VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+  VAPID_EMAIL: process.env.VAPID_EMAIL,
 };
 
 export default ENV;

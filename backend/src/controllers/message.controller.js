@@ -1,6 +1,7 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import { deleteCloudinaryFile } from "../services/cloudinary.service.js";
+import { sendMessagePushNotifications } from "../services/pushNotification.service.js";
 import { getIO } from "../socket/socket.js";
 
 const senderFields = "_id firstName lastName profilePic";
@@ -100,6 +101,14 @@ export const sendMessage = async (req, res) => {
       senderId,
       event: "message:new",
       payload: message,
+    });
+
+    void sendMessagePushNotifications({
+      conversation,
+      sender: message.sender,
+      message,
+    }).catch((pushError) => {
+      console.error("Message push notification failed:", pushError.message);
     });
 
     return res.status(201).json({

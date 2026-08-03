@@ -24,6 +24,7 @@ import { ModeToggle } from "@/components/ui/ModeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 import { InvitationsDialog } from "./InvitationsDialog";
 import { PublicProfileDialog } from "./PublicProfileDialog";
+import { PushNotificationPrompt } from "./PushNotificationPrompt";
 
 export function ConversationSidebar({
   conversations,
@@ -138,6 +139,7 @@ export function ConversationSidebar({
       </div>
 
       <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+        <PushNotificationPrompt />
         <div className="w-full min-w-0 space-y-1.5 overflow-hidden p-3">
           {isLoading ? (
             <ContactsLoadingState />

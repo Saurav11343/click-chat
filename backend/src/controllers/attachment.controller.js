@@ -6,6 +6,7 @@ import {
   deleteCloudinaryFile,
   uploadChatAttachment,
 } from "../services/cloudinary.service.js";
+import { sendMessagePushNotifications } from "../services/pushNotification.service.js";
 
 import { getIO } from "../socket/socket.js";
 
@@ -148,6 +149,14 @@ export const sendAttachment = async (req, res) => {
     } catch (socketError) {
       console.error("Attachment socket emission failed:", socketError);
     }
+
+    void sendMessagePushNotifications({
+      conversation,
+      sender: createdMessage.sender,
+      message: createdMessage,
+    }).catch((pushError) => {
+      console.error("Attachment push notification failed:", pushError.message);
+    });
 
     return res.status(201).json({
       success: true,

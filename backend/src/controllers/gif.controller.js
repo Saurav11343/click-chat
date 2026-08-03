@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { sendMessagePushNotifications } from "../services/pushNotification.service.js";
 import { getIO } from "../socket/socket.js";
 
 const senderFields = "_id firstName lastName profilePic";
@@ -70,6 +71,14 @@ export const sendExternalMedia = async (req, res) => {
         io.to(`user:${participantId.toString()}`).emit("message:new", payload);
       }
     }
+
+    void sendMessagePushNotifications({
+      conversation,
+      sender: message.sender,
+      message,
+    }).catch((pushError) => {
+      console.error("External media push notification failed:", pushError.message);
+    });
 
     return res.status(201).json({
       success: true,
