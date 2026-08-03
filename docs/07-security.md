@@ -43,6 +43,12 @@ sequenceDiagram
     API->>API: Hash submitted token
     API->>DB: Match hash and future expiry
     API->>DB: Mark verified and clear token fields
+    alt Resend requested
+      U->>API: Request another verification email
+      API->>API: Apply IP rate limit and account cooldown
+      API->>DB: Replace token hash and expiry
+      API->>GM: Send new raw token link
+    end
 ```
 
 ## Authorization matrix

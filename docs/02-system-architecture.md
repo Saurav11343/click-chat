@@ -10,9 +10,11 @@ flowchart LR
     E --> M[("MongoDB Atlas")]
     E --> C["Cloudinary"]
     E --> G["Gmail REST API"]
+    E --> O["Google Identity Services"]
     E --> T["Google Cloud Translation API"]
     E --> P["Browser push services"]
     V --> Y["GIPHY API/CDN"]
+    A["Capacitor Android wrapper"] --> V
     G --> I["Email inbox"]
     E --> S
 
@@ -64,6 +66,7 @@ sequenceDiagram
     IO-->>P: Targeted room event
     API-->>F: REST response
     F->>F: Update local Zustand state
+    Note over F,IO: Typing and presence are ephemeral Socket.IO flows; they are not message REST mutations
 ```
 
 REST is authoritative for mutations. Socket.IO distributes changes only after persistence for message operations. The sender normally updates from the REST response; other participants update from socket events.
@@ -92,7 +95,7 @@ flowchart TD
     UP --> CTRL
     CTRL --> SERVICE["Service or utility"]
     CTRL --> MODEL["Mongoose model"]
-    SERVICE --> EXT["Cloudinary, Gmail, or Translation API"]
+    SERVICE --> EXT["Cloudinary, Gmail, Google identity, Translation, or Web Push"]
     SERVICE --> PUSH["Browser push service"]
     MODEL --> DB[("MongoDB")]
     CTRL --> SOCKET["Socket.IO event emission"]
@@ -107,10 +110,16 @@ sequenceDiagram
     participant A as Express API
     participant DB as MongoDB
 
-    U->>F: Submit login
-    F->>A: POST /api/auth/login
-    A->>DB: Find normalized email
-    A->>A: Compare bcrypt password
+    U->>F: Submit password or Google credential
+    alt Email and password
+      F->>A: POST /api/auth/login
+      A->>DB: Find normalized email
+      A->>A: Compare bcrypt password
+    else Google Sign-In
+      F->>A: POST /api/auth/google
+      A->>A: Verify Google credential
+      A->>DB: Find or create verified user
+    end
     alt Email unverified
       A-->>F: 403 verification required
     else Verified
@@ -152,6 +161,10 @@ flowchart LR
     MC["MessageComposer"] -->|"typing:start / typing:stop"| SO
     SO -->|"typing:update"| CL
     PP["Profile picture UI"] --> US["useUserStore"]
+    SET["Settings"] --> AS
+    SET --> US
+    GP["Group dialogs"] --> CS
+    PUSH["Push controls"] --> US
 
     AX["Axios instance"] --> API["Express API"]
     AS --> AX
@@ -179,7 +192,11 @@ flowchart TD
     RW --> CL["Cloudinary"]
     RW --> GO["Google OAuth"]
     RW --> GM["Gmail REST API"]
+    RW --> TR["Google Translation API"]
     RW --> PS["Browser push services"]
+    VE --> GI["Google Identity Services"]
+    VE --> GIPHY["GIPHY API/CDN"]
+    APK["Capacitor Android package"] --> RW
 ```
 
 Vercel rewrites frontend routes to `/` so React Router can handle direct navigation. Railway/Render runs `node src/server.js`. The current presence algorithm assumes one Railway/Render backend process.

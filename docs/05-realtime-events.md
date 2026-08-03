@@ -25,8 +25,9 @@ sequenceDiagram
     IO->>IO: Parse cookie and verify JWT
     IO->>DB: Load socket user
     DB-->>IO: User identity
-    IO->>IO: Join user:userId room
+    IO->>IO: Register typing handlers and join user:userId room
     IO-->>F: Connected
+    IO->>DB: Persist online state after handlers are ready
 ```
 
 ## Event contract table
@@ -87,12 +88,12 @@ sequenceDiagram
     participant IO as Socket.IO
     participant RF as Recipient frontend
 
-    S->>SF: Send, edit, or delete
+    S->>SF: Send text/media, edit, delete, or clear
     SF->>API: REST mutation
     API->>API: Authenticate, validate, authorize
     API->>DB: Persist message state
     DB-->>API: Saved message
-    API->>IO: Emit corresponding message event
+    API->>IO: Emit message or messages:cleared event
     IO-->>RF: Deliver to private user room
     RF->>RF: Update message and conversation stores
     API-->>SF: Return saved message

@@ -13,6 +13,9 @@ erDiagram
     CONVERSATION o|--o| MESSAGE : references_as_last
     MESSAGE o|--o| MESSAGE : replies_to
     USER }o--o{ MESSAGE : reads
+    MESSAGE ||--o{ MESSAGE_TRANSLATION : caches
+    USER ||--o{ TRANSLATION_USAGE : consumes_monthly
+    USER ||--o{ TRANSLATION_DAILY_USAGE : consumes_daily
 ```
 
 MongoDB collection names are Mongoose’s pluralized forms: `users`, `invitations`, `conversations`, and `messages`.
@@ -181,11 +184,17 @@ flowchart TD
     V --> E["Verify email and clear token fields"]
     E --> I["Create pending invitation"]
     I -->|"accepted"| C["Create or reuse direct conversation"]
-    C --> M["Create message"]
+    E --> G["Create group and assign creator as admin"]
+    G --> GM["Rename, update image, and manage members/admins"]
+    C --> M["Create text or rich-media message"]
+    GM --> M
     M --> L["Set conversation.lastMessage"]
+    M --> TR["Cache on-demand translation and reserve quota"]
     M --> ED["Edit content and edited fields"]
     M --> DEL["Soft delete: clear content and set deletion fields"]
     DEL --> KEEP["Keep document and lastMessage reference"]
+    C --> CLEAR["Clear messages or delete direct connection"]
+    G --> LEAVE["Member leaves or authorized admin deletes group"]
 ```
 
 Soft deletion preserves message history and allows all clients to render a deleted-message state. It also allows the conversation preview to show “Message deleted” when the deleted record remains the latest message.

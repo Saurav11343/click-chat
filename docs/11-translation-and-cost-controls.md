@@ -30,6 +30,9 @@ sequenceDiagram
       API->>DB: Store reusable translation
     end
     API-->>UI: Original remains visible; show translated text below it
+    alt Quota unavailable or provider fails
+      API-->>UI: Safe error; preserve original message
+    end
 ```
 
 The UI offers translation only on received messages containing non-empty text. The server still performs its own authentication, conversation-membership check, message lookup, and deletion check; frontend visibility is never treated as authorization.

@@ -37,18 +37,19 @@ Users need a lightweight web application in which they can register securely, di
 
 ```mermaid
 flowchart LR
-    V["Visitor"] --> REG["Register"]
-    REG --> VER["Verify email"]
-    VER --> LOG["Log in"]
-    LOG --> AUTH["Authenticated user"]
-    AUTH --> PRO["Manage profile picture"]
-    AUTH --> SEA["Search users"]
-    SEA --> INV["Send and respond to invitations"]
-    INV --> CON["Direct conversation"]
-    AUTH --> GRP["Create and manage groups"]
-    CON --> MSG["Send, edit, and delete messages"]
-    GRP --> MSG
-    CON --> PRE["View online and last-seen state"]
+    V["Visitor"] --> ONB["Register, verify email, or use Google Sign-In"]
+    ONB --> AUTH["Authenticated member"]
+    AUTH --> ACC["Profile, password, language, themes, and notifications"]
+    AUTH --> CONTACT["Search users and manage invitations"]
+    CONTACT --> DIRECT["Direct conversation"]
+    AUTH --> GROUP["Create group"]
+    GROUP --> ADMIN["Rename, update picture, add/remove members, and manage admins"]
+    ADMIN --> EXIT["Leave or delete group"]
+    DIRECT --> CHAT["Text, emoji, attachments, GIFs, stickers, and links"]
+    GROUP --> CHAT
+    CHAT --> ACTIONS["Copy, translate, edit, delete, and download"]
+    CHAT --> LIVE["Real-time delivery, typing, presence, and Web Push"]
+    DIRECT --> CLEAN["Clear chat or delete connection"]
 ```
 
 ### Implemented features

@@ -64,6 +64,13 @@ sequenceDiagram
     U->>F: Log in
     F->>API: POST /auth/login
     API-->>F: HTTP-only JWT cookie
+    alt Google Sign-In
+      U->>F: Choose Google account
+      F->>API: POST /auth/google with credential
+      API->>API: Verify Google credential
+      API->>DB: Find or create verified user
+      API-->>F: HTTP-only JWT cookie
+    end
 ```
 
 ## User API
@@ -114,6 +121,7 @@ sequenceDiagram
     API->>IO: invitation:responded
     IO-->>S: Remove pending and add conversation
     API-->>R: Updated invitation and conversation
+    Note over S,R: Duplicate, self, and already-connected invitations are rejected
 ```
 
 ## Conversation and message API

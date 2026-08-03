@@ -35,12 +35,20 @@ flowchart TD
     LAYOUT --> WIN["ChatWindow"]
     SIDE --> INV["InvitationsDialog"]
     SIDE --> NEW["NewChatDialog"]
+    SIDE --> CREATE["CreateGroupDialog"]
+    SIDE --> PUSH["PushNotificationPrompt"]
     SIDE --> PUBPRO["PublicProfileDialog"]
     WIN --> BUB["MessageBubble"]
     WIN --> COMP["MessageComposer"]
+    WIN --> GROUP["GroupDetailsDialog"]
+    WIN --> DIRECT["DirectConversationMenu"]
+    WIN --> TYPE["TypingIndicator"]
+    BUB --> ACTIONS["Copy / translate / edit / delete / download"]
     COMP --> EMOJI["EmojiPicker"]
     COMP --> GIPHY["GiphyPicker"]
     PROFILE --> PIC["ProfilePictureUpload"]
+    SETTINGS --> APPEAR["AppearanceSettings"]
+    SETTINGS --> SECURITY["Password settings"]
 ```
 
 ## Visual system and page composition
@@ -70,6 +78,7 @@ flowchart LR
     API --> INV["Invitation store"]
     API --> CON["Conversation store"]
     API --> MSG["Message store"]
+    API --> USER["User store"]
     SOCKET["Socket.IO"] --> LAYOUT["ChatLayout handlers"]
     COMP["MessageComposer"] -->|"typing:start / typing:stop"| SOCKET
     LAYOUT --> INV
@@ -79,6 +88,8 @@ flowchart LR
     CON --> SIDEBAR["ConversationSidebar"]
     MSG --> WINDOW["ChatWindow"]
     AUTH --> LAYOUT
+    USER --> PROFILE["Profile and Settings"]
+    CON --> GROUPS["Group management dialogs"]
 ```
 
 ### Conversation selection
@@ -103,8 +114,10 @@ flowchart TD
     DAY -->|"No"| BUBBLE["MessageBubble"]
     SEP --> BUBBLE
     BUBBLE --> OWN{"Current user owns message?"}
-    OWN -->|"Yes"| MENU["Copy/edit/delete menu"]
-    OWN -->|"No"| VIEW["Copy/translate menu"]
+    OWN -->|"Yes"| MENU["Copy / translate / edit / delete / download"]
+    OWN -->|"No"| VIEW["Copy / translate / download"]
+    BUBBLE --> KIND{"Text, attachment, GIF/sticker, or YouTube link?"}
+    KIND --> RICH["Render matching rich-media view"]
     BUBBLE --> STATE{"Deleted or edited?"}
     STATE --> DEL["Deleted placeholder"]
     STATE --> EDIT["Edited label"]
