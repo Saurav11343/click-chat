@@ -1,6 +1,6 @@
 # ClickChat
 
-ClickChat is a full-stack real-time messaging application built with the MERN stack and Socket.IO. It combines verified account onboarding, password recovery, real-time invitations, persistent direct messaging, rich-media sharing, on-demand message translation, synchronized message updates, multi-tab presence tracking, and a compact responsive interface for desktop and mobile browsers.
+ClickChat is a full-stack real-time messaging application built with the MERN stack and Socket.IO. It combines verified account onboarding, password recovery, real-time invitations, direct and managed group conversations, rich-media sharing, on-demand message translation, background Web Push notifications, synchronized message updates, multi-tab presence tracking, and a responsive interface for desktop and mobile browsers.
 
 The project is being developed as a Master’s project and as a practical demonstration of secure REST APIs, authenticated real-time communication, MongoDB data modelling, client-side state management, cloud integrations, and incremental production engineering.
 
@@ -19,6 +19,7 @@ The project is being developed as a Master’s project and as a practical demons
 - Inline name, bio, preferred-language, password, and Cloudinary profile-picture management
 - User search and real-time chat invitations
 - Automatic direct-conversation creation on invitation acceptance
+- Complete group creation, naming, images, membership, administrator roles, leaving, and deletion
 - Persistent text and emoji messages
 - Image, video, audio, PDF, Office-document, text, and CSV attachments with captions and upload progress
 - Combined GIPHY GIF/sticker picker with trending results, debounced search, pagination, analytics, and real-time delivery
@@ -29,7 +30,8 @@ The project is being developed as a Master’s project and as a practical demons
 - Latest-message previews without full conversation-list refreshes
 - WhatsApp-style message date separators
 - Multi-tab online/offline presence with a five-second reconnect grace period
-- Real-time typing indicators with sender inactivity and receiver safety timeouts
+- Animated message-bubble typing indicators for direct and group conversations
+- Free standards-based Web Push notifications with per-browser enable/disable controls, VAPID authentication, notification discovery prompts, deep links, and stale-subscription cleanup
 - Persisted last-seen timestamps and stale-presence cleanup after server restarts
 - Light, dark, and system themes
 - Responsive landing, authentication, chat, and profile interfaces
@@ -48,6 +50,7 @@ flowchart LR
     B --> C["Cloudinary"]
     B --> G["Gmail REST API"]
     B --> T["Google Cloud Translation API"]
+    B --> P["Browser push services"]
     F --> Y["GIPHY API/CDN"]
     B --> S
 ```
@@ -60,7 +63,7 @@ REST handles validation, authorization, persistence, uploads, and error response
 | --- | --- |
 | Frontend | React 19, Vite, React Router, Zustand, Axios, React Hook Form, Zod, Tailwind CSS, shadcn/ui, Radix UI, Socket.IO Client |
 | Backend | Node.js, Express 5, Socket.IO, Mongoose, JWT, bcrypt, Zod, Multer |
-| Data and cloud | MongoDB Atlas, Cloudinary, Gmail REST API with Google OAuth 2.0, Google Cloud Translation Basic v2, GIPHY API/CDN |
+| Data and cloud | MongoDB Atlas, Cloudinary, Gmail REST API with Google OAuth 2.0, Google Cloud Translation Basic v2, Web Push/VAPID, GIPHY API/CDN |
 | Deployment | Vercel frontend and Railway backend |
 
 ## Quick start
@@ -74,6 +77,7 @@ REST handles validation, authorization, persistence, uploads, and error response
 - Google OAuth credentials and Gmail API sender refresh token
 - Google Cloud Translation API key when translation is enabled
 - GIPHY API key when GIF/sticker search is enabled
+- A generated VAPID key pair for background browser notifications
 
 ### Backend
 
@@ -92,6 +96,7 @@ Create `frontend/.env`:
 ```env
 VITE_API_URL=http://localhost:5000
 VITE_GIPHY_API_KEY=your_giphy_api_key
+VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
 ```
 
 Then run:
@@ -120,6 +125,7 @@ Detailed technical documentation lives in [`docs/`](docs/README.md).
 | [Setup and deployment](docs/08-setup-and-deployment.md) | Environment variables, commands, Gmail setup, and cloud deployment |
 | [Testing and roadmap](docs/09-testing-and-roadmap.md) | Acceptance checks, limitations, test strategy, and prioritized future work |
 | [Translation and cost controls](docs/11-translation-and-cost-controls.md) | Translation request flow, caching, quotas, failure modes, billing boundaries, and deployment safeguards |
+| [Groups and Web Push](docs/12-groups-and-web-push.md) | Group lifecycle, authorization, socket synchronization, subscriptions, service workers, and notification delivery |
 
 ## Project structure
 
@@ -157,12 +163,12 @@ click-chat/
 - Message retrieval is limited to the latest 50 messages; older-message pagination is next.
 - Unread counts and complete read receipts are not implemented.
 - Reply storage/rendering exists, but reply selection in the composer is incomplete.
-- Group-chat schema foundations exist, but group workflows are not implemented.
 - Attachments are limited to one file and 10 MB per message; cancellation and retry are not yet implemented.
 - Uploads and normal message creation do not yet have per-user storage/traffic quotas; public deployments should add them before broad access.
 - Cloudinary attachment delivery URLs are stored with messages; stronger private delivery is recommended for sensitive files.
 - Presence and Socket.IO currently assume one backend instance.
 - Automated test coverage has not yet been configured.
+- Web Push requires browser permission and HTTPS in production; regular browser notifications retain browser/origin attribution unless the site is installed as a PWA.
 
 ## Next priorities
 
@@ -170,7 +176,7 @@ click-chat/
 2. Cursor-based message-history pagination
 3. Per-user upload/message quotas and authenticated attachment delivery
 4. Unread counts and read receipts
-5. Complete reply interactions, group chat, and multi-file attachment galleries
+5. Blocking/reporting, complete reply interactions, and multi-file attachment galleries
 
 See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritized plan.
 

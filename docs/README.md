@@ -17,6 +17,7 @@ This directory contains the detailed technical documentation for ClickChat. The 
 | [Testing and roadmap](09-testing-and-roadmap.md) | Verification strategy, current limitations, and prioritized future work |
 | [Diagram catalog](10-diagram-catalog.md) | DFD, UML, user, architecture, data, sequence, state, activity, deployment, and event diagrams |
 | [Translation and cost controls](11-translation-and-cost-controls.md) | Translation flow, cache, atomic quota accounting, failure behavior, and billing safeguards |
+| [Groups and Web Push](12-groups-and-web-push.md) | Group lifecycle, authorization, live synchronization, browser subscriptions, service workers, and delivery cleanup |
 
 ## Suggested academic report mapping
 

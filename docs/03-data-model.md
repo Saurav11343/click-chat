@@ -42,6 +42,7 @@ MongoDB collection names are Mongoose’s pluralized forms: `users`, `invitation
 | `preferredLanguage` | String | Lowercase Translation target; defaults to `en` |
 | `isOnline` | Boolean | Persisted presence state; defaults to `false` |
 | `lastSeen` | Date or null | Time the final socket was declared offline |
+| `pushSubscriptions` | Embedded document[] | Per-browser Web Push endpoint, `p256dh`, `auth`, and creation time |
 | `createdAt` | Date | Mongoose timestamp |
 | `updatedAt` | Date | Mongoose timestamp |
 
@@ -79,11 +80,11 @@ The send controller rejects self-invitations and searches both user directions f
 | `type` | Enum String | `direct` or `group`; defaults to `direct` |
 | `participants` | ObjectId[] → User | Unique conversation members |
 | `directKey` | String or null | Sorted pair of user IDs joined with `:` for direct-conversation uniqueness |
-| `groupName` | String or null | Prepared group name, 2–50 characters |
-| `groupImage.url` | String | Prepared public group-image URL |
-| `groupImage.publicId` | String | Prepared Cloudinary identifier, excluded from normal queries |
-| `groupImage.resourceType` | String | Prepared Cloudinary resource type, excluded from normal queries |
-| `groupAdmins` | ObjectId[] → User | Prepared group administrator list |
+| `groupName` | String or null | Group name, 2–50 characters |
+| `groupImage.url` | String | Public group-image URL |
+| `groupImage.publicId` | String | Cloudinary replacement/deletion identifier, excluded from normal queries |
+| `groupImage.resourceType` | String | Cloudinary resource type, excluded from normal queries |
+| `groupAdmins` | ObjectId[] → User | Members authorized to manage the group |
 | `createdBy` | ObjectId → User | User who initiated the relationship or group |
 | `lastMessage` | ObjectId or null → Message | Latest message, including a soft-deleted latest message |
 | `createdAt` | Date | Mongoose timestamp |
@@ -93,8 +94,10 @@ The send controller rejects self-invitations and searches both user directions f
 
 - Participant IDs must be unique.
 - A direct conversation requires exactly two participants and a `directKey`.
-- A group conversation requires at least three participants, a group name, and at least one administrator.
-- Complete group creation and management routes are not implemented.
+- Group creation requires at least three participants, a group name, and one creator-administrator.
+- An established group may drop below three members as users leave, but it must retain a participant and administrator while stored.
+- Every administrator must also be a participant.
+- Group creation and member addition are limited to accepted contacts and 100 total members.
 
 ### Indexes
 

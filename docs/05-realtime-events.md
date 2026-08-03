@@ -42,6 +42,9 @@ sequenceDiagram
 | `typing:start` | Message composer | Socket server | `{ conversationId }` | Request an authenticated typing-state broadcast |
 | `typing:stop` | Message composer | Socket server | `{ conversationId }` | Request typing-state removal |
 | `typing:update` | Socket server | Other conversation participants | `{ conversationId, userId, firstName, isTyping }` | Show or clear typing status for that conversation |
+| `conversation:created` | Group controller | Initial or newly added members | Populated conversation | Insert the group locally |
+| `conversation:updated` | Group controller | Current members | Populated conversation | Replace group metadata, members, and administrators |
+| `conversation:removed` | Group controller | Removed, leaving, or deletion-affected users | `{ conversationId }` | Remove the conversation and close it if selected |
 
 Message, invitation, presence, and `typing:update` events are server-to-client events. `typing:start` and `typing:stop` are client-to-server events. Persisted message and invitation mutations continue to originate as REST requests.
 
@@ -62,12 +65,12 @@ sequenceDiagram
     IO->>DB: Verify sender is a participant
     DB-->>IO: Conversation participants
     IO-->>R: typing:update { isTyping: true }
-    R->>R: Show status and start 3s safety timer
+    R->>R: Show animated typing bubble and start 3s safety timer
     Note over C: 1.5s without input
     C->>IO: typing:stop { conversationId }
     IO->>DB: Verify sender is a participant
     IO-->>R: typing:update { isTyping: false }
-    R->>R: Restore online or last-seen status
+    R->>R: Remove typing bubble
 ```
 
 The composer emits `typing:start` only on the transition from idle to typing rather than on every keystroke. Each change resets its 1.5-second inactivity timer. Emptying the input, sending a message, switching conversations, or unmounting the composer emits `typing:stop`. The recipient also clears stale typing state after three seconds if a stop event is lost.

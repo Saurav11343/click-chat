@@ -74,7 +74,7 @@ function Login() {
           </span>
           <CardTitle className="text-2xl font-semibold tracking-tight">Welcome back</CardTitle>
           <CardDescription className="text-base">
-            Enter your details to continue to your conversations.
+            Return to your direct chats, groups, and shared moments.
           </CardDescription>
         </CardHeader>
 
