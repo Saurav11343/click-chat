@@ -144,9 +144,9 @@
 ```mermaid
 flowchart TD
     UNIT["Unit tests"] --> VAL["Validation, utilities, store actions"]
-    INT["API integration tests"] --> HTTP["Auth, invitations, conversations, messages"]
-    SOCK["Socket integration tests"] --> EVT["Message, invitation, and presence events"]
-    E2E["Browser end-to-end tests"] --> FLOW["Registration-to-chat user journeys"]
+    INT["API integration tests"] --> HTTP["Auth, invitations, direct/group conversations, media, translation, and push"]
+    SOCK["Socket integration tests"] --> EVT["Message, clear, group, invitation, typing, and presence events"]
+    E2E["Browser end-to-end tests"] --> FLOW["Onboarding, direct chat, group administration, settings, and notification journeys"]
 ```
 
 ### Suggested priorities
@@ -175,10 +175,10 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    P0["P0 Reliability"] --> P1["P1 Messaging fundamentals"]
-    P1 --> P2["P2 Rich messaging"]
-    P2 --> P3["P3 Rich media and calls"]
-    P3 --> P4["P4 Scale and operations"]
+    P0["P0 Automated reliability and Socket.IO tests"] --> P1["P1 Pagination, unread counts, and read receipts"]
+    P1 --> P2["P2 Quotas, private media, replies, and multi-file galleries"]
+    P2 --> P3["P3 Blocking, reporting, search, voice recording, and calls"]
+    P3 --> P4["P4 Redis-backed scale, observability, backup, and recovery"]
 ```
 
 ### P0 — Reliability and test foundation

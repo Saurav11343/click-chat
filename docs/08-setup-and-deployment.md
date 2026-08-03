@@ -206,6 +206,7 @@ sequenceDiagram
     P->>HTTP: Create Node HTTP server with Express
     P->>IO: Attach and configure Socket.IO
     P->>HTTP: Listen on configured port
+    Note over P,HTTP: Health endpoint becomes available after dependencies initialize
 ```
 
 Resetting presence at startup is correct for the current single backend instance. It must not be reused unchanged in a multi-instance rolling deployment.
@@ -238,7 +239,10 @@ flowchart LR
     R --> C["Cloudinary"]
     R --> G["Gmail API"]
     R --> T["Translation API"]
+    R --> P["Browser push services"]
     V --> Y["GIPHY API/CDN"]
+    V --> O["Google Identity Services"]
+    A["Capacitor Android app"] <-->|"HTTPS REST + Socket.IO"| R
 ```
 
 ## Deployment checks

@@ -67,6 +67,12 @@ sequenceDiagram
     API->>PS: Send encrypted notification after new message
     PS->>SW: Deliver push event
     SW->>U: Display notification when ClickChat is not visible
+    U->>SW: Select notification
+    SW->>F: Focus/open the linked conversation
+    alt Subscription is stale
+      PS-->>API: Gone or expired response
+      API->>DB: Remove stale subscription
+    end
 ```
 
 The browser creates the endpoint and encryption values. ClickChat stores multiple subscriptions per user so separate browsers and devices can receive notifications. The VAPID public key is exposed to the frontend; the private key remains backend-only.
