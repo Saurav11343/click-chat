@@ -272,6 +272,12 @@ export const useMessageStore = create((set, get) => ({
     });
   },
 
+  handleConversationCleared: (conversationId) => {
+    if (get().activeConversationId === conversationId) {
+      set({ messages: [] });
+    }
+  },
+
   editMessage: async (conversationId, messageId, content) => {
     set({
       editingMessageId: messageId,

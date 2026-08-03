@@ -46,6 +46,10 @@
 | Edit older message | Message updates; latest preview remains unchanged |
 | Delete latest message | Both clients show deleted bubble and “Message deleted” preview |
 | Delete older message | Bubble changes; latest preview remains unchanged |
+| Clear direct chat | Confirmation appears; all messages/uploads disappear for both users while the empty conversation remains |
+| Delete direct conversation | Confirmation appears; conversation and accepted connection disappear for both users |
+| Reconnect after deletion | A new invitation can be sent and accepted to create a fresh direct conversation |
+| Legacy accepted invitation without conversation | Sending an invitation removes the stale record and creates a new pending invitation |
 | Date boundary | Separator appears when calendar day changes |
 | Switch conversation during history request | Stale response does not replace active conversation messages |
 | Send GIF/sticker | GIPHY result is stored as external metadata and delivered to the recipient without Cloudinary upload |

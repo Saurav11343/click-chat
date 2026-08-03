@@ -131,6 +131,26 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
     },
 
+    appearance: {
+      preset: {
+        type: String,
+        enum: [
+          "clickchat",
+          "ocean",
+          "forest",
+          "sunset",
+          "lavender",
+          "midnight",
+        ],
+        default: "clickchat",
+      },
+      colorMode: {
+        type: String,
+        enum: ["light", "dark", "system"],
+        default: "system",
+      },
+    },
+
     isOnline: {
       type: Boolean,
       default: false,

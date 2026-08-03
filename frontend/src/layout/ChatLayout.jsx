@@ -65,6 +65,9 @@ export function ChatLayout() {
   );
 
   const replaceMessage = useMessageStore((state) => state.replaceMessage);
+  const handleConversationCleared = useMessageStore(
+    (state) => state.handleConversationCleared,
+  );
 
   useEffect(() => {
     getInvitations();
@@ -175,6 +178,10 @@ export function ChatLayout() {
       }
     };
 
+    const handleMessagesCleared = ({ conversationId }) => {
+      handleConversationCleared(conversationId);
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("message:updated", handleUpdatedMessage);
     socket.on("message:deleted", handleDeletedMessage);
@@ -185,6 +192,7 @@ export function ChatLayout() {
     socket.on("conversation:created", handleConversationUpdated);
     socket.on("conversation:updated", handleConversationUpdated);
     socket.on("conversation:removed", handleConversationRemoved);
+    socket.on("messages:cleared", handleMessagesCleared);
 
     return () => {
       socket.off("message:new", handleNewMessage);
@@ -197,6 +205,7 @@ export function ChatLayout() {
       socket.off("conversation:created", handleConversationUpdated);
       socket.off("conversation:updated", handleConversationUpdated);
       socket.off("conversation:removed", handleConversationRemoved);
+      socket.off("messages:cleared", handleMessagesCleared);
 
       for (const timeout of typingTimeouts.values()) {
         clearTimeout(timeout);
@@ -215,6 +224,7 @@ export function ChatLayout() {
     removeConversation,
     selectedConversationId,
     setSearchParams,
+    handleConversationCleared,
   ]);
 
   const handleSelectConversation = (conversation) => {

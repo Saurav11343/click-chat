@@ -40,6 +40,8 @@ MongoDB collection names are Mongoose’s pluralized forms: `users`, `invitation
 | `profilePic.resourceType` | String | Cloudinary resource type; excluded from normal queries |
 | `bio` | String | Optional profile text, maximum 150 characters |
 | `preferredLanguage` | String | Lowercase Translation target; defaults to `en` |
+| `appearance.preset` | String enum | Selected ClickChat, Ocean, Forest, Sunset, Lavender, or Midnight preset |
+| `appearance.colorMode` | String enum | Selected `light`, `dark`, or `system` color mode |
 | `isOnline` | Boolean | Persisted presence state; defaults to `false` |
 | `lastSeen` | Date or null | Time the final socket was declared offline |
 | `pushSubscriptions` | Embedded document[] | Per-browser Web Push endpoint, `p256dh`, `auth`, and creation time |

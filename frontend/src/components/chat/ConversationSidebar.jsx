@@ -111,31 +111,37 @@ export function ConversationSidebar({
               className="w-60 rounded-xl p-2"
             >
               <DropdownMenuLabel className="font-normal">
-                <p className="truncate text-sm font-medium">
-                  {fullName || "User"}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {authUser?.email}
-                </p>
+                <div className="flex items-center gap-3 px-1 py-1">
+                  <Avatar className="size-10 border">
+                    <AvatarImage src={profilePicUrl} alt={fullName || "User"} className="object-cover" />
+                    <AvatarFallback className="text-xs">{initials || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{fullName || "User"}</p>
+                    <p className="truncate text-xs text-muted-foreground">{authUser?.email}</p>
+                  </div>
+                </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => navigate("/profile")}>
-                <UserRound className="size-4" /> Profile
+              <DropdownMenuItem className="items-start gap-3 py-2.5" onSelect={() => navigate("/profile")}>
+                <UserRound className="mt-0.5 size-4" />
+                <div><p className="font-medium">Profile</p><p className="text-xs text-muted-foreground">Photo, name, bio, and account details</p></div>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => navigate("/settings")}>
-                <Settings className="size-4" /> Settings
+              <DropdownMenuItem className="items-start gap-3 py-2.5" onSelect={() => navigate("/settings")}>
+                <Settings className="mt-0.5 size-4" />
+                <div><p className="font-medium">Settings</p><p className="text-xs text-muted-foreground">Appearance, notifications, and security</p></div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 disabled={isLoggingOut}
-                className="text-destructive focus:text-destructive"
+                className="gap-3 py-2.5 text-destructive focus:text-destructive"
                 onSelect={(event) => {
                   event.preventDefault();
                   handleLogout();
                 }}
               >
                 <LogOut className="size-4" />
-                {isLoggingOut ? "Logging out..." : "Logout"}
+                <div><p className="font-medium">{isLoggingOut ? "Logging out..." : "Log out"}</p><p className="text-xs opacity-70">End your current ClickChat session</p></div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

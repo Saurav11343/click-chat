@@ -3,6 +3,7 @@ import { axiosInstance } from "@/api/axios";
 import { toast } from "sonner";
 
 import { socket } from "@/lib/socket";
+import { syncAppearancePreferences } from "@/lib/appearanceThemes";
 
 const AUTH_CHECK_ATTEMPTS = 6;
 const AUTH_CHECK_TIMEOUT = 15000;
@@ -232,6 +233,7 @@ export const useAuthStore = create((set, get) => ({
           });
 
           set({ authUser: res.data.user });
+          syncAppearancePreferences(res.data.user?.appearance);
 
           if (!socket.connected) {
             socket.connect();

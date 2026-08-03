@@ -8,7 +8,7 @@ export const useUserStore = create((set) => ({
   isUpdatingProfilePic: false,
   isUpdatingProfile: false,
 
-  updateProfile: async (updates) => {
+  updateProfile: async (updates, { silent = false } = {}) => {
     set({ isUpdatingProfile: true });
 
     try {
@@ -16,7 +16,9 @@ export const useUserStore = create((set) => ({
 
       if (response.data.success) {
         useAuthStore.setState({ authUser: response.data.user });
-        toast.success(response.data.message || "Profile updated successfully");
+        if (!silent) {
+          toast.success(response.data.message || "Profile updated successfully");
+        }
         return true;
       }
 

@@ -3,6 +3,8 @@ import express from "express";
 import {
   addGroupParticipants,
   createGroup,
+  clearDirectConversation,
+  deleteDirectConversation,
   deleteGroup,
   getConversations,
   leaveGroup,
@@ -54,6 +56,18 @@ const router = express.Router();
 router.use(protectRoute);
 
 router.get("/", getConversations);
+
+router.post(
+  "/:conversationId/clear",
+  validate(conversationIdSchema, "params"),
+  clearDirectConversation,
+);
+
+router.delete(
+  "/:conversationId/direct",
+  validate(conversationIdSchema, "params"),
+  deleteDirectConversation,
+);
 
 router.post("/groups", validate(createGroupSchema), createGroup);
 

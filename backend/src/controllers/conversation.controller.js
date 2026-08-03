@@ -83,6 +83,114 @@ const deleteGroupResources = async (conversation) => {
   await Conversation.deleteOne({ _id: conversation._id });
 };
 
+const deleteConversationMessages = async (conversationId) => {
+  const messages = await Message.find({ conversation: conversationId }).select(
+    "attachment",
+  );
+  const files = messages
+    .map((message) => message.attachment)
+    .filter((attachment) => attachment?.publicId)
+    .map((attachment) => ({
+      publicId: attachment.publicId,
+      resourceType: attachment.resourceType,
+    }));
+
+  await Promise.allSettled(files.map(deleteCloudinaryFile));
+  await Message.deleteMany({ conversation: conversationId });
+};
+
+const getDirectConversation = (conversationId, userId) =>
+  Conversation.findOne({
+    _id: conversationId,
+    type: "direct",
+    participants: userId,
+  });
+
+export const clearDirectConversation = async (req, res) => {
+  try {
+    const conversation = await getDirectConversation(
+      req.params.conversationId,
+      req.user._id,
+    );
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Direct conversation not found.",
+      });
+    }
+
+    await deleteConversationMessages(conversation._id);
+    conversation.lastMessage = null;
+    await conversation.save();
+    await populateConversation(conversation);
+
+    const io = getIO();
+    for (const participant of conversation.participants) {
+      const room = `user:${participantId(participant)}`;
+      io.to(room).emit("messages:cleared", {
+        conversationId: conversation._id.toString(),
+      });
+      io.to(room).emit("conversation:updated", conversation);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Chat history cleared for both participants.",
+      conversation,
+    });
+  } catch (error) {
+    console.error("Clear direct conversation error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to clear the chat.",
+    });
+  }
+};
+
+export const deleteDirectConversation = async (req, res) => {
+  try {
+    const conversation = await getDirectConversation(
+      req.params.conversationId,
+      req.user._id,
+    );
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Direct conversation not found.",
+      });
+    }
+
+    const participantIds = conversation.participants.map(participantId);
+    await deleteConversationMessages(conversation._id);
+    await Conversation.deleteOne({ _id: conversation._id });
+    await Invitation.deleteMany({
+      status: "accepted",
+      $or: [
+        { sender: participantIds[0], recipient: participantIds[1] },
+        { sender: participantIds[1], recipient: participantIds[0] },
+      ],
+    });
+
+    const io = getIO();
+    for (const id of participantIds) {
+      io.to(`user:${id}`).emit("conversation:removed", {
+        conversationId: conversation._id.toString(),
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Conversation deleted permanently for both participants.",
+    });
+  } catch (error) {
+    console.error("Delete direct conversation error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to delete the conversation.",
+    });
+  }
+};
+
 export const getConversations = async (req, res) => {
   try {
     const userId = req.user._id;

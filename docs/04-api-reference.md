@@ -68,7 +68,7 @@ sequenceDiagram
 
 ## User API
 
-`PATCH /api/user/profile` is authenticated and accepts validated partial updates for inline identity/biography editing and preferred-language selection. It returns the updated user. `PATCH /api/user/profilePic` handles image replacement separately.
+`PATCH /api/user/profile` is authenticated and accepts validated partial updates for inline identity/biography editing, preferred-language selection, and appearance preferences. Appearance is submitted as `{ appearance: { preset, colorMode } }`. It returns the updated user. `PATCH /api/user/profilePic` handles image replacement separately.
 
 | Method | Path | Auth | Request | Success response | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -131,6 +131,17 @@ All routes under `/api/conversations` use protected-route middleware.
 | POST | `/api/conversations/:conversationId/messages/:messageId/translate` | None | Translation text, target/detected language, and cache flag | Participant-only; target comes from the authenticated profile |
 | PATCH | `/api/conversations/:conversationId/messages/:messageId` | `{ content }` | Updated message in `data` | Current user must own the non-deleted text message |
 | DELETE | `/api/conversations/:conversationId/messages/:messageId` | None | Soft-deleted message in `data` | Current user must own the non-deleted message |
+
+### Direct-conversation management
+
+| Method | Path | Request | Success response | Authorization |
+| --- | --- | --- | --- | --- |
+| POST | `/api/conversations/:conversationId/clear` | None | Cleared, populated `conversation` | Either direct-conversation participant |
+| DELETE | `/api/conversations/:conversationId/direct` | None | Success message | Either direct-conversation participant |
+
+Clear chat permanently removes every stored message and owned Cloudinary attachment for both participants, resets `lastMessage`, and keeps the direct conversation. Delete conversation removes the history, conversation, and accepted connection for both participants; a new invitation is required to chat again.
+
+Invitation creation also repairs legacy stale connections: when an accepted invitation exists without its matching direct conversation, the stale accepted record is removed and the new invitation is created normally. A matching live conversation still returns `409 Already connected`.
 
 ### Group API
 

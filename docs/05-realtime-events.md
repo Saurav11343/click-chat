@@ -45,6 +45,7 @@ sequenceDiagram
 | `conversation:created` | Group controller | Initial or newly added members | Populated conversation | Insert the group locally |
 | `conversation:updated` | Group controller | Current members | Populated conversation | Replace group metadata, members, and administrators |
 | `conversation:removed` | Group controller | Removed, leaving, or deletion-affected users | `{ conversationId }` | Remove the conversation and close it if selected |
+| `messages:cleared` | Direct-conversation controller | Both direct participants | `{ conversationId }` | Clear the active message list immediately |
 
 Message, invitation, presence, and `typing:update` events are server-to-client events. `typing:start` and `typing:stop` are client-to-server events. Persisted message and invitation mutations continue to originate as REST requests.
 

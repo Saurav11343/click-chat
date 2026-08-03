@@ -1,14 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
-  Bell,
-  BellOff,
   CalendarDays,
   Check,
   Clock3,
-  KeyRound,
-  Languages,
   Mail,
   MessageCircle,
   Pencil,
@@ -18,11 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-
 import ProfilePictureUpload from "@/components/profile/ProfilePictureUpload";
-import { AppearanceSettings } from "@/components/profile/AppearanceSettings";
-import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,20 +22,10 @@ import { Input } from "@/components/ui/input";
 import { ModeToggle } from "@/components/ui/ModeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore";
-import { TRANSLATION_LANGUAGES } from "@/lib/languages";
-import {
-  getPushNotificationState,
-  subscribeToPushNotifications,
-  unsubscribeFromPushNotifications,
-} from "@/lib/pushNotifications";
 
 function Profile() {
   const navigate = useNavigate();
   const authUser = useAuthStore((state) => state.authUser);
-  const changePassword = useAuthStore((state) => state.changePassword);
-  const isChangingPassword = useAuthStore(
-    (state) => state.isChangingPassword,
-  );
   const updateProfile = useUserStore((state) => state.updateProfile);
   const isUpdatingProfile = useUserStore(
     (state) => state.isUpdatingProfile,
@@ -53,32 +35,6 @@ function Profile() {
   const [firstName, setFirstName] = useState(authUser?.firstName || "");
   const [lastName, setLastName] = useState(authUser?.lastName || "");
   const [bio, setBio] = useState(authUser?.bio || "");
-  const [editingPassword, setEditingPassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [preferredLanguage, setPreferredLanguage] = useState(
-    authUser?.preferredLanguage || "en",
-  );
-  const [pushState, setPushState] = useState({
-    supported: true,
-    permission: "default",
-    subscribed: false,
-  });
-  const [isUpdatingPush, setIsUpdatingPush] = useState(false);
-
-  useEffect(() => {
-    getPushNotificationState()
-      .then(setPushState)
-      .catch(() => {
-        setPushState({
-          supported: false,
-          permission: "unsupported",
-          subscribed: false,
-        });
-      });
-  }, []);
-
   const fullName = [authUser?.firstName, authUser?.lastName]
     .filter(Boolean)
     .join(" ");
@@ -121,52 +77,6 @@ function Profile() {
   const cancelBioEdit = () => {
     setBio(authUser?.bio || "");
     setEditingBio(false);
-  };
-
-  const clearPasswordForm = () => {
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setEditingPassword(false);
-  };
-
-  const handlePasswordChange = async (event) => {
-    event.preventDefault();
-
-    const changed = await changePassword({
-      currentPassword,
-      newPassword,
-      confirmPassword,
-    });
-
-    if (changed) {
-      clearPasswordForm();
-    }
-  };
-
-  const handleLanguageSave = async () => {
-    await updateProfile({ preferredLanguage });
-  };
-
-  const handlePushToggle = async () => {
-    setIsUpdatingPush(true);
-
-    try {
-      if (pushState.subscribed) {
-        await unsubscribeFromPushNotifications();
-        toast.success("Push notifications disabled on this browser.");
-      } else {
-        await subscribeToPushNotifications();
-        toast.success("Push notifications enabled on this browser.");
-      }
-
-      setPushState(await getPushNotificationState());
-    } catch (error) {
-      toast.error(error.message || "Unable to update push notifications.");
-      setPushState(await getPushNotificationState());
-    } finally {
-      setIsUpdatingPush(false);
-    }
   };
 
   return (
@@ -363,204 +273,6 @@ function Profile() {
           </Card>
         </div>
 
-        <AppearanceSettings />
-
-        <Card className="mt-6 rounded-2xl py-6">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Languages className="size-5" />
-              </span>
-              <div>
-                <CardTitle className="text-xl tracking-tight">
-                  Preferred language
-                </CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Messages are auto-detected and translated into this language.
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <select
-                value={preferredLanguage}
-                onChange={(event) => setPreferredLanguage(event.target.value)}
-                className="h-10 min-w-0 flex-1 rounded-xl border bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                aria-label="Preferred translation language"
-                disabled={isUpdatingProfile}
-              >
-                {TRANSLATION_LANGUAGES.map(([code, name]) => (
-                  <option key={code} value={code}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-              <Button
-                type="button"
-                onClick={handleLanguageSave}
-                disabled={
-                  isUpdatingProfile ||
-                  preferredLanguage === (authUser?.preferredLanguage || "en")
-                }
-                className="rounded-xl"
-              >
-                <Check className="size-4" />
-                {isUpdatingProfile ? "Saving..." : "Save language"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mt-6 rounded-2xl py-6">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                {pushState.subscribed ? (
-                  <Bell className="size-5" />
-                ) : (
-                  <BellOff className="size-5" />
-                )}
-              </span>
-              <div>
-                <CardTitle className="text-xl tracking-tight">
-                  Browser notifications
-                </CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Receive new-message alerts when ClickChat is in the background.
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-3 rounded-2xl border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium">
-                  {!pushState.supported
-                    ? "Not supported by this browser"
-                    : pushState.permission === "denied"
-                      ? "Blocked in browser settings"
-                      : pushState.subscribed
-                        ? "Notifications are enabled"
-                        : "Notifications are disabled"}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  This preference applies only to this browser and device.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant={pushState.subscribed ? "outline" : "default"}
-                onClick={handlePushToggle}
-                disabled={
-                  isUpdatingPush ||
-                  !pushState.supported ||
-                  pushState.permission === "denied"
-                }
-                className="rounded-xl"
-              >
-                {pushState.subscribed ? (
-                  <BellOff className="size-4" />
-                ) : (
-                  <Bell className="size-4" />
-                )}
-                {isUpdatingPush
-                  ? "Updating..."
-                  : pushState.subscribed
-                    ? "Disable"
-                    : "Enable"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mt-6 rounded-2xl py-6">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <KeyRound className="size-5" />
-                </span>
-                <div>
-                  <CardTitle className="text-xl tracking-tight">Password</CardTitle>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Update the password used to access your account.
-                  </p>
-                </div>
-              </div>
-              {!editingPassword && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-xl"
-                  onClick={() => setEditingPassword(true)}
-                  aria-label="Change password"
-                >
-                  <Pencil className="size-4" />
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          {editingPassword && (
-            <CardContent>
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div className="grid gap-3 md:grid-cols-3">
-                  <PasswordInput
-                    value={currentPassword}
-                    onChange={(event) => setCurrentPassword(event.target.value)}
-                    placeholder="Current password"
-                    autoComplete="current-password"
-                    required
-                  />
-                  <PasswordInput
-                    value={newPassword}
-                    onChange={(event) => setNewPassword(event.target.value)}
-                    placeholder="New password"
-                    autoComplete="new-password"
-                    minLength={8}
-                    maxLength={72}
-                    required
-                  />
-                  <PasswordInput
-                    value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
-                    placeholder="Confirm new password"
-                    autoComplete="new-password"
-                    required
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Use 8–72 characters with uppercase, lowercase, and a number.
-                </p>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={clearPasswordForm}
-                    disabled={isChangingPassword}
-                  >
-                    <X className="size-4" /> Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={
-                      isChangingPassword ||
-                      !currentPassword ||
-                      newPassword.length < 8 ||
-                      newPassword !== confirmPassword
-                    }
-                  >
-                    <Check className="size-4" />
-                    {isChangingPassword ? "Changing..." : "Change password"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          )}
-        </Card>
       </main>
     </div>
   );

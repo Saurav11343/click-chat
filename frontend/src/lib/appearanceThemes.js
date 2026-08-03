@@ -1,5 +1,7 @@
 export const APPEARANCE_STORAGE_KEY = "clickchat:appearance-theme:v1";
 export const APPEARANCE_EVENT = "clickchat:appearance-change";
+export const COLOR_MODE_EVENT = "clickchat:color-mode-change";
+export const COLOR_MODE_STORAGE_KEY = "theme";
 
 export const APPEARANCE_THEMES = [
   { id: "clickchat", name: "ClickChat", description: "Clean and neutral", colors: ["#171717", "#f5f5f5", "#ffffff"] },
@@ -14,4 +16,22 @@ export function readAppearanceTheme() {
   if (typeof window === "undefined") return "clickchat";
   const stored = window.localStorage.getItem(APPEARANCE_STORAGE_KEY);
   return APPEARANCE_THEMES.some((theme) => theme.id === stored) ? stored : "clickchat";
+}
+
+export function syncAppearancePreferences(appearance) {
+  if (typeof window === "undefined" || !appearance) return;
+
+  const preset = APPEARANCE_THEMES.some((theme) => theme.id === appearance.preset)
+    ? appearance.preset
+    : "clickchat";
+  const colorMode = ["light", "dark", "system"].includes(appearance.colorMode)
+    ? appearance.colorMode
+    : "system";
+
+  window.localStorage.setItem(APPEARANCE_STORAGE_KEY, preset);
+  window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, colorMode);
+  window.dispatchEvent(new Event(APPEARANCE_EVENT));
+  window.dispatchEvent(
+    new CustomEvent(COLOR_MODE_EVENT, { detail: { colorMode } }),
+  );
 }
