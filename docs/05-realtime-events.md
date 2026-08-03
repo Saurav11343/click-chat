@@ -128,12 +128,12 @@ sequenceDiagram
     S2->>IO: Connect
     IO->>IO: Count becomes 2
     S1--xIO: Disconnect
-    IO->>IO: Count becomes 1; remain online
+    IO->>IO: Count becomes 1 and user remains online
     S2--xIO: Disconnect
-    IO->>IO: Count becomes 0; start 5s timer
+    IO->>IO: Count becomes 0 and starts 5s timer
     alt Reconnect during grace
       S1->>IO: Connect
-      IO->>IO: Cancel timer; remain online
+      IO->>IO: Cancel timer and remain online
     else Timer expires
       IO->>DB: isOnline = false, set lastSeen
       IO-->>C: presence:update offline

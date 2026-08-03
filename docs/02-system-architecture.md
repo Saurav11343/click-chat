@@ -66,7 +66,7 @@ sequenceDiagram
     IO-->>P: Targeted room event
     API-->>F: REST response
     F->>F: Update local Zustand state
-    Note over F,IO: Typing and presence are ephemeral Socket.IO flows; they are not message REST mutations
+    Note over F,IO: Typing and presence are ephemeral Socket.IO flows and are not message REST mutations
 ```
 
 REST is authoritative for mutations. Socket.IO distributes changes only after persistence for message operations. The sender normally updates from the REST response; other participants update from socket events.
