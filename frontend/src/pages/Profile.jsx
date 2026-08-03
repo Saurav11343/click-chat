@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
+  Bell,
+  BellOff,
   CalendarDays,
   Check,
   Clock3,
@@ -16,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 import ProfilePictureUpload from "@/components/profile/ProfilePictureUpload";
 import { PasswordInput } from "@/components/auth/PasswordInput";
@@ -27,6 +30,11 @@ import { ModeToggle } from "@/components/ui/ModeToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore";
 import { TRANSLATION_LANGUAGES } from "@/lib/languages";
+import {
+  getPushNotificationState,
+  subscribeToPushNotifications,
+  unsubscribeFromPushNotifications,
+} from "@/lib/pushNotifications";
 
 function Profile() {
   const navigate = useNavigate();
@@ -51,6 +59,24 @@ function Profile() {
   const [preferredLanguage, setPreferredLanguage] = useState(
     authUser?.preferredLanguage || "en",
   );
+  const [pushState, setPushState] = useState({
+    supported: true,
+    permission: "default",
+    subscribed: false,
+  });
+  const [isUpdatingPush, setIsUpdatingPush] = useState(false);
+
+  useEffect(() => {
+    getPushNotificationState()
+      .then(setPushState)
+      .catch(() => {
+        setPushState({
+          supported: false,
+          permission: "unsupported",
+          subscribed: false,
+        });
+      });
+  }, []);
 
   const fullName = [authUser?.firstName, authUser?.lastName]
     .filter(Boolean)
@@ -119,6 +145,27 @@ function Profile() {
 
   const handleLanguageSave = async () => {
     await updateProfile({ preferredLanguage });
+  };
+
+  const handlePushToggle = async () => {
+    setIsUpdatingPush(true);
+
+    try {
+      if (pushState.subscribed) {
+        await unsubscribeFromPushNotifications();
+        toast.success("Push notifications disabled on this browser.");
+      } else {
+        await subscribeToPushNotifications();
+        toast.success("Push notifications enabled on this browser.");
+      }
+
+      setPushState(await getPushNotificationState());
+    } catch (error) {
+      toast.error(error.message || "Unable to update push notifications.");
+      setPushState(await getPushNotificationState());
+    } finally {
+      setIsUpdatingPush(false);
+    }
   };
 
   return (
@@ -357,6 +404,68 @@ function Profile() {
               >
                 <Check className="size-4" />
                 {isUpdatingProfile ? "Saving..." : "Save language"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6 rounded-2xl py-6">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                {pushState.subscribed ? (
+                  <Bell className="size-5" />
+                ) : (
+                  <BellOff className="size-5" />
+                )}
+              </span>
+              <div>
+                <CardTitle className="text-xl tracking-tight">
+                  Browser notifications
+                </CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Receive new-message alerts when ClickChat is in the background.
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3 rounded-2xl border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium">
+                  {!pushState.supported
+                    ? "Not supported by this browser"
+                    : pushState.permission === "denied"
+                      ? "Blocked in browser settings"
+                      : pushState.subscribed
+                        ? "Notifications are enabled"
+                        : "Notifications are disabled"}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  This preference applies only to this browser and device.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant={pushState.subscribed ? "outline" : "default"}
+                onClick={handlePushToggle}
+                disabled={
+                  isUpdatingPush ||
+                  !pushState.supported ||
+                  pushState.permission === "denied"
+                }
+                className="rounded-xl"
+              >
+                {pushState.subscribed ? (
+                  <BellOff className="size-4" />
+                ) : (
+                  <Bell className="size-4" />
+                )}
+                {isUpdatingPush
+                  ? "Updating..."
+                  : pushState.subscribed
+                    ? "Disable"
+                    : "Enable"}
               </Button>
             </div>
           </CardContent>

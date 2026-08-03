@@ -140,3 +140,81 @@ export const updateProfile = async (req, res) => {
     });
   }
 };
+
+export const savePushSubscription = async (req, res) => {
+  try {
+    const { endpoint, keys } = req.body;
+
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid push subscription.",
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Replace an existing subscription from the same browser.
+    user.pushSubscriptions = user.pushSubscriptions.filter(
+      (subscription) => subscription.endpoint !== endpoint,
+    );
+
+    user.pushSubscriptions.push({
+      endpoint,
+      keys: {
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+      },
+    });
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Push notifications enabled.",
+    });
+  } catch (error) {
+    console.error("Save push subscription error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to save push subscription.",
+    });
+  }
+};
+
+export const deletePushSubscription = async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+
+    if (!endpoint) {
+      return res.status(400).json({
+        success: false,
+        message: "A push subscription endpoint is required.",
+      });
+    }
+
+    await User.findByIdAndUpdate(req.user._id, {
+      $pull: { pushSubscriptions: { endpoint } },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Push notifications disabled on this browser.",
+    });
+  } catch (error) {
+    console.error("Delete push subscription error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to disable push notifications.",
+    });
+  }
+};
