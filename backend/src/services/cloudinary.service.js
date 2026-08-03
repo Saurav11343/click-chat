@@ -196,6 +196,27 @@ export const uploadProfilePicture = async ({ buffer, userId }) => {
   });
 };
 
+export const uploadGroupPicture = async ({ buffer, conversationId }) => {
+  return uploadBuffer({
+    buffer,
+    folder: "realtime-chat-app/groups",
+    resourceType: "image",
+    publicId: `group-${conversationId}`,
+    transformation: [
+      {
+        width: 500,
+        height: 500,
+        crop: "fill",
+        gravity: "auto",
+      },
+      {
+        quality: "auto",
+        fetch_format: "auto",
+      },
+    ],
+  });
+};
+
 export const uploadChatImage = async ({ buffer, conversationId }) => {
   return uploadBuffer({
     buffer,

@@ -34,6 +34,7 @@ export function MessageBubble({
   isMyMessage,
   conversationId,
   onMediaLoad,
+  showSender = false,
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -165,6 +166,14 @@ export function MessageBubble({
           !isSticker || message.isDeleted ? "px-3.5 py-2.5 sm:px-4" : ""
         }`}
       >
+        {showSender && !isMyMessage && message.sender && (
+          <p className="mb-1 truncate text-xs font-semibold text-primary">
+            {[message.sender.firstName, message.sender.lastName]
+              .filter(Boolean)
+              .join(" ")}
+          </p>
+        )}
+
         {!message.isDeleted && !isEditing && hasMessageActions && (
           <div className="absolute right-1 top-1 z-10">
             <DropdownMenu>

@@ -25,11 +25,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { InvitationsDialog } from "./InvitationsDialog";
 import { PublicProfileDialog } from "./PublicProfileDialog";
 import { PushNotificationPrompt } from "./PushNotificationPrompt";
+import { CreateGroupDialog } from "./CreateGroupDialog";
+import { GroupDetailsDialog } from "./GroupDetailsDialog";
 
 export function ConversationSidebar({
   conversations,
   selectedConversation,
   onSelectConversation,
+  onOpenConversationId,
   isLoading = false,
 }) {
   const navigate = useNavigate();
@@ -71,6 +74,7 @@ export function ConversationSidebar({
         </button>
 
         <div className="flex items-center gap-1">
+          <CreateGroupDialog onCreated={onOpenConversationId} />
           <div>
             <ModeToggle />
           </div>
@@ -138,7 +142,7 @@ export function ConversationSidebar({
         </div>
       </div>
 
-      <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+      <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <PushNotificationPrompt />
         <div className="w-full min-w-0 space-y-1.5 overflow-hidden p-3">
           {isLoading ? (
@@ -158,36 +162,48 @@ export function ConversationSidebar({
                       : "hover:bg-muted/70"
                   }`}
                 >
-                  <PublicProfileDialog user={conversation}>
-                    <button
-                      type="button"
-                      onClick={
-                        conversation.isGroup
-                          ? () => onSelectConversation(conversation)
-                          : undefined
-                      }
-                      className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
-                      aria-label={
-                        conversation.isGroup
-                          ? `Open ${conversation.name}`
-                          : `View ${conversation.name}'s profile`
-                      }
-                    >
-                      <Avatar className="size-11 ring-2 ring-background sm:size-12">
-                        <AvatarImage
-                          src={conversation.image}
-                          alt={conversation.name}
-                          className="object-cover"
-                        />
-
-                        <AvatarFallback>{conversation.initials}</AvatarFallback>
-                      </Avatar>
-
-                      {conversation.online && !conversation.isGroup && (
-                        <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
-                      )}
-                    </button>
-                  </PublicProfileDialog>
+                  {conversation.isGroup ? (
+                    <GroupDetailsDialog conversation={conversation}>
+                      <button
+                        type="button"
+                        className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label={`View ${conversation.name} group details`}
+                      >
+                        <Avatar className="size-11 ring-2 ring-background sm:size-12">
+                          <AvatarImage
+                            src={conversation.image}
+                            alt={conversation.name}
+                            className="object-cover"
+                          />
+                          <AvatarFallback>
+                            {conversation.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      </button>
+                    </GroupDetailsDialog>
+                  ) : (
+                    <PublicProfileDialog user={conversation}>
+                      <button
+                        type="button"
+                        className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label={`View ${conversation.name}'s profile`}
+                      >
+                        <Avatar className="size-11 ring-2 ring-background sm:size-12">
+                          <AvatarImage
+                            src={conversation.image}
+                            alt={conversation.name}
+                            className="object-cover"
+                          />
+                          <AvatarFallback>
+                            {conversation.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        {conversation.online && (
+                          <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
+                        )}
+                      </button>
+                    </PublicProfileDialog>
+                  )}
 
                   <button
                     type="button"

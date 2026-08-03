@@ -13,6 +13,8 @@ import { PublicProfileDialog } from "@/components/chat/PublicProfileDialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MessageBubble } from "@/components/chat/MessageBubble";
+import { GroupDetailsDialog } from "@/components/chat/GroupDetailsDialog";
+import { TypingIndicator } from "@/components/chat/TypingIndicator";
 
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMessageStore } from "@/store/useMessageStore";
@@ -38,14 +40,10 @@ export function ChatWindow({
   const isTyping = Boolean(typingUser);
 
   const conversationStatus = selectedConversation?.isGroup
-    ? isTyping
-      ? `${typingUser.firstName} is typing…`
-      : "Group conversation"
-    : isTyping
-      ? `${typingUser.firstName} is typing…`
-      : selectedConversation?.online
-        ? "Online"
-        : formatLastSeen(selectedConversation?.lastSeen);
+    ? `${selectedConversation.participants?.length || 0} members`
+    : selectedConversation?.online
+      ? "Online"
+      : formatLastSeen(selectedConversation?.lastSeen);
 
   const messagesEndRef = useRef(null);
 
@@ -77,7 +75,7 @@ export function ChatWindow({
         block: "end",
       });
     }
-  }, [messages, isLoadingMessages]);
+  }, [messages, isLoadingMessages, isTyping]);
 
   if (!selectedConversation) {
     return <EmptyChat />;
@@ -127,17 +125,7 @@ export function ChatWindow({
             </h2>
 
             <div className="flex items-center gap-1.5">
-              {isTyping && (
-                <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-emerald-500" />
-              )}
-
-              <p
-                className={`truncate text-xs ${
-                  isTyping
-                    ? "font-medium text-emerald-600 dark:text-emerald-400"
-                    : "text-muted-foreground"
-                }`}
-              >
+              <p className="truncate text-xs text-muted-foreground">
                 {conversationStatus}
               </p>
             </div>
@@ -145,15 +133,32 @@ export function ChatWindow({
         </div>
 
         <div className="flex shrink-0 items-center">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="rounded-xl"
-            aria-label="Conversation options"
-          >
-            <EllipsisVertical className="size-5" />
-          </Button>
+          {selectedConversation.isGroup ? (
+            <GroupDetailsDialog
+              conversation={selectedConversation}
+              onRemoved={onBack}
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-xl"
+                aria-label="Group settings"
+              >
+                <EllipsisVertical className="size-5" />
+              </Button>
+            </GroupDetailsDialog>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="rounded-xl"
+              aria-label="Conversation options"
+            >
+              <EllipsisVertical className="size-5" />
+            </Button>
+          )}
         </div>
       </header>
 
@@ -195,6 +200,7 @@ export function ChatWindow({
                       message={message}
                       isMyMessage={isMyMessage}
                       conversationId={conversationId}
+                      showSender={selectedConversation.isGroup}
                       onMediaLoad={
                         index === messages.length - 1
                           ? handleLatestMediaLoad
@@ -204,10 +210,17 @@ export function ChatWindow({
                   </Fragment>
                 );
               })}
-
-              <div ref={messagesEndRef} aria-hidden="true" />
             </>
           )}
+
+          {!isLoadingMessages && (
+            <TypingIndicator
+              typingUser={typingUser}
+              isGroup={selectedConversation.isGroup}
+            />
+          )}
+
+          <div ref={messagesEndRef} aria-hidden="true" />
         </div>
       </div>
 

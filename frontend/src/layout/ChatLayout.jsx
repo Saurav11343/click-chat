@@ -44,6 +44,14 @@ export function ChatLayout() {
     (state) => state.syncLastMessage,
   );
 
+  const updateConversation = useConversationStore(
+    (state) => state.updateConversation,
+  );
+
+  const removeConversation = useConversationStore(
+    (state) => state.removeConversation,
+  );
+
   const updateParticipantPresence = useConversationStore(
     (state) => state.updateParticipantPresence,
   );
@@ -155,6 +163,18 @@ export function ChatLayout() {
       typingTimeouts.set(conversationId, safetyTimeout);
     };
 
+    const handleConversationUpdated = (conversation) => {
+      updateConversation(conversation);
+    };
+
+    const handleConversationRemoved = ({ conversationId }) => {
+      removeConversation(conversationId);
+
+      if (conversationId === selectedConversationId) {
+        setSearchParams({}, { replace: true });
+      }
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("message:updated", handleUpdatedMessage);
     socket.on("message:deleted", handleDeletedMessage);
@@ -162,6 +182,9 @@ export function ChatLayout() {
     socket.on("invitation:new", handleNewInvitation);
     socket.on("invitation:responded", handleInvitationResponse);
     socket.on("typing:update", handleTypingUpdate);
+    socket.on("conversation:created", handleConversationUpdated);
+    socket.on("conversation:updated", handleConversationUpdated);
+    socket.on("conversation:removed", handleConversationRemoved);
 
     return () => {
       socket.off("message:new", handleNewMessage);
@@ -171,6 +194,9 @@ export function ChatLayout() {
       socket.off("invitation:new", handleNewInvitation);
       socket.off("invitation:responded", handleInvitationResponse);
       socket.off("typing:update", handleTypingUpdate);
+      socket.off("conversation:created", handleConversationUpdated);
+      socket.off("conversation:updated", handleConversationUpdated);
+      socket.off("conversation:removed", handleConversationRemoved);
 
       for (const timeout of typingTimeouts.values()) {
         clearTimeout(timeout);
@@ -185,6 +211,10 @@ export function ChatLayout() {
     updateParticipantPresence,
     addIncomingInvitation,
     applyInvitationResponse,
+    updateConversation,
+    removeConversation,
+    selectedConversationId,
+    setSearchParams,
   ]);
 
   const handleSelectConversation = (conversation) => {
@@ -210,6 +240,10 @@ export function ChatLayout() {
     );
   };
 
+  const handleOpenConversationId = (conversationId) => {
+    setSearchParams({ conversation: conversationId });
+  };
+
   const sidebarConversations = conversations.map((conversation) => {
     if (conversation.type === "group") {
       const groupName = conversation.groupName || "Unnamed group";
@@ -228,6 +262,9 @@ export function ChatLayout() {
         name: groupName,
         initials: initials || "G",
         image: conversation.groupImage?.url || "",
+        participants: conversation.participants,
+        groupAdmins: conversation.groupAdmins || [],
+        createdBy: conversation.createdBy,
         lastMessage: getMessagePreview(
           conversation.lastMessage,
           "Group conversation created.",
@@ -291,6 +328,7 @@ export function ChatLayout() {
             isLoading={isLoadingConversations}
             selectedConversation={selectedConversation}
             onSelectConversation={handleSelectConversation}
+            onOpenConversationId={handleOpenConversationId}
           />
         </div>
 
