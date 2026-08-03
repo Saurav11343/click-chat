@@ -25,13 +25,13 @@ sequenceDiagram
     else Cache miss
       API->>DB: Atomically reserve monthly characters
       API->>DB: Atomically reserve daily characters
-      API->>GT: Translate text; source omitted for auto-detection
+      API->>GT: Translate text with automatic source detection
       GT-->>API: Translation and detected language
       API->>DB: Store reusable translation
     end
-    API-->>UI: Original remains visible; show translated text below it
+    API-->>UI: Keep original visible and show translation below it
     alt Quota unavailable or provider fails
-      API-->>UI: Safe error; preserve original message
+      API-->>UI: Show safe error and preserve original message
     end
 ```
 
