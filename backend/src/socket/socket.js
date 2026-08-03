@@ -118,6 +118,27 @@ export const initializeSocket = (httpServer) => {
     const userId = socket.user._id.toString();
     const userRoom = `user:${userId}`;
 
+    // Register real-time behavior before awaiting presence persistence. The
+    // client is already considered connected at this point and may emit a
+    // typing event immediately.
+    socket.join(userRoom);
+
+    socket.on("typing:start", async (payload = {}) => {
+      await emitTypingUpdate({
+        socket,
+        conversationId: payload.conversationId,
+        isTyping: true,
+      });
+    });
+
+    socket.on("typing:stop", async (payload = {}) => {
+      await emitTypingUpdate({
+        socket,
+        conversationId: payload.conversationId,
+        isTyping: false,
+      });
+    });
+
     const previousCount = userSocketsCounts.get(userId) || 0;
     const nextCount = previousCount + 1;
 
@@ -147,24 +168,6 @@ export const initializeSocket = (httpServer) => {
         console.error("Failed to update online presence", error);
       }
     }
-
-    socket.join(userRoom);
-
-    socket.on("typing:start", async (payload = {}) => {
-      await emitTypingUpdate({
-        socket,
-        conversationId: payload.conversationId,
-        isTyping: true,
-      });
-    });
-
-    socket.on("typing:stop", async (payload = {}) => {
-      await emitTypingUpdate({
-        socket,
-        conversationId: payload.conversationId,
-        isTyping: false,
-      });
-    });
 
     console.log(`${socket.user.firstName} connected with socket ${socket.id}`);
 
