@@ -12,33 +12,114 @@ The project is being developed as a Master’s project and as a practical demons
 
 > A free Railway/Render service may take additional time to respond after inactivity while the backend wakes up.
 
-## Highlights
+## Features
 
-- Registration, Gmail API email verification, login, logout, password change, password reset, and protected routes
-- HTTP-only JWT authentication shared by REST and Socket.IO
-- Dedicated Profile identity management plus centralized Settings for appearance, language, notifications, and password security
-- User search and real-time chat invitations
-- Automatic direct-conversation creation on invitation acceptance
-- Complete group creation, naming, images, membership, administrator roles, leaving, and deletion
-- Persistent text and emoji messages
-- Image, video, audio, PDF, Office-document, text, and CSV attachments with captions and upload progress
-- Combined GIPHY GIF/sticker picker with trending results, debounced search, pagination, analytics, and real-time delivery
-- Automatic YouTube link previews and clickable links in text messages
-- Per-message Google Cloud Translation with automatic source detection, user-selected target language, MongoDB caching, and hard internal usage caps
-- Real-time message creation, editing, and soft deletion
-- Contextual message actions for copy, translate, edit, delete, and media download
-- Latest-message previews without full conversation-list refreshes
-- WhatsApp-style message date separators
-- Multi-tab online/offline presence with a five-second reconnect grace period
-- Animated message-bubble typing indicators for direct and group conversations
-- Free standards-based Web Push notifications with per-browser enable/disable controls, VAPID authentication, notification discovery prompts, deep links, and stale-subscription cleanup
-- Six coordinated appearance themes controlling application surfaces, chat canvases, and contrast-safe message bubbles
-- Persisted last-seen timestamps and stale-presence cleanup after server restarts
-- Light, dark, and system color modes that preserve the selected appearance theme
-- Responsive landing, authentication, chat, and profile interfaces
-- Compact single-header chat layout, mobile browser Back support, hidden message scrollbar, and media-aware automatic scrolling
-- Clickable avatars with a basic public-profile dialog
-- Branded application loading experience
+### Authentication and account security
+
+- Register an account with age validation.
+- Verify an email address through Gmail API verification links.
+- Resend verification emails with expiry, cooldown, and rate-limit protection.
+- Sign in with email and password or Google Sign-In.
+- Keep sessions authenticated with HTTP-only JWT cookies shared by REST and Socket.IO.
+- Restrict application pages and real-time connections to authenticated users.
+- Log out securely from the current session.
+- Change the current password from Settings.
+- Request and complete a password reset without exposing whether an account exists.
+- Store passwords with bcrypt hashing and verification tokens as SHA-256 hashes.
+
+### Profile and preferences
+
+- View and edit first name, last name, and biography inline.
+- Upload or replace a Cloudinary-hosted profile picture using file selection or drag and drop.
+- Validate profile images locally and show upload progress.
+- Open another user's public profile by selecting their avatar.
+- Choose a preferred language for message translation.
+- Manage appearance, language, notifications, and password security from centralized Settings.
+
+### Contacts and invitations
+
+- Search for users by first name, last name, full name, or email address.
+- Send chat invitations and view incoming or outgoing requests.
+- Accept or decline invitations in real time.
+- Prevent self-invitations and duplicate pending or accepted connections.
+- Automatically create or reuse a direct conversation when an invitation is accepted.
+- Synchronize accepted contacts and new conversations for both participants without a refresh.
+
+### Direct conversations
+
+- Exchange persistent one-to-one messages.
+- Clear every message and shared upload from a direct chat while retaining the connection.
+- Delete a direct conversation and its associated connection.
+- View the other participant's online or last-seen status.
+- Open the other participant's public profile from the chat header or conversation list.
+
+### Group conversations
+
+- Create a group from accepted contacts and assign a group name.
+- Upload or replace the group picture.
+- Rename an existing group.
+- View the complete member list and each member's administrator status.
+- Add accepted contacts to an existing group.
+- Promote members to group administrator or remove their administrator role.
+- Remove members from a group when authorized.
+- Leave a group without deleting it for the remaining members.
+- Permanently delete a group when authorized.
+- Synchronize group creation, updates, membership changes, leaving, and deletion in real time.
+
+### Messages and rich media
+
+- Send persistent text and emoji messages up to 5,000 characters.
+- Receive new messages instantly through Socket.IO.
+- Edit sent messages and display their edited state in real time.
+- Soft-delete sent messages and display a deleted-message placeholder.
+- Copy message text from the contextual message menu.
+- Upload one image, video, audio file, PDF, Office document, text file, or CSV file per message.
+- Add an optional caption to an attachment and monitor upload progress.
+- Download shared media and documents from message actions.
+- Browse trending GIPHY GIFs and stickers.
+- Search GIPHY with debounced queries, load additional results, and send a selection in real time.
+- Detect links in message text and make them clickable.
+- Generate automatic previews for supported YouTube links.
+- Display Today, Yesterday, and calendar-date separators between messages.
+- Show latest-message previews in the conversation list without reloading every conversation.
+- Focus the composer with Enter when no other interactive control owns the keypress.
+- Scroll intelligently as new messages and media load.
+
+### Translation
+
+- Translate an individual message on demand with Google Cloud Translation.
+- Detect the source language automatically.
+- Translate into the user's selected preferred language.
+- Cache translations in MongoDB to avoid repeating identical requests.
+- Enforce internal translation usage caps to control API spending.
+
+### Real-time presence and typing
+
+- Show online status and persisted last-seen timestamps.
+- Track active sockets across multiple browser tabs and devices.
+- Apply a five-second reconnect grace period to prevent presence flicker.
+- Reset stale online flags after backend restarts.
+- Show animated typing bubbles in direct conversations.
+- Show the typing member's name in group conversations.
+- Stop typing indicators automatically after sender inactivity or lost stop events.
+
+### Notifications
+
+- Deliver background Web Push notifications for text, attachments, GIFs, and stickers.
+- Enable or disable notifications independently in each browser.
+- Show a dismissible notification-discovery prompt.
+- Open the relevant conversation from notification deep links.
+- Remove stale push subscriptions automatically.
+
+### Appearance and responsive experience
+
+- Choose from six coordinated application and chat appearance themes.
+- Use light, dark, or system color mode while preserving the selected appearance theme.
+- Use responsive landing, authentication, chat, profile, and settings interfaces on desktop and mobile.
+- Navigate mobile conversations with browser Back support.
+- Use a compact single-header chat layout with a hidden message scrollbar.
+- View a branded loading experience during application startup.
+- Install the shared React application through the maintained Capacitor Android wrapper.
 
 ## Architecture
 
