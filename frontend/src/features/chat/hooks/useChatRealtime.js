@@ -30,6 +30,15 @@ export function useChatRealtime({ onConversationRemoved }) {
   const updateParticipantPresence = useConversationStore(
     (state) => state.updateParticipantPresence,
   );
+  const applyUnreadCount = useConversationStore(
+    (state) => state.applyUnreadCount,
+  );
+  const markConversationRead = useConversationStore(
+    (state) => state.markConversationRead,
+  );
+  const markConversationDelivered = useConversationStore(
+    (state) => state.markConversationDelivered,
+  );
   const addIncomingMessage = useMessageStore(
     (state) => state.addIncomingMessage,
   );
@@ -52,6 +61,14 @@ export function useChatRealtime({ onConversationRemoved }) {
     const handleNewMessage = (message) => {
       addIncomingMessage(message);
       syncLastMessage(message, { isNew: true });
+      void markConversationDelivered(message.conversation);
+      if (
+        useMessageStore.getState().activeConversationId === message.conversation &&
+        document.visibilityState === "visible" &&
+        document.hasFocus()
+      ) {
+        void markConversationRead(message.conversation);
+      }
     };
     const handleMessageChanged = (message) => {
       replaceMessage(message);
@@ -110,6 +127,8 @@ export function useChatRealtime({ onConversationRemoved }) {
       ["conversation:created", updateConversation],
       ["conversation:updated", updateConversation],
       ["conversation:removed", handleConversationRemoved],
+      ["conversation:unread", applyUnreadCount],
+      ["message:receipts", useMessageStore.getState().applyMessageReceipts],
       ["messages:cleared", ({ conversationId }) =>
         handleConversationCleared(conversationId)],
     ];
@@ -123,9 +142,12 @@ export function useChatRealtime({ onConversationRemoved }) {
     };
   }, [
     addIncomingInvitation,
+    applyUnreadCount,
     addIncomingMessage,
     applyInvitationResponse,
     handleConversationCleared,
+    markConversationRead,
+    markConversationDelivered,
     onConversationRemoved,
     removeConversation,
     replaceMessage,

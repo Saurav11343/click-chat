@@ -321,6 +321,53 @@ export const useMessageStore = create((set, get) => ({
     });
   },
 
+  applyMessageReceipts: ({
+    conversationId,
+    messageIds,
+    status,
+    user,
+    timestamp,
+  }) => {
+    const messageIdSet = new Set(messageIds || []);
+    const receiptKey = status === "read" ? "readBy" : "deliveredBy";
+    const timestampKey = status === "read" ? "readAt" : "deliveredAt";
+
+    set((state) => {
+      if (state.activeConversationId !== conversationId) return {};
+
+      return {
+        messages: state.messages.map((message) => {
+          if (!messageIdSet.has(message._id)) return message;
+
+          const receipts = message[receiptKey] || [];
+          if (receipts.some((receipt) => (receipt.user?._id || receipt.user) === user._id)) {
+            return message;
+          }
+
+          const updatedMessage = {
+            ...message,
+            [receiptKey]: [
+              ...receipts,
+              { user, [timestampKey]: timestamp },
+            ],
+          };
+
+          if (status === "read") {
+            const deliveries = message.deliveredBy || [];
+            if (!deliveries.some((receipt) => (receipt.user?._id || receipt.user) === user._id)) {
+              updatedMessage.deliveredBy = [
+                ...deliveries,
+                { user, deliveredAt: timestamp },
+              ];
+            }
+          }
+
+          return updatedMessage;
+        }),
+      };
+    });
+  },
+
   clearMessages: () => {
     set({
       messages: [],

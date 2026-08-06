@@ -129,7 +129,7 @@ flowchart LR
 ## Out of scope or incomplete
 
 - Cursor-based loading of messages older than the latest 50.
-- Unread counts and complete read-receipt workflows.
+- Complete read-receipt workflows.
 - Complete reply selection in the composer.
 - Multi-file attachment galleries and recorded voice messages.
 - Per-user upload/storage quotas and private Cloudinary delivery for sensitive attachments.

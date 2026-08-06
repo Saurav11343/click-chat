@@ -9,6 +9,7 @@ import { sendMessagePushNotifications } from "../notifications/push-notification
 import { populateMessage } from "../messages/message.presenter.js";
 import { publishToOtherParticipants } from "../../realtime/event-publisher.js";
 import { findConversationForParticipant } from "../conversations/conversation-access.service.js";
+import { incrementUnreadForRecipients } from "../conversations/conversation-read-state.service.js";
 
 const removeUploadedAttachment = async (attachment) => {
   if (!attachment?.publicId) {
@@ -91,6 +92,8 @@ export const sendAttachment = async (req, res) => {
     conversation.lastMessage = createdMessage._id;
 
     await conversation.save();
+
+    await incrementUnreadForRecipients({ conversation, senderId });
 
     isPersisted = true;
 

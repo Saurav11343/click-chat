@@ -257,7 +257,7 @@ click-chat/
 ## Current limitations
 
 - Message history loads in cursor-based pages of 50 as users scroll upward.
-- Unread counts and complete read receipts are not implemented.
+- Per-conversation unread counts and sent/delivered/read receipts persist and synchronize across tabs and devices.
 - Reply storage/rendering exists, but reply selection in the composer is incomplete.
 - Attachments are limited to one file and 10 MB per message; cancellation and retry are not yet implemented.
 - Uploads and normal message creation do not yet have per-user storage/traffic quotas; public deployments should add them before broad access.
@@ -270,8 +270,8 @@ click-chat/
 
 1. Automated integration and Socket.IO tests
 2. Per-user upload/message quotas and authenticated attachment delivery
-3. Unread counts and read receipts
-4. Blocking/reporting, complete reply interactions, and multi-file attachment galleries
+3. Complete reply interactions and optimistic send retry
+4. Blocking/reporting and multi-file attachment galleries
 
 See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritized plan.
 

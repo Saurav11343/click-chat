@@ -7,7 +7,7 @@ function Skeleton({
   return (
     <div
       data-slot="skeleton"
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+      className={cn("ui-skeleton overflow-hidden rounded-md", className)}
       {...props} />
   );
 }

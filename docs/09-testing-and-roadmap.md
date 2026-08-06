@@ -52,6 +52,12 @@
 | Legacy accepted invitation without conversation | Sending an invitation removes the stale record and creates a new pending invitation |
 | Date boundary | Separator appears when calendar day changes |
 | Switch conversation during history request | Stale response does not replace active conversation messages |
+| Open conversation with unread messages | Enough history loads to reveal and focus the first unread incoming message |
+| Open fully read conversation | View focuses the latest message |
+| Recipient receives message | Sender indicator changes from sent to delivered |
+| Recipient views focused conversation | Sender indicator changes to read; hidden/unfocused pages do not mark read |
+| Group recipients acknowledge message | Sender sees delivered/read participant totals |
+| Open a sent group message receipt | A group-only menu lists members who read it and those with delivery only |
 | Send GIF/sticker | GIPHY result is stored as external metadata and delivered to the recipient without Cloudinary upload |
 | Long latest message | Sidebar shows one line, at most 42 Unicode characters plus `...`, without row overflow |
 | Open/download attachment | Participant receives a short-lived redirect; unrelated user is rejected |
@@ -162,8 +168,8 @@ flowchart TD
 | Area | Limitation | Impact |
 | --- | --- | --- |
 | Message history | Cursor-based pages load while scrolling upward | History remains efficient for long conversations |
-| Unread state | Counts are fixed at zero in the UI | Users cannot identify unseen conversations |
-| Read receipts | Sender receipt is stored, but no complete update/event/UI workflow exists | Delivery/read state is not visible |
+| Unread state | Persisted per conversation and synchronized in real time | Opening a conversation resets its count across tabs and devices |
+| Read receipts | Sent, delivered, and read states persist and synchronize in real time | Group messages display participant totals |
 | Replies | Schema, API, and bubble display exist; composer selection does not | Users cannot initiate replies through the current UI |
 | Attachments | One file up to 10 MB per message; no cancellation, retry, signature inspection, or malware scan | Rich media works, but production hardening and multi-file UX remain |
 | Presence scale | Counts/timers are process-local | Single backend instance only |
@@ -175,7 +181,7 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    P0["P0 Automated reliability and Socket.IO tests"] --> P1["P1 Pagination, unread counts, and read receipts"]
+    P0["P0 Automated reliability and Socket.IO tests"] --> P1["P1 Messaging resilience and replies"]
     P1 --> P2["P2 Quotas, private media, replies, and multi-file galleries"]
     P2 --> P3["P3 Blocking, reporting, search, voice recording, and calls"]
     P3 --> P4["P4 Redis-backed scale, observability, backup, and recovery"]
@@ -192,10 +198,8 @@ flowchart LR
 
 ### P1 — Messaging fundamentals
 
-1. Per-conversation unread counts.
-2. Complete read-receipt API, events, and UI.
-3. Complete reply selection, composer preview, and reply navigation.
-4. Optimistic send state, client IDs, retry, and reconnection resynchronization.
+1. Complete reply selection, composer preview, and reply navigation.
+2. Optimistic send state, client IDs, retry, and reconnection resynchronization.
 
 ### P2 — Conversation features
 

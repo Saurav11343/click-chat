@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 import { axiosInstance } from "@/shared/api/api-client";
 
-export const useConversationStore = create((set) => ({
+export const useConversationStore = create((set, get) => ({
   conversations: [],
   isLoadingConversations: false,
   isUpdatingGroup: false,
@@ -32,9 +32,15 @@ export const useConversationStore = create((set) => ({
         (item) => item._id === conversation._id,
       )
         ? state.conversations.map((item) =>
-            item._id === conversation._id ? conversation : item,
+            item._id === conversation._id
+              ? {
+                  ...conversation,
+                  unreadCount:
+                    conversation.unreadCount ?? item.unreadCount ?? 0,
+                }
+              : item,
           )
-        : [conversation, ...state.conversations],
+        : [{ ...conversation, unreadCount: conversation.unreadCount || 0 }, ...state.conversations],
     }));
   },
 
@@ -44,6 +50,57 @@ export const useConversationStore = create((set) => ({
         (conversation) => conversation._id !== conversationId,
       ),
     }));
+  },
+
+  applyUnreadCount: ({ conversationId, unreadCount }) => {
+    set((state) => ({
+      conversations: state.conversations.map((conversation) =>
+        conversation._id === conversationId
+          ? { ...conversation, unreadCount: Math.max(0, unreadCount || 0) }
+          : conversation,
+      ),
+    }));
+  },
+
+  markConversationRead: async (conversationId) => {
+    if (!conversationId) return false;
+
+    const conversation = get().conversations.find(
+      (item) => item._id === conversationId,
+    );
+    if (!conversation || conversation.unreadCount === 0) return true;
+
+    set((state) => ({
+      conversations: state.conversations.map((item) =>
+        item._id === conversationId ? { ...item, unreadCount: 0 } : item,
+      ),
+    }));
+
+    try {
+      await axiosInstance.patch(`/conversations/${conversationId}/read`);
+      return true;
+    } catch (error) {
+      set((state) => ({
+        conversations: state.conversations.map((item) =>
+          item._id === conversationId
+            ? { ...item, unreadCount: conversation.unreadCount }
+            : item,
+        ),
+      }));
+      toast.error(error.response?.data?.message || "Unable to mark messages as read.");
+      return false;
+    }
+  },
+
+  markConversationDelivered: async (conversationId) => {
+    if (!conversationId) return false;
+
+    try {
+      await axiosInstance.patch(`/conversations/${conversationId}/delivered`);
+      return true;
+    } catch {
+      return false;
+    }
   },
 
   syncLastMessage: (message, { isNew = false } = {}) => {
@@ -113,7 +170,16 @@ export const useConversationStore = create((set) => ({
     try {
       const response = await axiosInstance.get("/conversations");
 
-      set({ conversations: response.data.conversations || [] });
+      const conversations = response.data.conversations || [];
+      set({ conversations });
+
+      void Promise.allSettled(
+        conversations
+          .filter((conversation) => conversation.unreadCount > 0)
+          .map((conversation) =>
+            get().markConversationDelivered(conversation._id),
+          ),
+      );
 
       return true;
     } catch (error) {

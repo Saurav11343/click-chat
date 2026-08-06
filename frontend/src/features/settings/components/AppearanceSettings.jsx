@@ -86,6 +86,10 @@ export function AppearanceSettings() {
               >
                 <div className="h-24 rounded-xl p-3" style={{ background: item.colors[2] }}>
                   <div className="flex h-full flex-col justify-end gap-1.5">
+                    <span
+                      className="h-2.5 w-16 rounded-full opacity-70"
+                      style={{ background: `color-mix(in srgb, ${item.colors[0]} 24%, ${item.colors[2]})` }}
+                    />
                     <span className="max-w-[74%] rounded-xl rounded-bl-sm px-2 py-1 text-[10px] shadow-sm" style={{ background: item.colors[1], color: "#172033" }}>Easy to read</span>
                     <span className="ml-auto max-w-[74%] rounded-xl rounded-br-sm px-2 py-1 text-[10px] text-white shadow-sm" style={{ background: item.colors[0] }}>Looks great</span>
                   </div>

@@ -18,6 +18,21 @@ const readReceiptSchema = new mongoose.Schema(
   },
 );
 
+const deliveryReceiptSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    deliveredAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false },
+);
+
 const attachmentSchema = new mongoose.Schema(
   {
     url: {
@@ -229,6 +244,11 @@ const messageSchema = new mongoose.Schema(
 
     readBy: {
       type: [readReceiptSchema],
+      default: [],
+    },
+
+    deliveredBy: {
+      type: [deliveryReceiptSchema],
       default: [],
     },
 

@@ -7,6 +7,9 @@ import {
   uploadGroupPicture,
 } from "../../integrations/cloudinary/cloudinary.service.js";
 import { getIO } from "../../realtime/index.js";
+import { publishToUser } from "../../realtime/event-publisher.js";
+import ConversationReadState from "./conversation-read-state.model.js";
+import { resetUnreadForUser } from "./conversation-read-state.service.js";
 
 const participantFields =
   "_id firstName lastName email profilePic bio isOnline lastSeen";
@@ -95,7 +98,9 @@ const deleteConversationMessages = async (conversationId) => {
       resourceType: attachment.resourceType,
     }));
 
-  await Promise.allSettled(files.map(deleteCloudinaryFile));
+  // Keep the message records when Cloudinary cleanup fails so the operation can
+  // be retried instead of silently leaving inaccessible, orphaned uploads.
+  await Promise.all(files.map(deleteCloudinaryFile));
   await Message.deleteMany({ conversation: conversationId });
 };
 
@@ -120,6 +125,10 @@ export const clearDirectConversation = async (req, res) => {
     }
 
     await deleteConversationMessages(conversation._id);
+    await ConversationReadState.updateMany(
+      { conversation: conversation._id },
+      { $set: { unreadCount: 0, lastReadAt: new Date() } },
+    );
     conversation.lastMessage = null;
     await conversation.save();
     await populateConversation(conversation);
@@ -129,6 +138,10 @@ export const clearDirectConversation = async (req, res) => {
       const room = `user:${participantId(participant)}`;
       io.to(room).emit("messages:cleared", {
         conversationId: conversation._id.toString(),
+      });
+      io.to(room).emit("conversation:unread", {
+        conversationId: conversation._id.toString(),
+        unreadCount: 0,
       });
       io.to(room).emit("conversation:updated", conversation);
     }
@@ -206,11 +219,26 @@ export const getConversations = async (req, res) => {
       .populate("lastMessage")
       .lean();
 
+    const readStates = await ConversationReadState.find({
+      user: userId,
+      conversation: { $in: conversations.map(({ _id }) => _id) },
+    }).select("conversation unreadCount").lean();
+    const unreadByConversation = new Map(
+      readStates.map((state) => [
+        state.conversation.toString(),
+        state.unreadCount,
+      ]),
+    );
+    const conversationsWithUnread = conversations.map((conversation) => ({
+      ...conversation,
+      unreadCount: unreadByConversation.get(conversation._id.toString()) || 0,
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Conversations retrieved successfully.",
       count: conversations.length,
-      conversations,
+      conversations: conversationsWithUnread,
     });
   } catch (error) {
     console.error("Get conversations error:", error);
@@ -218,6 +246,166 @@ export const getConversations = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve conversations.",
+    });
+  }
+};
+
+export const markConversationRead = async (req, res) => {
+  try {
+    const conversation = await Conversation.findOne({
+      _id: req.params.conversationId,
+      participants: req.user._id,
+    }).select("_id");
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found or you are not a participant.",
+      });
+    }
+
+    const readAt = new Date();
+    const unreadMessages = await Message.find({
+      conversation: conversation._id,
+      sender: { $ne: req.user._id },
+      "readBy.user": { $ne: req.user._id },
+    }).select("_id sender").lean();
+
+    if (unreadMessages.length > 0) {
+      const messageIds = unreadMessages.map(({ _id }) => _id);
+
+      await Message.updateMany(
+        {
+          _id: { $in: messageIds },
+          "deliveredBy.user": { $ne: req.user._id },
+        },
+        {
+          $addToSet: {
+            deliveredBy: { user: req.user._id, deliveredAt: readAt },
+          },
+        },
+      );
+
+      await Message.updateMany(
+        { _id: { $in: messageIds } },
+        {
+          $addToSet: {
+            readBy: { user: req.user._id, readAt },
+          },
+        },
+      );
+
+      publishReceiptUpdates({
+        messages: unreadMessages,
+        reader: req.user,
+        conversationId: conversation._id,
+        status: "read",
+        timestamp: readAt,
+      });
+    }
+
+    await resetUnreadForUser({
+      conversationId: conversation._id,
+      userId: req.user._id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      conversationId: conversation._id.toString(),
+      unreadCount: 0,
+    });
+  } catch (error) {
+    console.error("Mark conversation read error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to mark the conversation as read.",
+    });
+  }
+};
+
+export const markConversationDelivered = async (req, res) => {
+  try {
+    const conversation = await Conversation.findOne({
+      _id: req.params.conversationId,
+      participants: req.user._id,
+    }).select("_id");
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found or you are not a participant.",
+      });
+    }
+
+    const deliveredAt = new Date();
+    const undeliveredMessages = await Message.find({
+      conversation: conversation._id,
+      sender: { $ne: req.user._id },
+      "deliveredBy.user": { $ne: req.user._id },
+    }).select("_id sender").lean();
+
+    if (undeliveredMessages.length > 0) {
+      await Message.updateMany(
+        { _id: { $in: undeliveredMessages.map(({ _id }) => _id) } },
+        {
+          $addToSet: {
+            deliveredBy: { user: req.user._id, deliveredAt },
+          },
+        },
+      );
+
+      publishReceiptUpdates({
+        messages: undeliveredMessages,
+        reader: req.user,
+        conversationId: conversation._id,
+        status: "delivered",
+        timestamp: deliveredAt,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      conversationId: conversation._id.toString(),
+      deliveredCount: undeliveredMessages.length,
+    });
+  } catch (error) {
+    console.error("Mark conversation delivered error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to mark messages as delivered.",
+    });
+  }
+};
+
+const publishReceiptUpdates = ({
+  messages,
+  reader,
+  conversationId,
+  status,
+  timestamp,
+}) => {
+  const messageIdsBySender = new Map();
+
+  for (const message of messages) {
+    const senderId = message.sender.toString();
+    const messageIds = messageIdsBySender.get(senderId) || [];
+    messageIds.push(message._id.toString());
+    messageIdsBySender.set(senderId, messageIds);
+  }
+
+  const receiptUser = {
+    _id: reader._id.toString(),
+    firstName: reader.firstName,
+    lastName: reader.lastName,
+  };
+
+  for (const [senderId, messageIds] of messageIdsBySender) {
+    publishToUser(senderId, "message:receipts", {
+      conversationId: conversationId.toString(),
+      messageIds,
+      status,
+      user: receiptUser,
+      timestamp,
     });
   }
 };

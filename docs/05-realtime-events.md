@@ -37,6 +37,7 @@ sequenceDiagram
 | `message:new` | Message send controller | Other conversation participants | Populated message document | Append if active, update preview, move conversation to top |
 | `message:updated` | Message edit controller | Other conversation participants | Populated updated message | Replace active message and update preview only if it is latest |
 | `message:deleted` | Message delete controller | Other conversation participants | Populated soft-deleted message | Replace active message and show deleted preview if latest |
+| `message:receipts` | Delivery/read controllers | Original message sender | Conversation, message IDs, recipient, status, and timestamp | Update sent-message delivery/read indicators |
 | `presence:update` | Socket presence manager | Users sharing a conversation | `{ userId, isOnline, lastSeen }` | Update matching participant objects in every local conversation |
 | `invitation:new` | Invitation send controller | Invitation recipient | Populated invitation | Insert received invitation and update badge |
 | `invitation:responded` | Invitation response controller | Invitation sender | `{ invitation, conversation }` | Remove pending invitation; add conversation when accepted |

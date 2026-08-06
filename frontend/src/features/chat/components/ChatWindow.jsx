@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import {
   ArrowLeft,
@@ -16,9 +16,11 @@ import { MessageBubble } from "@/features/chat/components/MessageBubble";
 import { GroupDetailsDialog } from "@/features/chat/components/GroupDetailsDialog";
 import { TypingIndicator } from "@/features/chat/components/TypingIndicator";
 import { DirectConversationMenu } from "@/features/chat/components/DirectConversationMenu";
+import { MessageListSkeleton } from "@/features/chat/components/MessageListSkeleton";
 
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { useMessageStore } from "@/features/chat/store/useMessageStore";
+import { useConversationStore } from "@/features/chat/store/useConversationStore";
 
 export function ChatWindow({
   selectedConversation,
@@ -38,6 +40,9 @@ export function ChatWindow({
   const loadOlderMessages = useMessageStore((state) => state.loadOlderMessages);
 
   const clearMessages = useMessageStore((state) => state.clearMessages);
+  const markConversationRead = useConversationStore(
+    (state) => state.markConversationRead,
+  );
 
   const conversationId = selectedConversation?.conversationId;
 
@@ -53,6 +58,10 @@ export function ChatWindow({
   const scrollContainerRef = useRef(null);
   const prependSnapshotRef = useRef(null);
   const previousLastMessageIdRef = useRef(null);
+  const messageElementsRef = useRef(new Map());
+  const openingConversationRef = useRef(null);
+  const initializedConversationIdRef = useRef(null);
+  const [firstUnreadMessageId, setFirstUnreadMessageId] = useState(null);
 
   const handleLatestMediaLoad = () => {
     requestAnimationFrame(() => {
@@ -66,19 +75,130 @@ export function ChatWindow({
   // Load messages whenever the selected
   // conversation changes.
   useEffect(() => {
+    if (initializedConversationIdRef.current === conversationId) return;
+    initializedConversationIdRef.current = conversationId;
+    previousLastMessageIdRef.current = null;
+    setFirstUnreadMessageId(null);
+
     if (conversationId) {
-      getMessages(conversationId);
+      openingConversationRef.current = {
+        conversationId,
+        unreadCount: selectedConversation?.unreadCount || 0,
+        positioned: false,
+      };
+      void getMessages(conversationId);
     } else {
+      openingConversationRef.current = null;
       clearMessages();
     }
-  }, [conversationId, getMessages, clearMessages]);
+  }, [
+    clearMessages,
+    conversationId,
+    getMessages,
+    selectedConversation?.unreadCount,
+  ]);
+
+  useLayoutEffect(() => {
+    const opening = openingConversationRef.current;
+    if (
+      !opening ||
+      opening.conversationId !== conversationId ||
+      opening.positioned ||
+      isLoadingMessages ||
+      isLoadingOlderMessages
+    ) {
+      return;
+    }
+
+    const incomingMessages = messages.filter((message) => {
+      const senderId =
+        typeof message.sender === "string"
+          ? message.sender
+          : message.sender?._id;
+      return senderId !== authUser?._id;
+    });
+
+    if (
+      opening.unreadCount > incomingMessages.length &&
+      hasMoreMessages
+    ) {
+      void loadOlderMessages(conversationId);
+      return;
+    }
+
+    const unreadCount = Math.min(
+      opening.unreadCount,
+      incomingMessages.length,
+    );
+    const firstUnreadId = unreadCount > 0
+      ? incomingMessages[incomingMessages.length - unreadCount]?._id || null
+      : null;
+
+    opening.positioned = true;
+    previousLastMessageIdRef.current = messages.at(-1)?._id || null;
+    setFirstUnreadMessageId(firstUnreadId);
+
+    requestAnimationFrame(() => {
+      if (firstUnreadId) {
+        messageElementsRef.current.get(firstUnreadId)?.scrollIntoView({
+          behavior: "auto",
+          block: "start",
+        });
+      } else {
+        messagesEndRef.current?.scrollIntoView({
+          behavior: "auto",
+          block: "end",
+        });
+      }
+
+      if (document.visibilityState === "visible" && document.hasFocus()) {
+        void markConversationRead(conversationId);
+      }
+    });
+  }, [
+    conversationId,
+    authUser?._id,
+    hasMoreMessages,
+    isLoadingMessages,
+    isLoadingOlderMessages,
+    loadOlderMessages,
+    markConversationRead,
+    messages,
+  ]);
+
+  useEffect(() => {
+    const markReadWhenFocused = () => {
+      if (
+        conversationId &&
+        selectedConversation?.unreadCount > 0 &&
+        document.visibilityState === "visible" &&
+        document.hasFocus()
+      ) {
+        void markConversationRead(conversationId);
+      }
+    };
+
+    window.addEventListener("focus", markReadWhenFocused);
+    document.addEventListener("visibilitychange", markReadWhenFocused);
+
+    return () => {
+      window.removeEventListener("focus", markReadWhenFocused);
+      document.removeEventListener("visibilitychange", markReadWhenFocused);
+    };
+  }, [
+    conversationId,
+    markConversationRead,
+    selectedConversation?.unreadCount,
+  ]);
 
   // Scroll only when the latest message changes. Prepending history should not
   // pull the user back to the bottom.
   useEffect(() => {
     const latestMessageId = messages.at(-1)?._id || null;
+    const opening = openingConversationRef.current;
     if (
       !isLoadingMessages &&
+      opening?.positioned &&
       latestMessageId &&
       latestMessageId !== previousLastMessageIdRef.current
     ) {
@@ -139,28 +259,23 @@ export function ChatWindow({
             <ArrowLeft className="size-5" />
           </Button>
 
-          <PublicProfileDialog user={selectedConversation}>
-            <button
-              type="button"
-              disabled={selectedConversation.isGroup}
-              className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default disabled:hover:scale-100"
-              aria-label={`View ${selectedConversation.name}'s profile`}
+          {selectedConversation.isGroup ? (
+            <GroupDetailsDialog
+              conversation={selectedConversation}
+              onRemoved={onBack}
             >
-              <Avatar className="size-9 ring-2 ring-background sm:size-10">
-                <AvatarImage
-                  src={selectedConversation.image}
-                  alt={selectedConversation.name}
-                  className="object-cover"
+              {(openGroupDetails) => (
+                <HeaderAvatarButton
+                  conversation={selectedConversation}
+                  onClick={openGroupDetails}
                 />
-
-                <AvatarFallback>{selectedConversation.initials}</AvatarFallback>
-              </Avatar>
-              {selectedConversation.online &&
-                !selectedConversation.isGroup && (
-                  <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
-                )}
-            </button>
-          </PublicProfileDialog>
+              )}
+            </GroupDetailsDialog>
+          ) : (
+            <PublicProfileDialog user={selectedConversation}>
+              <HeaderAvatarButton conversation={selectedConversation} />
+            </PublicProfileDialog>
+          )}
 
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold tracking-tight sm:text-base">
@@ -219,9 +334,10 @@ export function ChatWindow({
       >
         <div className="relative mx-auto flex min-h-full w-full max-w-5xl flex-col justify-end gap-2.5">
           {isLoadingOlderMessages && (
-            <p className="py-2 text-center text-xs text-muted-foreground" role="status">
-              Loading older messages...
-            </p>
+            <MessageListSkeleton
+              compact
+              showSenders={selectedConversation.isGroup}
+            />
           )}
           {!isLoadingMessages && !hasMoreMessages && messages.length > 0 && (
             <p className="py-2 text-center text-xs text-muted-foreground">
@@ -229,7 +345,7 @@ export function ChatWindow({
             </p>
           )}
           {isLoadingMessages ? (
-            <MessagesLoadingState />
+            <MessageListSkeleton showSenders={selectedConversation.isGroup} />
           ) : messages.length === 0 ? (
             <EmptyMessagesState />
           ) : (
@@ -247,7 +363,17 @@ export function ChatWindow({
                   !isSameDay(previousMessage.createdAt, message.createdAt);
 
                 return (
-                  <Fragment key={message._id}>
+                  <div
+                    key={message._id}
+                    ref={(element) => {
+                      if (element) {
+                        messageElementsRef.current.set(message._id, element);
+                      } else {
+                        messageElementsRef.current.delete(message._id);
+                      }
+                    }}
+                    className="flex flex-col gap-2.5"
+                  >
                     {showDateSeparator && (
                       <div className="my-3 flex items-center gap-3">
                         <span className="h-px flex-1 bg-border/70" />
@@ -258,18 +384,29 @@ export function ChatWindow({
                       </div>
                     )}
 
+                    {message._id === firstUnreadMessageId && (
+                      <div className="my-3 flex items-center gap-3" role="separator">
+                        <span className="h-px flex-1 bg-primary/40" />
+                        <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary">
+                          Unread messages
+                        </span>
+                        <span className="h-px flex-1 bg-primary/40" />
+                      </div>
+                    )}
+
                     <MessageBubble
                       message={message}
                       isMyMessage={isMyMessage}
                       conversationId={conversationId}
                       showSender={selectedConversation.isGroup}
+                      participantCount={selectedConversation.participants?.length || 0}
                       onMediaLoad={
                         index === messages.length - 1
                           ? handleLatestMediaLoad
                           : undefined
                       }
                     />
-                  </Fragment>
+                  </div>
                 );
               })}
             </>
@@ -296,6 +433,31 @@ export function ChatWindow({
         />
       </footer>
     </section>
+  );
+}
+
+function HeaderAvatarButton({ conversation, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+      aria-label={`View ${conversation.name}'s ${
+        conversation.isGroup ? "group details" : "profile"
+      }`}
+    >
+      <Avatar className="size-9 ring-2 ring-background sm:size-10">
+        <AvatarImage
+          src={conversation.image}
+          alt={conversation.name}
+          className="object-cover"
+        />
+        <AvatarFallback>{conversation.initials}</AvatarFallback>
+      </Avatar>
+      {conversation.online && !conversation.isGroup && (
+        <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
+      )}
+    </button>
   );
 }
 
@@ -367,14 +529,6 @@ function formatLastSeen(value) {
 
   return `Last seen ${formattedDate} at ${formattedTime}`;
 }
-function MessagesLoadingState() {
-  return (
-    <div className="flex flex-1 items-center justify-center py-12">
-      <p className="text-sm text-muted-foreground">Loading messages...</p>
-    </div>
-  );
-}
-
 function EmptyMessagesState() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">

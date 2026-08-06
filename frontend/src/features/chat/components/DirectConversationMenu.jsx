@@ -22,15 +22,15 @@ import { useMessageStore } from "@/features/chat/store/useMessageStore";
 
 const ACTIONS = {
   clear: {
-    title: "Clear this chat?",
+    title: "Clear chat for everyone?",
     description:
-      "All messages and shared uploads will be permanently removed for both participants. The conversation will remain available.",
-    confirmLabel: "Clear chat",
+      "All messages and shared media will be permanently deleted for both participants. You can still send new messages afterward.",
+    confirmLabel: "Clear for everyone",
     loadingLabel: "Clearing...",
     icon: MessageSquareX,
   },
   delete: {
-    title: "Delete this conversation?",
+    title: "Delete conversation for everyone?",
     description:
       "The connection, every message, and all shared uploads will be permanently deleted for both participants. You will need to send a new invitation to chat again.",
     confirmLabel: "Delete conversation",
@@ -67,15 +67,15 @@ export function DirectConversationMenu({ conversationId, onDeleted, children }) 
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={8} className="w-56 rounded-xl p-1.5">
+        <DropdownMenuContent align="end" sideOffset={8} className="w-64 rounded-xl p-1.5">
           <DropdownMenuItem className="gap-3 py-2.5" onSelect={() => setAction("clear")}>
             <MessageSquareX className="size-4" />
-            <div><p className="font-medium">Clear chat</p><p className="text-xs text-muted-foreground">Remove all messages</p></div>
+            <div><p className="font-medium">Clear chat for everyone</p><p className="text-xs text-muted-foreground">Delete all messages and media</p></div>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="gap-3 py-2.5 text-destructive focus:text-destructive" onSelect={() => setAction("delete")}>
             <Trash2 className="size-4" />
-            <div><p className="font-medium">Delete conversation</p><p className="text-xs opacity-70">Permanently remove everything</p></div>
+            <div><p className="font-medium">Delete conversation</p><p className="text-xs opacity-70">Delete chat and remove connection</p></div>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
