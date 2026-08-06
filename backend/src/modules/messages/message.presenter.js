@@ -1,4 +1,5 @@
-export const SENDER_FIELDS = "_id firstName lastName profilePic";
+export const SENDER_FIELDS =
+  "_id firstName lastName email profilePic bio isOnline lastSeen";
 export const REPLY_FIELDS =
   "_id content sender messageType attachment gif externalMedia isDeleted createdAt";
 
@@ -27,4 +28,5 @@ export const messagePopulateOptions = [
     populate: { path: "sender", select: SENDER_FIELDS },
   },
   { path: "readBy.user", select: "_id firstName lastName" },
+  { path: "deliveredBy.user", select: "_id firstName lastName" },
 ];

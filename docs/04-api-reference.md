@@ -131,6 +131,8 @@ All routes under `/api/conversations` use protected-route middleware.
 | Method | Path | Request | Success response | Authorization |
 | --- | --- | --- | --- | --- |
 | GET | `/api/conversations` | None | Populated `conversations` array | Returns conversations containing current user |
+| PATCH | `/api/conversations/:conversationId/delivered` | None | Count of newly delivered messages | Marks incoming conversation messages delivered for current user |
+| PATCH | `/api/conversations/:conversationId/read` | None | Zero unread count | Marks incoming messages read and resets persisted unread state |
 | GET | `/api/conversations/:conversationId/messages` | None | Latest 50 messages in ascending display order | Current user must be a participant |
 | POST | `/api/conversations/:conversationId/messages` | `{ content, replyTo? }` | `201`, populated message in `data` | Current user must be a participant |
 | POST | `/api/conversations/:conversationId/attachments` | `multipart/form-data`: `file`, optional `content`, optional `replyTo` | `201`, populated attachment message in `data` | One supported file up to 10 MB; current user must be a participant |
@@ -175,7 +177,7 @@ Group creation requires the creator plus at least two accepted contacts. Groups 
 
 ### Message retrieval behavior
 
-The query sorts newest first, limits to 50, populates sender/reply/read users, then reverses the result for ascending display. No cursor or offset is currently accepted, so messages older than the latest 50 cannot be loaded.
+The query uses an opaque cursor over `createdAt` and `_id`, returns pages of up to 50 messages in ascending display order, and populates sender, reply, delivery, and read-receipt users.
 
 ### Edit and delete behavior
 

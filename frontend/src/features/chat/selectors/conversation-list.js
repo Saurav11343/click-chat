@@ -34,7 +34,7 @@ function toGroupListItem(conversation) {
     time: formatConversationTime(
       conversation.lastMessage?.createdAt || conversation.updatedAt,
     ),
-    unreadCount: 0,
+    unreadCount: conversation.unreadCount || 0,
     online: false,
     isGroup: true,
   };
@@ -64,7 +64,7 @@ function toDirectListItem(conversation, currentUserId) {
     time: formatConversationTime(
       conversation.lastMessage?.createdAt || conversation.updatedAt,
     ),
-    unreadCount: 0,
+    unreadCount: conversation.unreadCount || 0,
     online: otherUser?.isOnline || false,
     lastSeen: otherUser?.lastSeen,
     isGroup: false,

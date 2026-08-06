@@ -8,6 +8,7 @@ import {
 import { publishToOtherParticipants } from "../../realtime/event-publisher.js";
 import { findConversationForParticipant } from "../conversations/conversation-access.service.js";
 import mongoose from "mongoose";
+import { incrementUnreadForRecipients } from "../conversations/conversation-read-state.service.js";
 
 const encodeMessageCursor = (message) =>
   Buffer.from(
@@ -83,6 +84,8 @@ export const sendMessage = async (req, res) => {
     conversation.lastMessage = message._id;
 
     await conversation.save();
+
+    await incrementUnreadForRecipients({ conversation, senderId });
 
     await populateMessage(message);
 

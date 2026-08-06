@@ -39,6 +39,7 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    --color-skeleton: var(--skeleton-base);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -86,6 +87,8 @@
     --message-sent-foreground: var(--primary-foreground);
     --message-received: var(--background);
     --message-received-foreground: var(--foreground);
+    --skeleton-base: color-mix(in oklab, var(--foreground) 14%, var(--background));
+    --skeleton-highlight: color-mix(in oklab, var(--foreground) 5%, var(--background));
 }
 
 .dark {
@@ -187,6 +190,46 @@
 .chat-canvas { background: var(--chat-canvas); }
 .message-bubble-sent { background: var(--message-sent); color: var(--message-sent-foreground); box-shadow: 0 8px 24px color-mix(in srgb, var(--message-sent) 14%, transparent); }
 .message-bubble-received { background: var(--message-received); color: var(--message-received-foreground); }
+
+.ui-skeleton {
+    position: relative;
+    background: var(--skeleton-base);
+    isolation: isolate;
+}
+
+.ui-skeleton::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: linear-gradient(
+        100deg,
+        transparent 20%,
+        var(--skeleton-highlight) 48%,
+        transparent 76%
+    );
+    transform: translateX(-110%);
+    animation: clickchat-skeleton-shimmer 1.45s ease-in-out infinite;
+}
+
+.chat-skeleton-sent {
+    --skeleton-base: color-mix(in oklab, var(--message-sent) 28%, var(--background));
+    --skeleton-highlight: color-mix(in oklab, var(--message-sent-foreground) 22%, var(--skeleton-base));
+    outline: 1px solid color-mix(in oklab, var(--message-sent) 18%, transparent);
+}
+
+.chat-skeleton-received {
+    --skeleton-base: color-mix(in oklab, var(--message-received-foreground) 9%, var(--message-received));
+    --skeleton-highlight: color-mix(in oklab, var(--message-received-foreground) 4%, var(--message-received));
+    outline: 1px solid color-mix(in oklab, var(--message-received-foreground) 8%, transparent);
+}
+
+@keyframes clickchat-skeleton-shimmer {
+    to { transform: translateX(110%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui-skeleton::after { animation: none; }
+}
 
 @layer base {
   * {

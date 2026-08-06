@@ -3,6 +3,7 @@ import { sendMessagePushNotifications } from "../notifications/push-notification
 import { populateMessage } from "./message.presenter.js";
 import { publishToOtherParticipants } from "../../realtime/event-publisher.js";
 import { findConversationForParticipant } from "../conversations/conversation-access.service.js";
+import { incrementUnreadForRecipients } from "../conversations/conversation-read-state.service.js";
 
 export const sendExternalMedia = async (req, res) => {
   try {
@@ -50,6 +51,7 @@ export const sendExternalMedia = async (req, res) => {
 
     conversation.lastMessage = message._id;
     await conversation.save();
+    await incrementUnreadForRecipients({ conversation, senderId });
     await populateMessage(message);
 
     const payload = message.toObject({ flattenObjectIds: true });

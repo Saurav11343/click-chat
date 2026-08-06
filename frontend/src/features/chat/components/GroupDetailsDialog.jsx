@@ -82,6 +82,13 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
     }
   };
 
+  const dialogTrigger =
+    typeof children === "function" ? (
+      children(() => handleOpenChange(true))
+    ) : (
+      <DialogTrigger asChild>{children}</DialogTrigger>
+    );
+
   const saveName = async () => {
     setPendingAction("name");
     try {
@@ -188,23 +195,24 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
 
   return (
     <>
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="flex h-[min(780px,92dvh)] w-[calc(100%-1.5rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-3xl p-0">
-        <DialogHeader className="shrink-0 border-b bg-muted/30 px-5 py-5 text-left sm:px-6">
-          <DialogTitle className="text-xl tracking-tight">
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        {dialogTrigger}
+        <DialogContent className="flex h-[min(760px,94dvh)] w-[calc(100%-1rem)] max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border-foreground/10 p-0 sm:w-[calc(100%-2rem)] sm:max-w-4xl">
+        <DialogHeader className="shrink-0 border-b px-5 py-4 text-left sm:px-6">
+          <DialogTitle className="text-lg tracking-tight">
             Group details
           </DialogTitle>
-          <DialogDescription className="leading-5">
-            View members and manage this group.
+          <DialogDescription className="text-xs leading-5">
+            Group profile, members, and permissions
           </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="space-y-6 px-4 py-5 sm:px-6">
-            <div className="flex flex-col items-center gap-4 rounded-2xl border bg-muted/20 p-5 sm:flex-row">
+          <div className="grid gap-4 px-3 py-4 sm:px-5 lg:grid-cols-[minmax(240px,0.8fr)_minmax(360px,1.35fr)] lg:items-start lg:gap-5">
+            <div className="rounded-2xl border bg-card p-4 sm:p-5">
+              <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left lg:flex-col lg:text-center">
               <div className="relative">
-                <Avatar className="size-20 ring-2 ring-background">
+                <Avatar className="size-20 border-2 border-background ring-1 ring-foreground/10 sm:size-22">
                   <AvatarImage src={conversation.image} alt={conversation.name} className="object-cover" />
                   <AvatarFallback className="text-xl">{conversation.initials}</AvatarFallback>
                 </Avatar>
@@ -220,7 +228,7 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
                     <Button
                       type="button"
                       size="icon-sm"
-                      className="absolute -bottom-1 -right-1 rounded-lg"
+                      className="absolute bottom-0 right-0 size-8 rounded-full border-2 border-background shadow-sm"
                       onClick={() => imageInputRef.current?.click()}
                       disabled={store.isUpdatingGroup}
                       aria-label="Change group image"
@@ -237,13 +245,14 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
 
               <div className="w-full min-w-0 flex-1">
                 {isCurrentUserAdmin ? (
-                  <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+                  <div className="flex min-w-0 gap-2">
                     <Input
                       value={groupName}
                       onChange={(event) => setGroupName(event.target.value)}
                       minLength={2}
                       maxLength={50}
-                      className="rounded-xl"
+                      aria-label="Group name"
+                      className="h-10 rounded-xl bg-background font-semibold sm:text-left lg:text-center"
                     />
                     <Button
                       type="button"
@@ -253,7 +262,8 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
                         groupName.trim().length < 2 ||
                         groupName.trim() === conversation.name
                       }
-                      className="rounded-xl"
+                      size="sm"
+                      className="h-10 shrink-0 rounded-xl px-4"
                     >
                       {pendingAction === "name" && (
                         <Loader2 className="size-4 animate-spin" />
@@ -262,19 +272,20 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
                     </Button>
                   </div>
                 ) : (
-                  <h3 className="text-lg font-semibold">{conversation.name}</h3>
+                  <h3 className="text-lg font-semibold tracking-tight">{conversation.name}</h3>
                 )}
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {conversation.participants?.length || 0} members
+                <p className="mt-2 text-xs font-medium text-muted-foreground">
+                  {conversation.participants?.length || 0} members · {adminIds.size} {adminIds.size === 1 ? "admin" : "admins"}
                 </p>
+              </div>
               </div>
             </div>
 
             {isCurrentUserAdmin && (
-              <section>
+              <section className="rounded-2xl border bg-card p-4 lg:col-start-1">
                 <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="font-semibold">Add members</h3>
+                    <h3 className="text-sm font-semibold">Add members</h3>
                     <p className="text-xs text-muted-foreground">Choose from your connected contacts.</p>
                   </div>
                   <Button
@@ -292,14 +303,14 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
                     {pendingAction === "add-members" ? "Adding..." : "Add selected"}
                   </Button>
                 </div>
-                <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border p-2">
+                <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl bg-muted/35 p-2">
                   {isLoadingContacts ? (
                     <div className="flex h-20 items-center justify-center"><Loader2 className="size-5 animate-spin" /></div>
                   ) : availableContacts.length === 0 ? (
                     <p className="p-4 text-center text-sm text-muted-foreground">All connected contacts are already members.</p>
                   ) : (
                     availableContacts.map((contact) => (
-                      <label key={contact._id} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-muted/50">
+                      <label key={contact._id} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 hover:bg-background">
                         <input
                           type="checkbox"
                           checked={selectedIds.includes(contact._id)}
@@ -313,9 +324,12 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
               </section>
             )}
 
-            <section>
-              <h3 className="mb-3 font-semibold">Members</h3>
-              <div className="space-y-2">
+            <section className="overflow-hidden rounded-2xl border bg-card lg:col-start-2 lg:row-span-3 lg:row-start-1">
+              <div className="flex items-center justify-between border-b px-4 py-3">
+                <h3 className="text-sm font-semibold">Members</h3>
+                <Badge variant="secondary">{conversation.participants?.length || 0}</Badge>
+              </div>
+              <div className="divide-y lg:max-h-[590px] lg:overflow-y-auto lg:[scrollbar-width:thin]">
                 {(conversation.participants || []).map((member) => {
                   const memberId = getId(member);
                   const memberIsAdmin = adminIds.has(memberId);
@@ -323,12 +337,21 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
                   return (
                     <div
                       key={memberId}
-                      className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-2xl border p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+                      className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 px-3 py-3 transition-colors hover:bg-muted/25 sm:gap-3 sm:px-4"
                     >
-                      <Avatar className="size-10">
-                        <AvatarImage src={member.profilePic?.url} alt={name} />
-                        <AvatarFallback>{`${member.firstName?.[0] || ""}${member.lastName?.[0] || ""}`}</AvatarFallback>
-                      </Avatar>
+                      <div className="relative shrink-0">
+                        <Avatar className="size-10">
+                          <AvatarImage src={member.profilePic?.url} alt={name} />
+                          <AvatarFallback>{`${member.firstName?.[0] || ""}${member.lastName?.[0] || ""}`}</AvatarFallback>
+                        </Avatar>
+                        {member.isOnline && (
+                          <span
+                            className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-card bg-emerald-500"
+                            aria-label={`${name} is online`}
+                            title="Online"
+                          />
+                        )}
+                      </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="truncate text-sm font-medium">{name}</p>
@@ -338,7 +361,7 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
                         <p className="truncate text-xs text-muted-foreground">{member.email}</p>
                       </div>
                       {isCurrentUserAdmin && memberId !== currentUserId && (
-                        <div className="col-span-2 flex justify-end gap-1 border-t pt-2 sm:col-span-1 sm:border-0 sm:pt-0">
+                        <div className="flex shrink-0 items-center justify-end gap-0.5">
                           <Button
                             type="button"
                             variant="ghost"
@@ -376,7 +399,7 @@ export function GroupDetailsDialog({ conversation, children, onRemoved }) {
               </div>
             </section>
 
-            <div className="flex flex-col gap-2 border-t pt-5 sm:flex-row sm:justify-between">
+            <div className="flex flex-col gap-2 rounded-2xl border border-destructive/15 p-3 lg:col-start-1">
               <Button type="button" variant="outline" onClick={() => setConfirmation("leave")} disabled={store.isUpdatingGroup} className="w-full rounded-xl text-destructive sm:w-auto">
                 {pendingAction === "leave" ? (
                   <Loader2 className="size-4 animate-spin" />

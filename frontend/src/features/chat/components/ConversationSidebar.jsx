@@ -240,7 +240,9 @@ export function ConversationSidebar({
 
                       {conversation.unreadCount > 0 && (
                         <Badge className="min-w-5 shrink-0 justify-center rounded-full px-1.5">
-                          {conversation.unreadCount}
+                          {conversation.unreadCount > 99
+                            ? "99+"
+                            : conversation.unreadCount}
                         </Badge>
                       )}
                     </div>

@@ -1,30 +1,26 @@
 import { useState } from "react";
 import {
-  ArrowLeft,
   BadgeCheck,
   CalendarDays,
   Check,
   Clock3,
   Mail,
-  MessageCircle,
   Pencil,
   Quote,
   ShieldCheck,
   UserRound,
   X,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
 import ProfilePictureUpload from "@/features/profile/components/ProfilePictureUpload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ModeToggle } from "@/components/ui/ModeToggle";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { useUserStore } from "@/features/profile/store/useUserStore";
+import { AccountPageShell } from "@/shared/components/AccountPageShell";
 
 function Profile() {
-  const navigate = useNavigate();
   const authUser = useAuthStore((state) => state.authUser);
   const updateProfile = useUserStore((state) => state.updateProfile);
   const isUpdatingProfile = useUserStore(
@@ -80,27 +76,7 @@ function Profile() {
   };
 
   return (
-    <div className="min-h-full bg-muted/30">
-      <header className="border-b bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-17 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/chat" className="flex items-center gap-2.5" aria-label="Back to ClickChat">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-              <MessageCircle className="size-5" />
-            </span>
-            <span className="text-lg font-semibold tracking-tight">ClickChat</span>
-          </Link>
-
-          <div className="flex items-center gap-1">
-            <Button type="button" variant="ghost" className="rounded-xl" onClick={() => navigate("/chat")}>
-              <ArrowLeft className="size-4" />
-              <span className="hidden sm:inline">Back to chats</span>
-            </Button>
-            <ModeToggle />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    <AccountPageShell>
         <div className="mb-7">
           <p className="text-sm font-medium text-muted-foreground">ACCOUNT</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Your profile</h1>
@@ -273,8 +249,7 @@ function Profile() {
           </Card>
         </div>
 
-      </main>
-    </div>
+    </AccountPageShell>
   );
 }
 
