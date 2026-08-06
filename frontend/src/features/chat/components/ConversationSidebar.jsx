@@ -1,0 +1,292 @@
+"use client";
+
+import {
+  LogOut,
+  MessageCircleMore,
+  MessageSquarePlus,
+  Settings,
+  UserRound,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ModeToggle } from "@/components/ui/ModeToggle";
+import { useAuthStore } from "@/features/auth/store/useAuthStore";
+import { InvitationsDialog } from "@/features/invitations/components/InvitationsDialog";
+import { PublicProfileDialog } from "./PublicProfileDialog";
+import { PushNotificationPrompt } from "./PushNotificationPrompt";
+import { CreateGroupDialog } from "./CreateGroupDialog";
+import { GroupDetailsDialog } from "./GroupDetailsDialog";
+
+export function ConversationSidebar({
+  conversations,
+  selectedConversation,
+  onSelectConversation,
+  onOpenConversationId,
+  isLoading = false,
+}) {
+  const navigate = useNavigate();
+  const authUser = useAuthStore((state) => state.authUser);
+  const logout = useAuthStore((state) => state.logout);
+  const isLoggingOut = useAuthStore((state) => state.isLoggingOut);
+
+  const fullName = [authUser?.firstName, authUser?.lastName]
+    .filter(Boolean)
+    .join(" ");
+  const initials = `${authUser?.firstName?.charAt(0) || ""}${
+    authUser?.lastName?.charAt(0) || ""
+  }`.toUpperCase();
+  const profilePicUrl =
+    typeof authUser?.profilePic === "string"
+      ? authUser.profilePic
+      : authUser?.profilePic?.url || "";
+
+  const handleLogout = async () => {
+    if (await logout()) {
+      navigate("/", { replace: true });
+    }
+  };
+
+  return (
+    <aside className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b px-3 sm:px-4">
+        <button
+          type="button"
+          onClick={() => navigate("/chat")}
+          className="flex min-w-0 items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <MessageCircleMore className="size-5" />
+          </span>
+          <span className="truncate text-base font-semibold tracking-tight">
+            ClickChat
+          </span>
+        </button>
+
+        <div className="flex items-center gap-1">
+          <CreateGroupDialog onCreated={onOpenConversationId} />
+          <div>
+            <ModeToggle />
+          </div>
+
+          <div>
+            <InvitationsDialog />
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-xl"
+                aria-label="Open account menu"
+              >
+                <Avatar className="size-8 border">
+                  <AvatarImage
+                    src={profilePicUrl}
+                    alt={fullName || "User"}
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="text-xs">
+                    {initials || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-60 rounded-xl p-2"
+            >
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex items-center gap-3 px-1 py-1">
+                  <Avatar className="size-10 border">
+                    <AvatarImage src={profilePicUrl} alt={fullName || "User"} className="object-cover" />
+                    <AvatarFallback className="text-xs">{initials || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{fullName || "User"}</p>
+                    <p className="truncate text-xs text-muted-foreground">{authUser?.email}</p>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="items-start gap-3 py-2.5" onSelect={() => navigate("/profile")}>
+                <UserRound className="mt-0.5 size-4" />
+                <div><p className="font-medium">Profile</p><p className="text-xs text-muted-foreground">Photo, name, bio, and account details</p></div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="items-start gap-3 py-2.5" onSelect={() => navigate("/settings")}>
+                <Settings className="mt-0.5 size-4" />
+                <div><p className="font-medium">Settings</p><p className="text-xs text-muted-foreground">Appearance, notifications, and security</p></div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={isLoggingOut}
+                className="gap-3 py-2.5 text-destructive focus:text-destructive"
+                onSelect={(event) => {
+                  event.preventDefault();
+                  handleLogout();
+                }}
+              >
+                <LogOut className="size-4" />
+                <div><p className="font-medium">{isLoggingOut ? "Logging out..." : "Log out"}</p><p className="text-xs opacity-70">End your current ClickChat session</p></div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <PushNotificationPrompt />
+        <div className="w-full min-w-0 space-y-1.5 overflow-hidden p-3">
+          {isLoading ? (
+            <ContactsLoadingState />
+          ) : conversations.length === 0 ? (
+            <EmptyContactsState />
+          ) : (
+            conversations.map((conversation) => {
+              const isSelected = selectedConversation?.id === conversation.id;
+
+              return (
+                <div
+                  key={conversation.id}
+                  className={`group/conversation flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-2xl p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    isSelected
+                      ? "bg-primary/8 shadow-sm ring-1 ring-primary/15"
+                      : "hover:bg-muted/70"
+                  }`}
+                >
+                  {conversation.isGroup ? (
+                    <GroupDetailsDialog conversation={conversation}>
+                      <button
+                        type="button"
+                        className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label={`View ${conversation.name} group details`}
+                      >
+                        <Avatar className="size-11 ring-2 ring-background sm:size-12">
+                          <AvatarImage
+                            src={conversation.image}
+                            alt={conversation.name}
+                            className="object-cover"
+                          />
+                          <AvatarFallback>
+                            {conversation.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      </button>
+                    </GroupDetailsDialog>
+                  ) : (
+                    <PublicProfileDialog user={conversation}>
+                      <button
+                        type="button"
+                        className="relative shrink-0 rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label={`View ${conversation.name}'s profile`}
+                      >
+                        <Avatar className="size-11 ring-2 ring-background sm:size-12">
+                          <AvatarImage
+                            src={conversation.image}
+                            alt={conversation.name}
+                            className="object-cover"
+                          />
+                          <AvatarFallback>
+                            {conversation.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        {conversation.online && (
+                          <span className="absolute bottom-0 right-0 size-3.5 rounded-full border-[3px] border-background bg-emerald-500" />
+                        )}
+                      </button>
+                    </PublicProfileDialog>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => onSelectConversation(conversation)}
+                    className="min-w-0 flex-1 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label={`Open conversation with ${conversation.name}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold sm:text-[15px]">
+                        {conversation.name}
+                      </p>
+
+                      <span className="shrink-0 text-[11px] text-muted-foreground sm:text-xs">
+                        {conversation.time}
+                      </span>
+                    </div>
+
+                    <div className="mt-0.5 flex min-w-0 items-center justify-between gap-2 overflow-hidden">
+                      <p
+                        className={`min-w-0 flex-1 truncate whitespace-nowrap text-sm ${
+                          conversation.unreadCount > 0
+                            ? "font-medium text-foreground"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {conversation.lastMessage}
+                      </p>
+
+                      {conversation.unreadCount > 0 && (
+                        <Badge className="min-w-5 shrink-0 justify-center rounded-full px-1.5">
+                          {conversation.unreadCount}
+                        </Badge>
+                      )}
+                    </div>
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function ContactsLoadingState() {
+  return (
+    <div className="space-y-2 p-1">
+      {[1, 2, 3].map((item) => (
+        <div
+          key={item}
+          className="flex animate-pulse items-center gap-3 rounded-2xl p-3"
+        >
+          <div className="size-12 shrink-0 rounded-full bg-muted" />
+
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-4 w-32 rounded bg-muted" />
+            <div className="h-3 w-44 rounded bg-muted" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyContactsState() {
+  return (
+    <div className="flex min-h-72 flex-col items-center justify-center px-6 text-center">
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/10">
+        <MessageSquarePlus className="size-7" />
+      </div>
+
+      <h3 className="mt-4 font-medium">No contacts yet</h3>
+
+      <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+        Search for a user and send an invitation to start connecting.
+      </p>
+    </div>
+  );
+}

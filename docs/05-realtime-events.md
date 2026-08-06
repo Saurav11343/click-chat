@@ -161,14 +161,14 @@ stateDiagram-v2
 
 ## Client listener ownership
 
-`ChatLayout` registers all domain event handlers while the protected chat interface is mounted and removes the same handler references during cleanup. Domain state is delegated to stores:
+`useChatRealtime` registers all domain event handlers while the protected chat interface is mounted and removes the same handler references during cleanup. `ChatLayout` consumes the hook and remains responsible for URL selection and layout composition. Domain state is delegated to stores:
 
 | Event family | Store |
 | --- | --- |
 | Message events | `useMessageStore` and `useConversationStore` |
 | Presence | `useConversationStore` |
 | Invitations | `useInvitationStore`, with accepted conversations delegated to `useConversationStore` |
-| Typing | Local `ChatLayout` state keyed by conversation ID; not persisted in Zustand or MongoDB |
+| Typing | Local `useChatRealtime` state keyed by conversation ID; not persisted in Zustand or MongoDB |
 
 ## Current scalability boundary
 

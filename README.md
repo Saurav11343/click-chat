@@ -137,7 +137,7 @@ flowchart LR
     B --> S
 ```
 
-REST handles validation, authorization, persistence, uploads, and error responses. Socket.IO distributes persisted message and invitation changes and manages presence through private `user:<userId>` rooms.
+ClickChat retains MVC within a feature-based modular monolith: Mongoose provides Models, React pages and components provide Views, and Express Controllers coordinate validated requests and responses. REST handles validation, authorization, persistence, uploads, and error responses. Socket.IO distributes persisted message and invitation changes and manages presence through private `user:<userId>` rooms.
 
 ## Technology stack
 
@@ -216,26 +216,40 @@ click-chat/
 |-- backend/
 |   `-- src/
 |       |-- config/
-|       |-- controllers/
+|       |-- integrations/       # Cloudinary, email, and other providers
 |       |-- middleware/
-|       |-- models/
+|       |-- modules/            # Feature-owned routes, controllers, services, schemas, and models
+|       |   |-- auth/
+|       |   |-- attachments/
+|       |   |-- conversations/
+|       |   |-- groups/
+|       |   |-- invitations/
+|       |   |-- messages/
+|       |   |-- notifications/
+|       |   |-- translations/
+|       |   `-- users/
+|       |-- realtime/           # Socket server, authentication, presence, and typing
 |       |-- routes/
-|       |-- services/
-|       |-- socket/
+|       |-- shared/             # Cross-feature HTTP and error primitives
 |       |-- utils/
-|       `-- validations/
+|       |-- app.js
+|       `-- server.js
 |-- frontend/
 |   |-- android/             # Capacitor Android wrapper
 |   |-- capacitor.config.json
 |   `-- src/
-|       |-- api/
-|       |-- components/
-|       |-- layout/
-|       |-- lib/
-|       |-- pages/
-|       |-- routes/
-|       |-- store/
-|       `-- validations/
+|       |-- app/               # Application shell and route composition
+|       |-- components/ui/     # shadcn-managed UI primitives
+|       |-- features/          # Feature-owned pages, components, stores, and schemas
+|       |   |-- auth/
+|       |   |-- chat/
+|       |   |-- invitations/
+|       |   |-- landing/
+|       |   |-- profile/
+|       |   `-- settings/
+|       |-- lib/               # shadcn-compatible shared utilities
+|       |-- platform/          # Capacitor-specific behavior
+|       `-- shared/            # API, realtime, themes, constants, and formatters
 |-- docs/
 `-- README.md
 ```

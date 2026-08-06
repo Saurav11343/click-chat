@@ -7,8 +7,8 @@ import {
   APPEARANCE_STORAGE_KEY,
   COLOR_MODE_EVENT,
   readAppearanceTheme,
-} from "@/lib/appearanceThemes";
-import { AppearanceThemeContext } from "@/lib/appearanceThemeContext";
+} from "@/shared/theme/appearanceThemes";
+import { AppearanceThemeContext } from "@/shared/theme/appearanceThemeContext";
 
 export function ThemeProvider({ children, ...props }) {
   const [appearanceTheme, setAppearanceThemeState] = useState(readAppearanceTheme);

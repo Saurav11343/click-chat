@@ -224,11 +224,11 @@ Resetting presence at startup is correct for the current single backend instance
 | Layer | Service | Configuration |
 | --- | --- | --- |
 | Frontend | Vercel | Vite build; `vercel.json` rewrites all paths to `/` for React Router |
-| Backend | Railway | Node process running the Express/Socket.IO server |
-| Database | MongoDB Atlas | `MONGO_URI` supplied to Railway |
-| Media | Cloudinary | API credentials supplied to Railway |
-| Email | Gmail REST API | OAuth credentials and sender refresh token supplied to Railway |
-| Translation | Google Cloud Translation Basic v2 | Restricted API key and internal caps supplied to Railway |
+| Backend | Render (active); Railway configuration retained but inactive | Node process running the Express/Socket.IO server |
+| Database | MongoDB Atlas | `MONGO_URI` supplied to the active backend service |
+| Media | Cloudinary | API credentials supplied to the active backend service |
+| Email | Gmail REST API | OAuth credentials and sender refresh token supplied to the active backend service |
+| Translation | Google Cloud Translation Basic v2 | Restricted API key and internal caps supplied to the active backend service |
 | GIF/sticker discovery | GIPHY | Public client key supplied to Vercel at build time |
 
 ```mermaid
