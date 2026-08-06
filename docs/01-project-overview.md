@@ -122,7 +122,7 @@ flowchart LR
 | Security | HTTP-only JWT, password hashing, hashed verification tokens, authorization checks, validation, and rate limiting |
 | Consistency | MongoDB is updated before real-time message events are emitted |
 | Responsiveness | Mobile/desktop layouts, a full-screen authentication loader, local Zustand updates, and targeted socket events |
-| Maintainability | MVC-style backend, dedicated services and validation, feature stores, and reusable UI components |
+| Maintainability | Feature-based modular MVC, separated realtime/integration layers, feature-owned frontend stores and schemas, reusable hooks, and shadcn UI primitives |
 | Availability | Vercel frontend, Railway/Render backend, MongoDB Atlas, Cloudinary, and Gmail REST API |
 | Scalability | Suitable for one backend instance; distributed presence and Socket.IO require Redis later |
 

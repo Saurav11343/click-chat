@@ -35,6 +35,8 @@ This directory contains the detailed technical documentation for ClickChat. The 
 
 These documents describe the maintained web frontend, backend, and Capacitor Android wrapper in the current branch. Android build instructions and requirements are documented in [Setup and deployment](08-setup-and-deployment.md#android-apk).
 
+The current implementation uses a feature-based modular MVC architecture: backend domains own their routes, controllers, and Mongoose models under `backend/src/modules`, while the React View layer uses feature-owned pages, components, and stores under `frontend/src/features`. Cross-cutting backend integrations and realtime handlers are separated from domain modules; shadcn UI primitives remain under `frontend/src/components/ui`.
+
 ## Documentation rule
 
 When a feature changes, update the relevant detailed page first, then update the short feature list or roadmap in the root README. Document only behavior present in the current branch; describe prepared schema fields or services as partial support rather than completed features.

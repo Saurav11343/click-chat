@@ -15,9 +15,29 @@
 | `/profile` | Protected | `Profile` | Displays account information and updates profile picture |
 | `/settings` | Protected | `Settings` | Appearance, language, notifications, and password security |
 
-`AppRoutes` calls `checkAuth()` on mount. Authenticated users are redirected away from public-only pages, while unauthenticated users are redirected away from protected pages.
+`AppRoutes` calls `checkAuth()` on mount. Authenticated users are redirected away from public-only pages, while unauthenticated users are redirected away from protected pages. Route components are loaded with `React.lazy`; the landing, authentication, profile, settings, and chat feature bundles are downloaded on demand instead of being included in one initial application bundle.
 
-While that initial authentication request is pending, `AppRoutes` renders `AppLoadingScreen` instead of the route tree. The loader uses the current theme tokens, branded iconography, an accessible live status, and responsive full-viewport positioning.
+While the initial authentication request or a lazy route import is pending, `AppRoutes` renders `AppLoadingScreen`. The loader uses the current theme tokens, branded iconography, an accessible live status, and responsive full-viewport positioning.
+
+## Source organization
+
+```text
+frontend/src/
+|-- app/                    # Application shell and lazy route composition
+|-- components/ui/          # shadcn-managed UI primitives
+|-- features/
+|   |-- auth/               # Auth pages, components, schema, and store
+|   |-- chat/               # Chat layout, components, hooks, selectors, and stores
+|   |-- invitations/        # Invitation/search UI and store
+|   |-- landing/            # Public landing page
+|   |-- profile/            # Profile UI, schema, and store
+|   `-- settings/           # Settings page and appearance UI
+|-- lib/utils.js            # shadcn-compatible cn utility
+|-- platform/capacitor/     # Native navigation behavior
+`-- shared/                 # API client, socket client, themes, constants, and formatters
+```
+
+The shadcn CLI contract is intentionally stable: generated primitives remain under `components/ui`, `cn()` remains in `lib/utils.js`, and global theme CSS remains in `index.css`. Feature code imports those primitives but does not move or duplicate them.
 
 ## Component hierarchy
 
@@ -33,6 +53,8 @@ flowchart TD
     CHAT --> LAYOUT["ChatLayout"]
     LAYOUT --> SIDE["ConversationSidebar"]
     LAYOUT --> WIN["ChatWindow"]
+    LAYOUT --> REALTIME["useChatRealtime"]
+    LAYOUT --> SELECTOR["conversation-list selector"]
     SIDE --> INV["InvitationsDialog"]
     SIDE --> NEW["NewChatDialog"]
     SIDE --> CREATE["CreateGroupDialog"]
@@ -44,8 +66,11 @@ flowchart TD
     WIN --> DIRECT["DirectConversationMenu"]
     WIN --> TYPE["TypingIndicator"]
     BUB --> ACTIONS["Copy / translate / edit / delete / download"]
+    BUB --> ATTACH["AttachmentContent"]
+    BUB --> TEXT["MessageText / YouTubePreview"]
     COMP --> EMOJI["EmojiPicker"]
     COMP --> GIPHY["GiphyPicker"]
+    COMP --> CHOOKS["typing / attachment / focus hooks"]
     PROFILE --> PIC["ProfilePictureUpload"]
     SETTINGS --> APPEAR["AppearanceSettings"]
     SETTINGS --> SECURITY["Password settings"]
@@ -79,12 +104,13 @@ flowchart LR
     API --> CON["Conversation store"]
     API --> MSG["Message store"]
     API --> USER["User store"]
-    SOCKET["Socket.IO"] --> LAYOUT["ChatLayout handlers"]
-    COMP["MessageComposer"] -->|"typing:start / typing:stop"| SOCKET
-    LAYOUT --> INV
-    LAYOUT --> CON
-    LAYOUT --> MSG
-    LAYOUT -->|"typingUser"| WINDOW
+    SOCKET["Socket.IO"] --> REALTIME["useChatRealtime"]
+    COMP["MessageComposer"] --> TYPING["useComposerTyping"]
+    TYPING -->|"typing:start / typing:stop"| SOCKET
+    REALTIME --> INV
+    REALTIME --> CON
+    REALTIME --> MSG
+    REALTIME -->|"typingUser"| WINDOW
     CON --> SIDEBAR["ConversationSidebar"]
     MSG --> WINDOW["ChatWindow"]
     AUTH --> LAYOUT
@@ -94,7 +120,7 @@ flowchart LR
 
 ### Conversation selection
 
-`ChatLayout` stores only `selectedConversationId`. It transforms current conversation documents into sidebar view models and derives the selected object on every render. This prevents the open chat header from holding stale presence, name, image, or last-seen values.
+`ChatLayout` reads `selectedConversationId` from the URL. The memoized `conversation-list` selector transforms current conversation documents into sidebar view models, and the layout derives the selected object from that current list. This prevents the open chat header from holding stale presence, name, image, or last-seen values.
 
 ### Local synchronization
 
@@ -125,13 +151,13 @@ flowchart TD
 
 The composer supports text, native emoji insertion, GIF/sticker selection, attachment upload, a 5,000-character limit, and submission loading state. Pressing Enter outside other inputs, dialogs, menus, links, and buttons focuses the message input. Enter within the input submits normally.
 
-`MessageBubble` renders text links, YouTube previews, uploaded images/video/audio/files, and external GIF/sticker media. Its top-right menu is capability-based: copy is limited to text/link content, translate is limited to received text, edit/delete require ownership, and uploaded media includes a download action. Translation appears below the original and can be hidden without mutating message state.
+`MessageBubble` coordinates ownership, actions, editing, translation, reply context, and timestamps. `MessageText` owns linked text and YouTube previews, while `AttachmentContent` owns uploaded image/video/audio/document and external GIF/sticker rendering. The top-right menu is capability-based: copy is limited to text/link content, translate is limited to received text, edit/delete require ownership, and uploaded media includes a download action. Translation appears below the original and can be hidden without mutating message state.
 
 ### Typing indicators
 
-`MessageComposer` tracks whether it has already announced a typing session, preventing an event on every keystroke. It starts typing on non-empty text or emoji input, resets a 1.5-second inactivity timer as content changes, and stops on inactivity, empty content, successful submission, conversation change, or unmount.
+`MessageComposer` coordinates submission and store state. `useComposerTyping` tracks whether typing has already been announced, preventing an event on every keystroke; `useAttachmentSelection` owns file validation and preview-URL cleanup; `useComposerFocus` owns the global Enter-to-focus behavior; and focused components render the emoji picker and selected-file progress. Typing starts on non-empty text or emoji input, resets a 1.5-second inactivity timer as content changes, and stops on inactivity, empty content, successful submission, conversation change, or unmount.
 
-`ChatLayout` listens for `typing:update` and stores the current typing user by conversation ID. A three-second receiver timeout removes stale state if the stop event is lost. `ChatWindow` renders an incoming three-dot message bubble; group bubbles include the writer's first name.
+`useChatRealtime` listens for `typing:update` and stores the current typing user by conversation ID. A three-second receiver timeout removes stale state if the stop event is lost. `ChatWindow` renders an incoming three-dot message bubble; group bubbles include the writer's first name.
 
 ## Group interfaces
 

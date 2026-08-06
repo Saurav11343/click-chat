@@ -3,11 +3,12 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import ENV from "./config/env.js";
 
-import nameRoute from "./routes/name.route.js";
-import authRoute from "./routes/auth.route.js";
-import userRoute from "./routes/user.route.js";
-import invitationRoute from "./routes/invitation.route.js";
+import authRoute from "./modules/auth/auth.route.js";
+import userRoute from "./modules/users/user.route.js";
+import invitationRoute from "./modules/invitations/invitation.route.js";
 import conversationRoute from "./routes/conversation.route.js";
+import { notFoundHandler } from "./middleware/not-found.middleware.js";
+import { errorHandler } from "./middleware/error-handler.middleware.js";
 
 const app = express();
 
@@ -33,9 +34,11 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.use("/api/name", nameRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/invitations", invitationRoute);
 app.use("/api/conversations", conversationRoute);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 export default app;

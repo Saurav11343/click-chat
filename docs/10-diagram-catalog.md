@@ -266,37 +266,38 @@ flowchart LR
 ```mermaid
 flowchart LR
     subgraph Client["React frontend"]
-        Routes["React Router"]
-        Pages["Pages and layouts"]
-        UI["UI components"]
-        Stores["Zustand stores"]
-        Axios["Axios client"]
-        SocketClient["Socket.IO client"]
+        Routes["Lazy React routes"]
+        Features["Feature modules"]
+        UI["shadcn UI primitives"]
+        Hooks["Feature hooks and selectors"]
+        Stores["Feature-owned Zustand stores"]
+        Shared["Shared API and realtime clients"]
 
-        Routes --> Pages
-        Pages --> UI
-        UI <--> Stores
-        Stores --> Axios
-        Stores <--> SocketClient
+        Routes --> Features
+        Features --> UI
+        Features --> Hooks
+        Hooks <--> Stores
+        Stores --> Shared
+        Hooks <--> Shared
     end
 
     subgraph Server["Node.js backend"]
-        Express["Express routes"]
-        Middleware["Auth, validation, upload"]
-        Controllers["Controllers"]
-        Models["Mongoose models"]
-        SocketServer["Socket.IO server"]
-        Services["Cloud, translation, email, and push services"]
+        Express["Express route composition"]
+        Middleware["Shared auth, validation, and upload"]
+        Modules["Feature modules"]
+        Realtime["Realtime authentication and handlers"]
+        Integrations["Cloudinary, email, translation, and push"]
+        SharedServer["Shared errors and HTTP utilities"]
 
         Express --> Middleware
-        Middleware --> Controllers
-        Controllers --> Models
-        Controllers --> SocketServer
-        Controllers --> Services
+        Middleware --> Modules
+        Modules --> Realtime
+        Modules --> Integrations
+        Modules --> SharedServer
     end
 
-    Axios -->|"HTTPS REST"| Express
-    SocketClient <-->|"WebSocket or polling"| SocketServer
+    Shared -->|"HTTPS REST"| Express
+    Shared <-->|"WebSocket or polling"| Realtime
 ```
 
 ## 9. Deployment diagram
@@ -330,42 +331,40 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph Frontend["frontend/src"]
-        FrontRoutes["routes"]
-        FrontPages["pages"]
-        FrontLayout["layout"]
-        FrontComponents["components"]
-        FrontStores["store"]
-        FrontLib["api and lib"]
-        FrontAndroid["Capacitor wrapper"]
+        FrontApp["app and routes"]
+        FrontFeatures["feature modules"]
+        FrontUI["shadcn UI primitives"]
+        FrontShared["shared API, realtime, and utilities"]
+        FrontPlatform["Capacitor platform layer"]
 
-        FrontRoutes --> FrontPages
-        FrontPages --> FrontLayout
-        FrontLayout --> FrontComponents
-        FrontComponents --> FrontStores
-        FrontStores --> FrontLib
+        FrontApp --> FrontFeatures
+        FrontFeatures --> FrontUI
+        FrontFeatures --> FrontShared
+        FrontApp --> FrontPlatform
     end
 
     subgraph Backend["backend/src"]
-        BackRoutes["routes"]
-        BackMiddleware["middleware and validation"]
-        BackControllers["controllers"]
-        BackServices["services and utilities"]
-        BackModels["models"]
-        BackSocket["socket"]
+        BackRoutes["route composition"]
+        BackMiddleware["shared middleware"]
+        BackModules["feature modules"]
+        BackIntegrations["external integrations"]
+        BackRealtime["realtime handlers"]
+        BackShared["shared errors and HTTP utilities"]
         BackConfig["config"]
 
         BackRoutes --> BackMiddleware
-        BackMiddleware --> BackControllers
-        BackControllers --> BackServices
-        BackControllers --> BackModels
-        BackControllers --> BackSocket
-        BackSocket --> BackModels
-        BackServices --> BackConfig
+        BackMiddleware --> BackModules
+        BackRoutes --> BackModules
+        BackModules --> BackIntegrations
+        BackModules --> BackRealtime
+        BackModules --> BackShared
+        BackRealtime --> BackModules
+        BackIntegrations --> BackConfig
     end
 
-    FrontLib -->|"REST and Socket.IO"| BackRoutes
-    FrontLib -->|"Socket.IO"| BackSocket
-    FrontAndroid --> FrontRoutes
+    FrontShared -->|"REST and Socket.IO"| BackRoutes
+    FrontShared -->|"Socket.IO"| BackRealtime
+    FrontPlatform --> FrontApp
 ```
 
 ## 11. UML class diagram — persistent domain

@@ -81,25 +81,30 @@ Group mutations follow the same persistence-first boundary. Administrators mutat
 
 After a message is persisted, the push-notification service resolves recipient subscriptions and submits encrypted payloads to browser push endpoints. Push failure does not roll back a saved message. Expired endpoints are removed asynchronously.
 
-## Backend layering
+## Feature-based modular MVC architecture
 
 ```mermaid
 flowchart TD
     REQ["HTTP request"] --> APP["Express app"]
-    APP --> ROUTE["Route module"]
+    APP --> ROUTE["Route composition"]
     ROUTE --> AUTH["Authentication middleware"]
     ROUTE --> VAL["Zod validation middleware"]
     ROUTE --> UP["Multer upload middleware when required"]
-    AUTH --> CTRL["Controller"]
-    VAL --> CTRL
-    UP --> CTRL
-    CTRL --> SERVICE["Service or utility"]
-    CTRL --> MODEL["Mongoose model"]
-    SERVICE --> EXT["Cloudinary, Gmail, Google identity, Translation, or Web Push"]
-    SERVICE --> PUSH["Browser push service"]
+    AUTH --> FEATURE["Feature module"]
+    VAL --> FEATURE
+    UP --> FEATURE
+    FEATURE --> CTRL["Feature controller"]
+    FEATURE --> SERVICE["Feature service or presenter"]
+    FEATURE --> MODEL["Feature-owned Mongoose model"]
+    SERVICE --> EXT["Cloudinary, Gmail, Translation, or Web Push integration"]
     MODEL --> DB[("MongoDB")]
-    CTRL --> SOCKET["Socket.IO event emission"]
+    CTRL --> PUB["Realtime event publisher"]
+    PUB --> SOCKET["Socket.IO user rooms"]
 ```
+
+The application retains MVC while organizing it as a feature-based modular monolith. Mongoose schemas and documents form the Model layer, React pages/components form the View layer, and Express controllers coordinate validated requests and responses. Routes dispatch requests to controllers, while services, integrations, presenters, middleware, and realtime handlers support those MVC responsibilities without replacing them.
+
+Authentication, users, invitations, conversations, messages, attachments, translations, notifications, and groups live under `backend/src/modules`. External providers live under `integrations`; Socket.IO authentication, presence, typing, room naming, and event publication live under `realtime`; cross-feature errors and HTTP helpers live under `shared`.
 
 ## Authentication architecture
 
@@ -155,11 +160,13 @@ The single-process server stores socket counts and timers in memory. MongoDB sto
 flowchart LR
     AR["AppRoutes"] --> AS["useAuthStore"]
     AR --> LS["AppLoadingScreen"]
-    CL["ChatLayout"] --> IS["useInvitationStore"]
-    CL --> CS["useConversationStore"]
+    CL["ChatLayout"] --> RT["useChatRealtime"]
+    RT --> IS["useInvitationStore"]
+    RT --> CS["useConversationStore"]
     CW["ChatWindow"] --> MS["useMessageStore"]
-    MC["MessageComposer"] -->|"typing:start / typing:stop"| SO
-    SO -->|"typing:update"| CL
+    MC["MessageComposer"] --> CT["useComposerTyping"]
+    CT -->|"typing:start / typing:stop"| SO
+    SO -->|"typing:update"| RT
     PP["Profile picture UI"] --> US["useUserStore"]
     SET["Settings"] --> AS
     SET --> US
@@ -173,10 +180,8 @@ flowchart LR
     MS --> AX
     US --> AX
 
-    SO["Socket client"] --> CL
-    CL --> IS
-    CL --> CS
-    CL --> MS
+    SO["Socket client"] --> RT
+    RT --> MS
 ```
 
 ## Deployment architecture

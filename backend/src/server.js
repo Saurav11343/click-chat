@@ -1,11 +1,11 @@
 import { createServer } from "node:http";
 
 import app from "./app.js";
-import connectDB from "./config/db.js";
+import connectDB from "./config/database.js";
 import ENV from "./config/env.js";
-import User from "./models/user.model.js";
+import User from "./modules/users/user.model.js";
 
-import { initializeSocket } from "./socket/socket.js";
+import { initializeSocket } from "./realtime/index.js";
 
 const startServers = async () => {
   try {

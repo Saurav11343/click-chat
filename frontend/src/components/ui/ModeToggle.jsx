@@ -4,9 +4,9 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
-import { useAppearanceTheme } from "@/lib/appearanceThemeContext";
-import { useUserStore } from "@/store/useUserStore";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAppearanceTheme } from "@/shared/theme/appearanceThemeContext";
+import { useUserStore } from "@/features/profile/store/useUserStore";
+import { useAuthStore } from "@/features/auth/store/useAuthStore";
 
 export function ModeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
