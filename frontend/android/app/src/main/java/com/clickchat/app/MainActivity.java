@@ -13,6 +13,9 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Draw edge-to-edge and keep navigation controls hidden during normal
+        // use; Android can reveal them temporarily with an edge swipe.
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         hideNavigationControls();
     }
 
@@ -34,7 +37,8 @@ public class MainActivity extends BridgeActivity {
     private void hideNavigationControls() {
         Window window = getWindow();
         View decorView = window.getDecorView();
-        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+        WindowInsetsControllerCompat controller =
+            WindowCompat.getInsetsController(window, decorView);
 
         controller.setSystemBarsBehavior(
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE

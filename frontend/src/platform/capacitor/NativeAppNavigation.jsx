@@ -2,6 +2,10 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
+import { Keyboard } from "@capacitor/keyboard";
+import { toast } from "sonner";
+
+const EXIT_CONFIRMATION_WINDOW_MS = 2_000;
 
 function closeOpenOverlay() {
   const openOverlay = document.querySelector(
@@ -29,8 +33,27 @@ export function NativeAppNavigation() {
   useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return undefined;
 
-    let listener;
+    document.documentElement.classList.add("native-android");
+
+    let backListener;
+    let keyboardShowListener;
+    let keyboardHideListener;
     let disposed = false;
+    let lastExitRequestAt = 0;
+
+    void Keyboard.addListener("keyboardWillShow", () => {
+      document.documentElement.classList.add("native-keyboard-open");
+    }).then((handle) => {
+      if (disposed) handle.remove();
+      else keyboardShowListener = handle;
+    });
+
+    void Keyboard.addListener("keyboardWillHide", () => {
+      document.documentElement.classList.remove("native-keyboard-open");
+    }).then((handle) => {
+      if (disposed) handle.remove();
+      else keyboardHideListener = handle;
+    });
 
     CapacitorApp.addListener("backButton", ({ canGoBack }) => {
       if (closeOpenOverlay()) return;
@@ -51,18 +74,31 @@ export function NativeAppNavigation() {
         return;
       }
 
-      CapacitorApp.exitApp();
+      const now = Date.now();
+      if (now - lastExitRequestAt <= EXIT_CONFIRMATION_WINDOW_MS) {
+        CapacitorApp.exitApp();
+        return;
+      }
+
+      lastExitRequestAt = now;
+      toast("Press back again to exit", { duration: EXIT_CONFIRMATION_WINDOW_MS });
     }).then((handle) => {
       if (disposed) {
         handle.remove();
       } else {
-        listener = handle;
+        backListener = handle;
       }
     });
 
     return () => {
       disposed = true;
-      listener?.remove();
+      backListener?.remove();
+      keyboardShowListener?.remove();
+      keyboardHideListener?.remove();
+      document.documentElement.classList.remove(
+        "native-android",
+        "native-keyboard-open",
+      );
     };
   }, [location.pathname, location.search, navigate]);
 
