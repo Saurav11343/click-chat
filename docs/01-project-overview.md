@@ -47,7 +47,7 @@ flowchart LR
     ADMIN --> EXIT["Leave or delete group"]
     DIRECT --> CHAT["Text, emoji, attachments, GIFs, stickers, and links"]
     GROUP --> CHAT
-    CHAT --> ACTIONS["Copy, translate, edit, delete, and download"]
+    CHAT --> ACTIONS["Reply, react, copy, translate, edit, delete, and download"]
     CHAT --> LIVE["Real-time delivery, typing, presence, and Web Push"]
     DIRECT --> CLEAN["Clear chat or delete connection"]
 ```
@@ -88,7 +88,7 @@ flowchart LR
 - Group creation with accepted contacts, names, Cloudinary images, membership management, administrator promotion/demotion, leave, and permanent deletion workflows.
 - Latest-message conversation previews.
 - Text and emoji messages up to 5,000 characters.
-- Retrieval of the latest 50 messages.
+- Cursor-based retrieval in pages of up to 50 messages with upward-scroll position preservation.
 - Real-time message creation, editing, and soft deletion.
 - Per-bubble actions for copy, translate, edit, delete, and media download.
 - Single-file image, video, audio, PDF, Office-document, text, and CSV messages up to 10 MB, with optional captions and upload progress.
@@ -97,8 +97,9 @@ flowchart LR
 - On-demand Translation to the recipient's preferred language with caching and hard usage caps.
 - Sidebar previews normalized to one line and shortened to 42 Unicode characters.
 - Edited and deleted UI states.
-- Reply references supported by the API, schema, and message rendering; composer selection is not complete.
-- Sender read-receipt entries are stored when a message is created; complete receipt processing is not implemented.
+- Complete reply selection for text, uploads, GIFs, and stickers, including composer preview, cancellation, deleted-original fallback, and jump-to-original navigation across older history pages.
+- One reaction per participant on received messages, selected through the composer emoji picker and aggregated by emoji with real-time participant details.
+- Persisted per-user unread counts and sent/delivered/read receipts, including first-unread positioning and group receipt details.
 - Date separators for Today, Yesterday, and earlier calendar dates.
 - Enter-key shortcut to focus the composer when no other interactive control owns the keypress.
 - Real-time typing indicators scoped to conversation participants, with a 1.5-second sender inactivity timeout and a 3-second receiver safety timeout.
@@ -128,12 +129,9 @@ flowchart LR
 
 ## Out of scope or incomplete
 
-- Cursor-based loading of messages older than the latest 50.
-- Complete read-receipt workflows.
-- Complete reply selection in the composer.
 - Multi-file attachment galleries and recorded voice messages.
 - Per-user upload/storage quotas and private Cloudinary delivery for sensitive attachments.
-- Message search and calling.
+- Message search, pinning, forwarding, and calling.
 - Redis-backed multi-instance presence and Socket.IO fan-out.
 
 ## Maintained platforms

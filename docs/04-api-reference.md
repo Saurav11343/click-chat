@@ -133,13 +133,14 @@ All routes under `/api/conversations` use protected-route middleware.
 | GET | `/api/conversations` | None | Populated `conversations` array | Returns conversations containing current user |
 | PATCH | `/api/conversations/:conversationId/delivered` | None | Count of newly delivered messages | Marks incoming conversation messages delivered for current user |
 | PATCH | `/api/conversations/:conversationId/read` | None | Zero unread count | Marks incoming messages read and resets persisted unread state |
-| GET | `/api/conversations/:conversationId/messages` | None | Latest 50 messages in ascending display order | Current user must be a participant |
+| GET | `/api/conversations/:conversationId/messages` | Optional `cursor` and `limit` query | Up to 50 messages plus `pageInfo` in ascending display order | Current user must be a participant |
 | POST | `/api/conversations/:conversationId/messages` | `{ content, replyTo? }` | `201`, populated message in `data` | Current user must be a participant |
 | POST | `/api/conversations/:conversationId/attachments` | `multipart/form-data`: `file`, optional `content`, optional `replyTo` | `201`, populated attachment message in `data` | One supported file up to 10 MB; current user must be a participant |
-| POST | `/api/conversations/:conversationId/media` | `{ providerId, mediaType, url, previewUrl, width, height, description? }` | `201`, populated GIF or sticker message in `data` | Backend accepts only `gif`/`sticker` types and HTTPS media URLs hosted on GIPHY domains |
+| POST | `/api/conversations/:conversationId/media` | `{ providerId, mediaType, url, previewUrl, width, height, description?, replyTo? }` | `201`, populated GIF or sticker message in `data` | Backend accepts only `gif`/`sticker` types and HTTPS media URLs hosted on GIPHY domains |
 | GET | `/api/conversations/:conversationId/messages/:messageId/attachment` | Optional `?download=1` | `302` to a five-minute Cloudinary URL | Participant-only; attachment must exist |
 | POST | `/api/conversations/:conversationId/messages/:messageId/translate` | None | Translation text, target/detected language, and cache flag | Participant-only; target comes from the authenticated profile |
 | PATCH | `/api/conversations/:conversationId/messages/:messageId` | `{ content }` | Updated message in `data` | Current user must own the non-deleted text message |
+| POST | `/api/conversations/:conversationId/messages/:messageId/reactions` | `{ emoji }` | Updated populated message in `data` | Participant only; target must be a non-deleted message sent by another participant |
 | DELETE | `/api/conversations/:conversationId/messages/:messageId` | None | Soft-deleted message in `data` | Current user must own the non-deleted message |
 
 ### Direct-conversation management
@@ -149,7 +150,7 @@ All routes under `/api/conversations` use protected-route middleware.
 | POST | `/api/conversations/:conversationId/clear` | None | Cleared, populated `conversation` | Either direct-conversation participant |
 | DELETE | `/api/conversations/:conversationId/direct` | None | Success message | Either direct-conversation participant |
 
-Clear chat permanently removes every stored message and owned Cloudinary attachment for both participants, resets `lastMessage`, and keeps the direct conversation. Delete conversation removes the history, conversation, and accepted connection for both participants; a new invitation is required to chat again.
+Clear chat permanently removes every stored message and owned Cloudinary attachment for both participants, resets unread state and `lastMessage`, and keeps the direct conversation. Delete conversation removes the history, conversation, and accepted connection for both participants; a new invitation is required to chat again. Direct-chat history deletion stops before deleting MongoDB messages if Cloudinary cleanup rejects, allowing the operation to be retried instead of silently orphaning an inaccessible upload.
 
 Invitation creation also repairs legacy stale connections: when an accepted invitation exists without its matching direct conversation, the stale accepted record is removed and the new invitation is created normally. A matching live conversation still returns `409 Already connected`.
 
@@ -177,7 +178,11 @@ Group creation requires the creator plus at least two accepted contacts. Groups 
 
 ### Message retrieval behavior
 
-The query uses an opaque cursor over `createdAt` and `_id`, returns pages of up to 50 messages in ascending display order, and populates sender, reply, delivery, and read-receipt users.
+The query uses an opaque cursor over `createdAt` and `_id`, returns pages of up to 50 messages in ascending display order, and populates sender, reply, reaction, delivery, and read-receipt users.
+
+### Reaction behavior
+
+The reaction body must contain one emoji grapheme. A user may hold only one reaction on a message: selecting a different emoji moves the user, while selecting the same emoji again removes the reaction. Matching emoji values share one group and count. The endpoint rejects reactions to the caller's own message.
 
 ### Edit and delete behavior
 
@@ -185,6 +190,7 @@ The query uses an opaque cursor over `createdAt` and `_id`, returns pages of up 
 - Editing sets `isEdited` and `editedAt`.
 - Deletion clears content and sets `isDeleted` and `deletedAt`.
 - Deletion clears edit markers and preserves the document.
+- Deletion removes every reaction from the message.
 - The conversation retains the deleted message as `lastMessage` when it is the latest record.
 
 ## Common status codes

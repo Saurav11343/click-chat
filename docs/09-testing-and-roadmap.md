@@ -61,6 +61,13 @@
 | Send GIF/sticker | GIPHY result is stored as external metadata and delivered to the recipient without Cloudinary upload |
 | Long latest message | Sidebar shows one line, at most 42 Unicode characters plus `...`, without row overflow |
 | Open/download attachment | Participant receives a short-lived redirect; unrelated user is rejected |
+| Reply to text or media | Composer shows a cancellable preview and the sent bubble references the populated original |
+| Open a reply reference | Older pages load when necessary, then the original scrolls into view and highlights |
+| Delete a replied-to message | Existing reply preview changes to “Original message was deleted” |
+| React to an incoming message | Bubble trigger opens the composer emoji picker and the selected emoji appears as a reaction chip |
+| Change/remove reaction | A new emoji replaces the user's prior reaction; selecting the same emoji removes it |
+| Multiple users choose one emoji | One chip displays the aggregated count and participant dialog |
+| Attempt to react to own message | UI omits the trigger and API rejects a forged request |
 
 ### Groups
 
@@ -79,6 +86,8 @@
 | --- | --- |
 | Enable from prompt/profile | Browser subscription is stored for the authenticated user |
 | Background recipient | Text, attachment, GIF, and sticker sends produce a system notification |
+| Several background messages | Every message remains a distinct notification instead of replacing the previous item |
+| Group message | Notification title identifies the group and the body identifies the sender |
 | Visible ClickChat window | Service worker suppresses redundant system notification |
 | Click notification | Existing/new window opens the target conversation |
 | Disable | Browser unsubscribes and backend endpoint is removed |
@@ -144,6 +153,7 @@
 | Preferred language update | Profile refreshes and subsequent translations target the new language |
 | Avatar click | Public profile opens; clicking ordinary row content selects conversation instead |
 | Mobile browser Back | Open conversation returns to conversation list through URL history |
+| Profile/Settings navigation | Shared tabs switch directly between account pages on mobile and desktop |
 
 ## Recommended automated test architecture
 
@@ -170,7 +180,6 @@ flowchart TD
 | Message history | Cursor-based pages load while scrolling upward | History remains efficient for long conversations |
 | Unread state | Persisted per conversation and synchronized in real time | Opening a conversation resets its count across tabs and devices |
 | Read receipts | Sent, delivered, and read states persist and synchronize in real time | Group messages display participant totals |
-| Replies | Schema, API, and bubble display exist; composer selection does not | Users cannot initiate replies through the current UI |
 | Attachments | One file up to 10 MB per message; no cancellation, retry, signature inspection, or malware scan | Rich media works, but production hardening and multi-file UX remain |
 | Presence scale | Counts/timers are process-local | Single backend instance only |
 | Testing | No automated suite | Regression risk grows with new features |
@@ -181,8 +190,8 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    P0["P0 Automated reliability and Socket.IO tests"] --> P1["P1 Messaging resilience and replies"]
-    P1 --> P2["P2 Quotas, private media, replies, and multi-file galleries"]
+    P0["P0 Automated reliability and Socket.IO tests"] --> P1["P1 Messaging resilience and search"]
+    P1 --> P2["P2 Quotas, private media, pinning, and multi-file galleries"]
     P2 --> P3["P3 Blocking, reporting, search, voice recording, and calls"]
     P3 --> P4["P4 Redis-backed scale, observability, backup, and recovery"]
 ```
@@ -198,14 +207,13 @@ flowchart LR
 
 ### P1 — Messaging fundamentals
 
-1. Complete reply selection, composer preview, and reply navigation.
-2. Optimistic send state, client IDs, retry, and reconnection resynchronization.
+1. Add conversation and cross-conversation message search with jump-to-result navigation.
+2. Add optimistic send state, client IDs, retry, and reconnection resynchronization.
 
 ### P2 — Conversation features
 
-- Message reactions.
-- Message search.
 - Pin, mute, archive, and per-user conversation settings.
+- Message forwarding.
 - Blocking and reporting.
 
 ### P3 — Rich media and calls

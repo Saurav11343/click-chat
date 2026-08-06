@@ -1,6 +1,5 @@
 import Message from "./message.model.js";
 import { deleteCloudinaryFile } from "../../integrations/cloudinary/cloudinary.service.js";
-import { sendMessagePushNotifications } from "../notifications/push-notification.service.js";
 import {
   messagePopulateOptions,
   populateMessage,
@@ -9,6 +8,11 @@ import { publishToOtherParticipants } from "../../realtime/event-publisher.js";
 import { findConversationForParticipant } from "../conversations/conversation-access.service.js";
 import mongoose from "mongoose";
 import { incrementUnreadForRecipients } from "../conversations/conversation-read-state.service.js";
+import {
+  applySingleUserReaction,
+  presentAndPublishNewMessage,
+  validateReplyTarget,
+} from "./message-command.service.js";
 
 const encodeMessageCursor = (message) =>
   Buffer.from(
@@ -52,20 +56,7 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    if (replyTo) {
-      const repliedMessage = await Message.findOne({
-        _id: replyTo,
-        conversation: conversationId,
-        isDeleted: false,
-      }).select("_id");
-
-      if (!repliedMessage) {
-        return res.status(400).json({
-          success: false,
-          message: "Reply message was not found in this conversation.",
-        });
-      }
-    }
+    await validateReplyTarget({ conversationId, replyTo });
 
     const message = await Message.create({
       conversation: conversationId,
@@ -87,21 +78,11 @@ export const sendMessage = async (req, res) => {
 
     await incrementUnreadForRecipients({ conversation, senderId });
 
-    await populateMessage(message);
-
-    publishToOtherParticipants({
+    const payload = await presentAndPublishNewMessage({
       conversation,
       senderId,
-      event: "message:new",
-      payload: message,
-    });
-
-    void sendMessagePushNotifications({
-      conversation,
-      sender: message.sender,
       message,
-    }).catch((pushError) => {
-      console.error("Message push notification failed:", pushError.message);
+      logContext: "Text message",
     });
 
     return res.status(201).json({
@@ -112,9 +93,9 @@ export const sendMessage = async (req, res) => {
   } catch (error) {
     console.error("Send message error:", error);
 
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Failed to send message.",
+      message: error.statusCode ? error.message : "Failed to send message.",
     });
   }
 };
@@ -388,29 +369,7 @@ export const toggleMessageReaction = async (req, res) => {
       });
     }
 
-    const userIdValue = userId.toString();
-    const isRemovingCurrentReaction = message.reactions.some(
-      (reaction) => reaction.emoji === emoji && reaction.users.some(
-        (reactionUserId) => reactionUserId.toString() === userIdValue,
-      ),
-    );
-
-    for (const reaction of message.reactions) {
-      reaction.users = reaction.users.filter(
-        (reactionUserId) => reactionUserId.toString() !== userIdValue,
-      );
-    }
-    message.reactions = message.reactions.filter(
-      (reaction) => reaction.users.length > 0,
-    );
-
-    if (!isRemovingCurrentReaction) {
-      const selectedReaction = message.reactions.find(
-        (reaction) => reaction.emoji === emoji,
-      );
-      if (selectedReaction) selectedReaction.users.push(userId);
-      else message.reactions.push({ emoji, users: [userId] });
-    }
+    applySingleUserReaction({ message, userId, emoji });
 
     await message.save();
     await populateMessage(message);
@@ -425,11 +384,11 @@ export const toggleMessageReaction = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Reaction updated.",
-      data: message,
+      data: payload,
     });
   } catch (error) {
     console.error("Toggle message reaction error:", error);
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: "Unable to update the reaction.",
     });

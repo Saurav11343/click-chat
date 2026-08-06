@@ -81,6 +81,7 @@ flowchart TD
 - The landing page uses a branded header, responsive hero, product preview, trust points, feature cards, call to action, and footer.
 - Login and registration share `AuthShell`, which supplies consistent branding, theme control, navigation, benefits, and responsive two-column composition.
 - The authenticated dashboard avoids a separate global navbar. A compact ClickChat header is integrated into the conversation sidebar, while the selected conversation has one focused chat header.
+- Profile and Settings share `AccountPageShell`, which keeps responsive Profile/Settings tabs, chat return navigation, branding, and color-mode controls available on both pages.
 - The profile page presents identity, account status, verification state, biography, membership information, and profile-image controls. Name and biography sections enter local inline-edit mode rather than opening a second modal.
 - The settings page groups appearance, translation language, browser notifications, and password security away from public-facing identity controls.
 - Tailwind theme tokens and shadcn/Radix primitives provide consistent borders, cards, menus, dialogs, avatars, spacing, focus states, and light/dark behavior.
@@ -92,7 +93,7 @@ flowchart TD
 | `useAuthStore` | `authUser`, auth loading flags | Register, login, logout, auth check, verification resend, socket connect/disconnect |
 | `useInvitationStore` | Received/sent invitations and action flags | Fetch, send, respond, insert socket invitations, remove responses, delegate accepted conversation insertion |
 | `useConversationStore` | Conversation array and loading flag | Fetch list, add conversation, synchronize latest message, update participant presence |
-| `useMessageStore` | Active conversation messages and mutation flags | Fetch latest 50, send, insert incoming, replace edited/deleted, clear on selection change |
+| `useMessageStore` | Active messages, pagination cursors, and mutation flags | Fetch/prepend history, send replies/media, replace edits/deletes/reactions/receipts, and clear on selection change |
 | `useUserStore` | Profile-picture mutation flag | Upload a selected profile picture and refresh the authenticated user |
 
 ## Chat data flow
@@ -127,6 +128,8 @@ flowchart LR
 - New messages append only when they belong to the active conversation.
 - Conversation previews update locally and new activity moves the conversation to the top.
 - Edited/deleted messages replace matching `_id` values.
+- Reply references embedded in loaded messages are refreshed when the original is edited or deleted.
+- Reaction responses update the sender locally; `message:reaction` replaces the same message for other participants.
 - A preview changes on edit/delete only when that message is the current `lastMessage`.
 - Accepted invitations insert the returned conversation rather than refetching the whole list.
 - Presence updates modify populated participant objects without activating a loading skeleton.
@@ -140,8 +143,8 @@ flowchart TD
     DAY -->|"No"| BUBBLE["MessageBubble"]
     SEP --> BUBBLE
     BUBBLE --> OWN{"Current user owns message?"}
-    OWN -->|"Yes"| MENU["Copy / translate / edit / delete / download"]
-    OWN -->|"No"| VIEW["Copy / translate / download"]
+    OWN -->|"Yes"| MENU["Reply / copy / edit / delete / download"]
+    OWN -->|"No"| VIEW["Reply / react / copy / translate / download"]
     BUBBLE --> KIND{"Text, attachment, GIF/sticker, or YouTube link?"}
     KIND --> RICH["Render matching rich-media view"]
     BUBBLE --> STATE{"Deleted or edited?"}
@@ -149,9 +152,11 @@ flowchart TD
     STATE --> EDIT["Edited label"]
 ```
 
-The composer supports text, native emoji insertion, GIF/sticker selection, attachment upload, a 5,000-character limit, and submission loading state. Pressing Enter outside other inputs, dialogs, menus, links, and buttons focuses the message input. Enter within the input submits normally.
+The composer supports text, native emoji insertion, GIF/sticker selection, attachment upload, reply targeting, reaction targeting, a 5,000-character limit, and submission loading state. Pressing Enter outside other inputs, dialogs, menus, links, and buttons focuses the message input. Enter within the input submits normally.
 
-`MessageBubble` coordinates ownership, actions, editing, translation, reply context, and timestamps. `MessageText` owns linked text and YouTube previews, while `AttachmentContent` owns uploaded image/video/audio/document and external GIF/sticker rendering. The top-right menu is capability-based: copy is limited to text/link content, translate is limited to received text, edit/delete require ownership, and uploaded media includes a download action. Translation appears below the original and can be hidden without mutating message state.
+`MessageBubble` coordinates ownership, actions, editing, translation, reply context, reactions, and timestamps. Incoming direct and group bubbles share a sender header, content area, and metadata footer. The footer places the reaction trigger immediately before the timestamp; it opens the existing composer emoji picker instead of mounting a picker beside the bubble. Each user can hold one reaction per received message, reaction chips aggregate matching emoji, and a dialog lists participants. `MessageText` owns linked text and YouTube previews, while `AttachmentContent` owns uploaded image/video/audio/document and external GIF/sticker rendering.
+
+Replies can target text, attachments, GIFs, and stickers. The composer shows a cancellable preview; sent messages carry the original reference. Selecting a quoted preview loads older cursor pages when required, scrolls to the original, and briefly highlights it. Soft-deleted originals render a fallback label.
 
 ### Typing indicators
 
@@ -200,7 +205,7 @@ The composer supports text, native emoji insertion, GIF/sticker selection, attac
 
 ## Profile and public identity
 
-The authenticated Profile page contains public-facing identity concerns: profile picture, name, biography, account facts, and verification state. The separate Settings page contains private preferences and security controls. This keeps identity editing focused while giving appearance, language, notifications, and password changes a predictable home. Password reset remains available from the public login flow.
+The authenticated Profile page contains public-facing identity concerns: profile picture, name, biography, account facts, and verification state. The separate Settings page contains private preferences and security controls. Persistent tabs in `AccountPageShell` switch directly between them without returning to chat. Password reset remains available from the public login flow.
 
 In chat, only explicit avatar buttons open `PublicProfileDialog`; the entire conversation row remains dedicated to selecting the conversation. The dialog shows basic public identity data already available to conversation participants.
 
@@ -213,7 +218,5 @@ In chat, only explicit avatar buttons open `PublicProfileDialog`; the entire con
 
 ## Current frontend gaps
 
-- Older-message pagination and upward-scroll preservation.
-- Unread badges and read receipt rendering.
-- Reply selection and composer preview, despite backend/schema support.
-- Multi-file galleries, upload cancellation/retry, search, and calling interfaces.
+- Message search, pinning, forwarding, and optimistic failed-send retry.
+- Multi-file galleries, upload cancellation/retry, voice recording, and calling interfaces.

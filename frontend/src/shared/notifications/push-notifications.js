@@ -11,6 +11,17 @@ const urlBase64ToUint8Array = (base64String) => {
   );
 };
 
+export const registerPushServiceWorker = async () => {
+  if (!("serviceWorker" in navigator)) return null;
+
+  const registration = await navigator.serviceWorker.register("/sw.js", {
+    updateViaCache: "none",
+  });
+
+  void registration.update().catch(() => {});
+  return registration;
+};
+
 export const subscribeToPushNotifications = async () => {
   if (
     !("serviceWorker" in navigator) ||
@@ -26,7 +37,7 @@ export const subscribeToPushNotifications = async () => {
     throw new Error("Notification permission was not granted.");
   }
 
-  const registration = await navigator.serviceWorker.register("/sw.js");
+  const registration = await registerPushServiceWorker();
 
   let subscription = await registration.pushManager.getSubscription();
 

@@ -1,3 +1,11 @@
+self.addEventListener("install", (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   let data = {};
 
@@ -13,11 +21,17 @@ self.addEventListener("push", (event) => {
     body: data.body || "You have a new message.",
     icon: "/clickchat.png",
     badge: "/clickchat.png",
-    tag: data.conversationId
-      ? `conversation-${data.conversationId}`
-      : "clickchat-message",
+    tag: data.messageId
+      ? `message-${data.messageId}`
+      : `clickchat-message-${Date.now()}`,
+    timestamp: Number(data.timestamp) || Date.now(),
+    renotify: false,
+    silent: false,
+    actions: [{ action: "open", title: "Open chat" }],
     data: {
       conversationId: data.conversationId || null,
+      messageId: data.messageId || null,
+      url: data.url || null,
     },
   };
 
@@ -45,15 +59,21 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const conversationId = event.notification.data?.conversationId;
-  const targetUrl = conversationId
+  const targetUrl = event.notification.data?.url || (conversationId
     ? `/chat?conversation=${encodeURIComponent(conversationId)}`
-    : "/chat";
+    : "/chat");
 
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then(async (windowClients) => {
-        for (const client of windowClients) {
+        const orderedClients = [...windowClients].sort(
+          (first, second) =>
+            Number(second.visibilityState === "visible") -
+            Number(first.visibilityState === "visible"),
+        );
+
+        for (const client of orderedClients) {
           if ("navigate" in client) {
             await client.navigate(targetUrl);
           }
