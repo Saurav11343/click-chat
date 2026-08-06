@@ -10,6 +10,7 @@ import {
   editMessage,
   getMessages,
   sendMessage,
+  toggleMessageReaction,
 } from "./message.controller.js";
 import { translateMessage } from "../translations/translation.controller.js";
 import { translationLimiter } from "../../middleware/rate-limit.middleware.js";
@@ -23,6 +24,7 @@ import {
   messageHistoryQuerySchema,
   messageParamsSchema,
   sendMessageSchema,
+  toggleReactionSchema,
 } from "./message.schema.js";
 
 const router = express.Router({ mergeParams: true });
@@ -68,6 +70,12 @@ router.patch(
   validate(messageParamsSchema, "params"),
   validate(editMessageSchema),
   editMessage,
+);
+router.post(
+  "/:conversationId/messages/:messageId/reactions",
+  validate(messageParamsSchema, "params"),
+  validate(toggleReactionSchema),
+  toggleMessageReaction,
 );
 router.delete(
   "/:conversationId/messages/:messageId",

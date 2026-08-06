@@ -17,6 +17,7 @@ export const sendExternalMedia = async (req, res) => {
       width,
       height,
       description,
+      replyTo,
     } = req.body;
 
     const conversation = await findConversationForParticipant({
@@ -29,6 +30,21 @@ export const sendExternalMedia = async (req, res) => {
         success: false,
         message: "Conversation not found or you are not a participant.",
       });
+    }
+
+    if (replyTo) {
+      const repliedMessage = await Message.findOne({
+        _id: replyTo,
+        conversation: conversationId,
+        isDeleted: false,
+      }).select("_id");
+
+      if (!repliedMessage) {
+        return res.status(400).json({
+          success: false,
+          message: "Reply message was not found in this conversation.",
+        });
+      }
     }
 
     const externalMedia = {
@@ -46,6 +62,7 @@ export const sendExternalMedia = async (req, res) => {
       sender: senderId,
       messageType: mediaType,
       externalMedia,
+      replyTo: replyTo || null,
       readBy: [{ user: senderId, readAt: new Date() }],
     });
 

@@ -120,6 +120,7 @@ export function useChatRealtime({ onConversationRemoved }) {
       ["message:new", handleNewMessage],
       ["message:updated", handleMessageChanged],
       ["message:deleted", handleMessageChanged],
+      ["message:reaction", replaceMessage],
       ["presence:update", updateParticipantPresence],
       ["invitation:new", addIncomingInvitation],
       ["invitation:responded", applyInvitationResponse],

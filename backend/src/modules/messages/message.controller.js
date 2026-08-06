@@ -300,6 +300,7 @@ export const deleteMessage = async (req, res) => {
     message.deletedAt = new Date();
     message.isEdited = false;
     message.editedAt = null;
+    message.reactions = [];
 
     await message.save();
 
@@ -345,6 +346,92 @@ export const deleteMessage = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete message.",
+    });
+  }
+};
+
+export const toggleMessageReaction = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { conversationId, messageId } = req.params;
+    const { emoji } = req.body;
+
+    const conversation = await findConversationForParticipant({
+      conversationId,
+      userId,
+    }).select("participants");
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found or you are not a participant.",
+      });
+    }
+
+    const message = await Message.findOne({
+      _id: messageId,
+      conversation: conversationId,
+      isDeleted: false,
+    });
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: "Message not found or it has been deleted.",
+      });
+    }
+
+    if (message.sender.toString() === userId.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "You can only react to messages from other participants.",
+      });
+    }
+
+    const userIdValue = userId.toString();
+    const isRemovingCurrentReaction = message.reactions.some(
+      (reaction) => reaction.emoji === emoji && reaction.users.some(
+        (reactionUserId) => reactionUserId.toString() === userIdValue,
+      ),
+    );
+
+    for (const reaction of message.reactions) {
+      reaction.users = reaction.users.filter(
+        (reactionUserId) => reactionUserId.toString() !== userIdValue,
+      );
+    }
+    message.reactions = message.reactions.filter(
+      (reaction) => reaction.users.length > 0,
+    );
+
+    if (!isRemovingCurrentReaction) {
+      const selectedReaction = message.reactions.find(
+        (reaction) => reaction.emoji === emoji,
+      );
+      if (selectedReaction) selectedReaction.users.push(userId);
+      else message.reactions.push({ emoji, users: [userId] });
+    }
+
+    await message.save();
+    await populateMessage(message);
+
+    publishToOtherParticipants({
+      conversation,
+      senderId: userId,
+      event: "message:reaction",
+      payload: message,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Reaction updated.",
+      data: message,
+    });
+  } catch (error) {
+    console.error("Toggle message reaction error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to update the reaction.",
     });
   }
 };

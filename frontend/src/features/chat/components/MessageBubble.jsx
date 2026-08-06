@@ -7,6 +7,8 @@ import {
   EllipsisVertical,
   Languages,
   Pencil,
+  Reply,
+  Smile,
   Trash2,
   X,
 } from "lucide-react";
@@ -14,6 +16,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import {
   DropdownMenu,
@@ -23,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useMessageStore } from "@/features/chat/store/useMessageStore";
+import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { axiosInstance } from "@/shared/api/api-client";
 import { getLanguageName } from "@/shared/constants/languages";
 import { AttachmentContent } from "./message/AttachmentContent";
@@ -37,8 +48,14 @@ export function MessageBubble({
   onMediaLoad,
   showSender = false,
   participantCount = 0,
+  onReply,
+  onReplyClick,
+  onReact,
+  isHighlighted = false,
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedReaction, setSelectedReaction] = useState(null);
+  const authUserId = useAuthStore((state) => state.authUser?._id);
 
   const [editedContent, setEditedContent] = useState(message.content || "");
   const [translation, setTranslation] = useState(null);
@@ -52,9 +69,11 @@ export function MessageBubble({
   const editMessage = useMessageStore((state) => state.editMessage);
 
   const deleteMessage = useMessageStore((state) => state.deleteMessage);
+  const reactingMessageId = useMessageStore((state) => state.reactingMessageId);
 
   const isSaving = editingMessageId === message._id;
   const isDeleting = deletingMessageId === message._id;
+  const isReacting = reactingMessageId === message._id;
 
   const isTextMessage = message.messageType === "text";
   const isGif = message.messageType === "gif";
@@ -71,8 +90,7 @@ export function MessageBubble({
   const canCopy = isTextMessage || hasLink;
   const canTranslate = Boolean(message.content?.trim());
   const canTranslateReceivedMessage = !isMyMessage && canTranslate;
-  const hasMessageActions =
-    canCopy || isMyMessage || canTranslateReceivedMessage;
+  const hasMessageActions = !message.isDeleted;
 
   const formattedTime = message.createdAt
     ? new Date(message.createdAt).toLocaleTimeString([], {
@@ -166,14 +184,15 @@ export function MessageBubble({
       onLoadCapture={onMediaLoad}
       onLoadedMetadataCapture={onMediaLoad}
     >
+      <div className={`flex w-full flex-col ${isMyMessage ? "items-end" : "items-start"}`}>
       <div
-        className={`relative rounded-2xl ${
+        className={`relative rounded-2xl transition-[box-shadow] duration-300 ${
           isBareMedia
             ? "w-[min(280px,86vw)]"
             : "max-w-[86%] sm:max-w-[72%]"
         } ${
           !message.isDeleted && !isEditing && hasMessageActions && !isBareMedia
-            ? "pr-10 sm:pr-10"
+            ? "pr-10"
             : ""
         } ${
           isSticker && !message.isDeleted
@@ -187,13 +206,13 @@ export function MessageBubble({
           (!isSticker && !isBareMedia) || message.isDeleted
             ? "px-3.5 py-2.5 sm:px-4"
             : ""
-        }`}
+        } ${isHighlighted ? "ring-2 ring-primary ring-offset-4 ring-offset-background" : ""}`}
       >
-        {showSender && !isMyMessage && message.sender && (
+        {!isMyMessage && message.sender && (
           <PublicProfileDialog user={senderProfile}>
             <button
               type="button"
-              className="mb-1 block max-w-full truncate rounded-sm text-left text-xs font-semibold text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+              className="mb-2 block w-full truncate pb-1 pr-6 text-left text-xs font-semibold text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={`View ${[
                 message.sender.firstName,
                 message.sender.lastName,
@@ -211,7 +230,7 @@ export function MessageBubble({
         {!message.isDeleted && !isEditing && hasMessageActions && (
           <div
             className={`absolute right-1 z-10 ${
-              isBareMedia && showSender ? "top-6" : "top-1"
+              isBareMedia && !isMyMessage ? "top-6" : "top-1"
             }`}
           >
             <DropdownMenu>
@@ -235,6 +254,11 @@ export function MessageBubble({
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" side="bottom">
+                <DropdownMenuItem onClick={() => onReply?.(message)}>
+                  <Reply className="size-4" />
+                  Reply
+                </DropdownMenuItem>
+
                 {canCopy && (
                   <DropdownMenuItem onClick={handleCopy}>
                     <Copy className="size-4" />
@@ -281,17 +305,22 @@ export function MessageBubble({
         )}
 
         {message.replyTo && !message.isDeleted && (
-          <div
+          <button
+            type="button"
+            onClick={() => onReplyClick?.(message.replyTo._id)}
             className={`mb-2 rounded-lg border-l-2 px-2 py-1 text-xs ${
               isMyMessage
                 ? "border-primary-foreground/50 bg-primary-foreground/10"
                 : "border-primary/50 bg-muted"
             }`}
           >
-            <p className="truncate opacity-80">
+            <p className="truncate text-left font-semibold opacity-80">
+              {getSenderName(message.replyTo.sender)}
+            </p>
+            <p className="truncate text-left opacity-70">
               {getReplyPreview(message.replyTo)}
             </p>
-          </div>
+          </button>
         )}
 
         {message.isDeleted ? (
@@ -380,10 +409,30 @@ export function MessageBubble({
             isBareGif
               ? "absolute inset-x-0 bottom-0 flex items-center justify-end gap-1.5 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-3 pb-2 pt-7"
               : `flex items-center justify-end gap-1.5 ${
-                  isBareImage ? "mt-1 px-1" : "mt-1.5"
+                  isBareImage
+                    ? "mt-1 px-1"
+                    : "mt-2 pt-1"
                 }`
           }
         >
+          {!message.isDeleted && !isEditing && !isMyMessage && (
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              disabled={isReacting}
+              onClick={() => onReact?.(message)}
+              className={`size-6 rounded-md shadow-none ${
+                isBareGif
+                  ? "text-white/85 hover:bg-white/15 hover:text-white"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+              aria-label="React to message"
+            >
+              <Smile className="size-3.5" />
+            </Button>
+          )}
+
           {message.isEdited && !message.isDeleted && (
             <span
               className={`text-[10px] ${
@@ -426,8 +475,86 @@ export function MessageBubble({
           )}
         </div>
       </div>
+      {!message.isDeleted && message.reactions?.length > 0 && (
+        <div className="mt-1 flex max-w-[86%] flex-wrap gap-1 sm:max-w-[72%]">
+          {message.reactions.map((reaction) => (
+            <button
+              key={reaction.emoji}
+              type="button"
+              disabled={isReacting}
+              onClick={() => setSelectedReaction(reaction)}
+              className={`flex h-7 items-center gap-1 rounded-full border px-2 text-xs shadow-sm transition-colors hover:bg-muted ${
+                hasUserReacted(message.reactions, reaction.emoji, authUserId)
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "bg-background text-foreground"
+              }`}
+              aria-label={`${reaction.emoji}, ${reaction.users.length} reactions. View who reacted.`}
+            >
+              <span>{reaction.emoji}</span>
+              <span className="font-medium">{reaction.users.length}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      </div>
+
+      <ReactionDetailsDialog
+        reaction={selectedReaction}
+        open={Boolean(selectedReaction)}
+        onOpenChange={(open) => { if (!open) setSelectedReaction(null); }}
+      />
     </div>
   );
+}
+
+function hasUserReacted(reactions = [], emoji, userId) {
+  return Boolean(reactions.find((reaction) => reaction.emoji === emoji)?.users
+    ?.some((user) => (user?._id || user) === userId));
+}
+
+function ReactionDetailsDialog({ reaction, open, onOpenChange }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span className="text-2xl">{reaction?.emoji}</span>
+            Reactions
+          </DialogTitle>
+          <DialogDescription>
+            {reaction?.users?.length || 0} {(reaction?.users?.length || 0) === 1 ? "person" : "people"} reacted.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-72 space-y-1 overflow-y-auto">
+          {(reaction?.users || []).map((user) => {
+            const name = getSenderName(user);
+            return (
+              <div key={user._id || user} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-muted/60">
+                <Avatar className="size-9">
+                  <AvatarImage src={user.profilePic?.url || user.profilePic} alt={name} />
+                  <AvatarFallback>{getInitials(user)}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{name}</p>
+                  {user.email && <p className="truncate text-xs text-muted-foreground">{user.email}</p>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function getInitials(user) {
+  if (!user || typeof user === "string") return "?";
+  return [user.firstName, user.lastName].filter(Boolean).map((part) => part[0]).join("").toUpperCase() || "?";
+}
+
+function getSenderName(sender) {
+  if (!sender || typeof sender === "string") return "Unknown sender";
+  return [sender.firstName, sender.lastName].filter(Boolean).join(" ") || "Unknown sender";
 }
 
 function ReceiptIndicator({

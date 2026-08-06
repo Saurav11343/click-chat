@@ -36,3 +36,15 @@ export const editMessageSchema = z.object({
     .min(1, "Message cannot be empty")
     .max(5000, "Message cannot exceed 5000 characters"),
 });
+
+const singleEmojiSchema = z.string().trim().min(1).max(32).refine((value) => {
+  const graphemes = [...new Intl.Segmenter(undefined, {
+    granularity: "grapheme",
+  }).segment(value)];
+  return graphemes.length === 1 &&
+    /[\p{Extended_Pictographic}\p{Regional_Indicator}\u20E3]/u.test(value);
+}, "Reaction must be a single emoji");
+
+export const toggleReactionSchema = z.object({
+  emoji: singleEmojiSchema,
+});
