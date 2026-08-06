@@ -60,9 +60,9 @@ const areAcceptedContacts = async (userId, contactIds) => {
 };
 
 const deleteGroupResources = async (conversation) => {
-  const messages = await Message.find({ conversation: conversation._id }).select(
-    "attachment",
-  );
+  const messages = await Message.find({
+    conversation: conversation._id,
+  }).select("attachment");
   const files = messages
     .map((message) => message.attachment)
     .filter((attachment) => attachment?.publicId)
@@ -303,14 +303,18 @@ export const updateGroup = async (req, res) => {
     });
   } catch (error) {
     console.error("Update group error:", error);
-    return res.status(500).json({ success: false, message: "Unable to update the group." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to update the group." });
   }
 };
 
 export const updateGroupImage = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: "Select a group image." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Select a group image." });
     }
 
     const conversation = await getGroupForAdmin(
@@ -344,7 +348,9 @@ export const updateGroupImage = async (req, res) => {
     });
   } catch (error) {
     console.error("Update group image error:", error);
-    return res.status(500).json({ success: false, message: "Unable to update the group image." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to update the group image." });
   }
 };
 
@@ -362,12 +368,21 @@ export const addGroupParticipants = async (req, res) => {
     }
 
     const existingIds = new Set(conversation.participants.map(participantId));
-    const addedIds = req.body.participantIds.filter((id) => !existingIds.has(id));
+    const addedIds = req.body.participantIds.filter(
+      (id) => !existingIds.has(id),
+    );
     if (addedIds.length === 0) {
-      return res.status(409).json({ success: false, message: "Those users are already members." });
+      return res
+        .status(409)
+        .json({ success: false, message: "Those users are already members." });
     }
     if (conversation.participants.length + addedIds.length > 100) {
-      return res.status(400).json({ success: false, message: "A group cannot exceed 100 members." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "A group cannot exceed 100 members.",
+        });
     }
     if (!(await areAcceptedContacts(req.user._id, addedIds))) {
       return res.status(403).json({
@@ -378,7 +393,12 @@ export const addGroupParticipants = async (req, res) => {
 
     const existingUsers = await User.countDocuments({ _id: { $in: addedIds } });
     if (existingUsers !== addedIds.length) {
-      return res.status(400).json({ success: false, message: "One or more selected users no longer exist." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "One or more selected users no longer exist.",
+        });
     }
 
     conversation.participants.push(...addedIds);
@@ -405,7 +425,9 @@ export const addGroupParticipants = async (req, res) => {
     });
   } catch (error) {
     console.error("Add group participants error:", error);
-    return res.status(500).json({ success: false, message: "Unable to add group members." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to add group members." });
   }
 };
 
@@ -416,21 +438,39 @@ export const removeGroupParticipant = async (req, res) => {
       req.user._id,
     );
     if (!conversation) {
-      return res.status(404).json({ success: false, message: "Group not found or administrator access is required." });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Group not found or administrator access is required.",
+        });
     }
 
     const targetId = req.params.participantId;
     if (targetId === req.user._id.toString()) {
-      return res.status(400).json({ success: false, message: "Use Leave group to remove yourself." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Use Leave group to remove yourself.",
+        });
     }
     if (!conversation.participants.some((id) => id.toString() === targetId)) {
-      return res.status(404).json({ success: false, message: "Member not found in this group." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Member not found in this group." });
     }
     const targetIsAdmin = conversation.groupAdmins.some(
       (id) => id.toString() === targetId,
     );
     if (targetIsAdmin && conversation.groupAdmins.length === 1) {
-      return res.status(400).json({ success: false, message: "Assign another administrator before removing this administrator." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message:
+            "Assign another administrator before removing this administrator.",
+        });
     }
 
     conversation.participants.pull(targetId);
@@ -443,10 +483,14 @@ export const removeGroupParticipant = async (req, res) => {
     });
     emitConversationToParticipants(conversation, "conversation:updated");
 
-    return res.status(200).json({ success: true, message: "Member removed.", conversation });
+    return res
+      .status(200)
+      .json({ success: true, message: "Member removed.", conversation });
   } catch (error) {
     console.error("Remove group participant error:", error);
-    return res.status(500).json({ success: false, message: "Unable to remove the member." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to remove the member." });
   }
 };
 
@@ -457,21 +501,35 @@ export const updateGroupAdmin = async (req, res) => {
       req.user._id,
     );
     if (!conversation) {
-      return res.status(404).json({ success: false, message: "Group not found or administrator access is required." });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Group not found or administrator access is required.",
+        });
     }
 
     const targetId = req.params.participantId;
     if (!conversation.participants.some((id) => id.toString() === targetId)) {
-      return res.status(404).json({ success: false, message: "Member not found in this group." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Member not found in this group." });
     }
 
-    const isAdmin = conversation.groupAdmins.some((id) => id.toString() === targetId);
+    const isAdmin = conversation.groupAdmins.some(
+      (id) => id.toString() === targetId,
+    );
     if (req.body.action === "add" && !isAdmin) {
       conversation.groupAdmins.push(targetId);
     }
     if (req.body.action === "remove" && isAdmin) {
       if (conversation.groupAdmins.length === 1) {
-        return res.status(400).json({ success: false, message: "A group must have at least one administrator." });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "A group must have at least one administrator.",
+          });
       }
       conversation.groupAdmins.pull(targetId);
     }
@@ -482,12 +540,17 @@ export const updateGroupAdmin = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: req.body.action === "add" ? "Administrator added." : "Administrator removed.",
+      message:
+        req.body.action === "add"
+          ? "Administrator added."
+          : "Administrator removed.",
       conversation,
     });
   } catch (error) {
     console.error("Update group admin error:", error);
-    return res.status(500).json({ success: false, message: "Unable to update administrators." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to update administrators." });
   }
 };
 
@@ -499,7 +562,9 @@ export const leaveGroup = async (req, res) => {
       participants: req.user._id,
     }).select("+groupImage.publicId +groupImage.resourceType");
     if (!conversation) {
-      return res.status(404).json({ success: false, message: "Group not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Group not found." });
     }
 
     const leavingId = req.user._id.toString();
@@ -507,7 +572,9 @@ export const leaveGroup = async (req, res) => {
       await deleteGroupResources(conversation);
     } else {
       conversation.participants.pull(leavingId);
-      const wasAdmin = conversation.groupAdmins.some((id) => id.toString() === leavingId);
+      const wasAdmin = conversation.groupAdmins.some(
+        (id) => id.toString() === leavingId,
+      );
       conversation.groupAdmins.pull(leavingId);
       if (wasAdmin && conversation.groupAdmins.length === 0) {
         conversation.groupAdmins.push(conversation.participants[0]);
@@ -520,10 +587,14 @@ export const leaveGroup = async (req, res) => {
     getIO().to(`user:${leavingId}`).emit("conversation:removed", {
       conversationId: req.params.conversationId,
     });
-    return res.status(200).json({ success: true, message: "You left the group." });
+    return res
+      .status(200)
+      .json({ success: true, message: "You left the group." });
   } catch (error) {
     console.error("Leave group error:", error);
-    return res.status(500).json({ success: false, message: "Unable to leave the group." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to leave the group." });
   }
 };
 
@@ -534,7 +605,12 @@ export const deleteGroup = async (req, res) => {
       req.user._id,
     ).select("+groupImage.publicId +groupImage.resourceType");
     if (!conversation) {
-      return res.status(404).json({ success: false, message: "Group not found or administrator access is required." });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Group not found or administrator access is required.",
+        });
     }
 
     const participantIds = conversation.participants.map(participantId);
@@ -546,9 +622,13 @@ export const deleteGroup = async (req, res) => {
       });
     }
 
-    return res.status(200).json({ success: true, message: "Group deleted permanently." });
+    return res
+      .status(200)
+      .json({ success: true, message: "Group deleted permanently." });
   } catch (error) {
     console.error("Delete group error:", error);
-    return res.status(500).json({ success: false, message: "Unable to delete the group." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to delete the group." });
   }
 };

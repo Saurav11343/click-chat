@@ -20,6 +20,7 @@ export const translationLimiter = rateLimit({
   message: {
     success: false,
     code: "TRANSLATION_RATE_LIMITED",
-    message: "Too many translation requests. Please wait a minute and try again.",
+    message:
+      "Too many translation requests. Please wait a minute and try again.",
   },
 });

@@ -1,6 +1,9 @@
 import express from "express";
 
-import { accessAttachment, sendAttachment } from "../attachments/attachment.controller.js";
+import {
+  accessAttachment,
+  sendAttachment,
+} from "../attachments/attachment.controller.js";
 import { sendExternalMedia } from "./external-media.controller.js";
 import {
   deleteMessage,
@@ -17,19 +20,59 @@ import { sendExternalMediaSchema } from "./external-media.schema.js";
 import {
   conversationIdSchema,
   editMessageSchema,
+  messageHistoryQuerySchema,
   messageParamsSchema,
   sendMessageSchema,
 } from "./message.schema.js";
 
 const router = express.Router({ mergeParams: true });
 
-router.get("/:conversationId/messages", validate(conversationIdSchema, "params"), getMessages);
-router.post("/:conversationId/messages", validate(conversationIdSchema, "params"), validate(sendMessageSchema), sendMessage);
-router.post("/:conversationId/attachments", validate(conversationIdSchema, "params"), uploadChatFile, validateChatAttachment, sendAttachment);
-router.post("/:conversationId/media", validate(conversationIdSchema, "params"), validate(sendExternalMediaSchema), sendExternalMedia);
-router.get("/:conversationId/messages/:messageId/attachment", validate(messageParamsSchema, "params"), accessAttachment);
-router.post("/:conversationId/messages/:messageId/translate", translationLimiter, validate(messageParamsSchema, "params"), translateMessage);
-router.patch("/:conversationId/messages/:messageId", validate(messageParamsSchema, "params"), validate(editMessageSchema), editMessage);
-router.delete("/:conversationId/messages/:messageId", validate(messageParamsSchema, "params"), deleteMessage);
+router.get(
+  "/:conversationId/messages",
+  validate(conversationIdSchema, "params"),
+  validate(messageHistoryQuerySchema, "query"),
+  getMessages,
+);
+router.post(
+  "/:conversationId/messages",
+  validate(conversationIdSchema, "params"),
+  validate(sendMessageSchema),
+  sendMessage,
+);
+router.post(
+  "/:conversationId/attachments",
+  validate(conversationIdSchema, "params"),
+  uploadChatFile,
+  validateChatAttachment,
+  sendAttachment,
+);
+router.post(
+  "/:conversationId/media",
+  validate(conversationIdSchema, "params"),
+  validate(sendExternalMediaSchema),
+  sendExternalMedia,
+);
+router.get(
+  "/:conversationId/messages/:messageId/attachment",
+  validate(messageParamsSchema, "params"),
+  accessAttachment,
+);
+router.post(
+  "/:conversationId/messages/:messageId/translate",
+  translationLimiter,
+  validate(messageParamsSchema, "params"),
+  translateMessage,
+);
+router.patch(
+  "/:conversationId/messages/:messageId",
+  validate(messageParamsSchema, "params"),
+  validate(editMessageSchema),
+  editMessage,
+);
+router.delete(
+  "/:conversationId/messages/:messageId",
+  validate(messageParamsSchema, "params"),
+  deleteMessage,
+);
 
 export default router;

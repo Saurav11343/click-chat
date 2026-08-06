@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef } from "react";
 
 import {
   ArrowLeft,
@@ -31,8 +31,11 @@ export function ChatWindow({
   const messages = useMessageStore((state) => state.messages);
 
   const isLoadingMessages = useMessageStore((state) => state.isLoadingMessages);
+  const isLoadingOlderMessages = useMessageStore((state) => state.isLoadingOlderMessages);
+  const hasMoreMessages = useMessageStore((state) => state.hasMoreMessages);
 
   const getMessages = useMessageStore((state) => state.getMessages);
+  const loadOlderMessages = useMessageStore((state) => state.loadOlderMessages);
 
   const clearMessages = useMessageStore((state) => state.clearMessages);
 
@@ -47,6 +50,9 @@ export function ChatWindow({
       : formatLastSeen(selectedConversation?.lastSeen);
 
   const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const prependSnapshotRef = useRef(null);
+  const previousLastMessageIdRef = useRef(null);
 
   const handleLatestMediaLoad = () => {
     requestAnimationFrame(() => {
@@ -67,16 +73,52 @@ export function ChatWindow({
     }
   }, [conversationId, getMessages, clearMessages]);
 
-  // Scroll to the newest message after loading
-  // or sending a message.
+  // Scroll only when the latest message changes. Prepending history should not
+  // pull the user back to the bottom.
   useEffect(() => {
-    if (!isLoadingMessages && messages.length > 0) {
+    const latestMessageId = messages.at(-1)?._id || null;
+    if (
+      !isLoadingMessages &&
+      latestMessageId &&
+      latestMessageId !== previousLastMessageIdRef.current
+    ) {
       messagesEndRef.current?.scrollIntoView({
-        behavior: "smooth",
+        behavior: previousLastMessageIdRef.current ? "smooth" : "auto",
         block: "end",
       });
     }
+    previousLastMessageIdRef.current = latestMessageId;
   }, [messages, isLoadingMessages, isTyping]);
+
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    const snapshot = prependSnapshotRef.current;
+    if (!container || !snapshot || isLoadingOlderMessages) return;
+
+    container.scrollTop = snapshot.scrollTop +
+      (container.scrollHeight - snapshot.scrollHeight);
+    prependSnapshotRef.current = null;
+  }, [messages, isLoadingOlderMessages]);
+
+  const handleMessagesScroll = async (event) => {
+    const container = event.currentTarget;
+    const messageState = useMessageStore.getState();
+    if (
+      container.scrollTop > 120 ||
+      !hasMoreMessages ||
+      isLoadingOlderMessages ||
+      messageState.isLoadingOlderMessages
+    ) {
+      return;
+    }
+
+    prependSnapshotRef.current = {
+      scrollHeight: container.scrollHeight,
+      scrollTop: container.scrollTop,
+    };
+    const loaded = await loadOlderMessages(conversationId);
+    if (!loaded) prependSnapshotRef.current = null;
+  };
 
   if (!selectedConversation) {
     return <EmptyChat />;
@@ -171,9 +213,21 @@ export function ChatWindow({
       <Separator />
 
       <div
+        ref={scrollContainerRef}
+        onScroll={handleMessagesScroll}
         className="chat-canvas relative min-h-0 flex-1 overflow-y-auto px-3 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6"
       >
         <div className="relative mx-auto flex min-h-full w-full max-w-5xl flex-col justify-end gap-2.5">
+          {isLoadingOlderMessages && (
+            <p className="py-2 text-center text-xs text-muted-foreground" role="status">
+              Loading older messages...
+            </p>
+          )}
+          {!isLoadingMessages && !hasMoreMessages && messages.length > 0 && (
+            <p className="py-2 text-center text-xs text-muted-foreground">
+              Start of conversation
+            </p>
+          )}
           {isLoadingMessages ? (
             <MessagesLoadingState />
           ) : messages.length === 0 ? (

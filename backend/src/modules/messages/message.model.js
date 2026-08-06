@@ -200,15 +200,7 @@ const messageSchema = new mongoose.Schema(
     messageType: {
       type: String,
       enum: {
-        values: [
-          "text",
-          "image",
-          "video",
-          "audio",
-          "file",
-          "gif",
-          "sticker",
-        ],
+        values: ["text", "image", "video", "audio", "file", "gif", "sticker"],
         message: "{VALUE} is not a valid message type",
       },
       default: "text",
@@ -312,10 +304,7 @@ messageSchema.pre("validate", function validateMessage() {
       );
     }
 
-    if (
-      hasExternalMedia &&
-      this.externalMedia.mediaType !== this.messageType
-    ) {
+    if (hasExternalMedia && this.externalMedia.mediaType !== this.messageType) {
       this.invalidate(
         "externalMedia.mediaType",
         "External media type must match the message type",
@@ -336,6 +325,7 @@ messageSchema.pre("validate", function validateMessage() {
 messageSchema.index({
   conversation: 1,
   createdAt: -1,
+  _id: -1,
 });
 
 messageSchema.index({

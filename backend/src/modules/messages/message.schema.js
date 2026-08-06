@@ -9,6 +9,11 @@ export const conversationIdSchema = z.object({
   conversationId: objectIdSchema,
 });
 
+export const messageHistoryQuerySchema = z.object({
+  cursor: z.string().trim().min(1).max(500).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
 export const sendMessageSchema = z.object({
   content: z
     .string()

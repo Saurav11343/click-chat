@@ -9,6 +9,9 @@ export const useMessageStore = create((set, get) => ({
   activeConversationId: null,
 
   isLoadingMessages: false,
+  isLoadingOlderMessages: false,
+  hasMoreMessages: false,
+  nextMessageCursor: null,
   isSendingMessage: false,
   isSendingAttachment: false,
   isSendingExternalMedia: false,
@@ -23,6 +26,8 @@ export const useMessageStore = create((set, get) => ({
       activeConversationId: conversationId,
       isLoadingMessages: true,
       messages: [],
+      hasMoreMessages: false,
+      nextMessageCursor: null,
     });
 
     try {
@@ -40,6 +45,8 @@ export const useMessageStore = create((set, get) => ({
 
       set({
         messages: response.data.messages || [],
+        hasMoreMessages: Boolean(response.data.pageInfo?.hasMore),
+        nextMessageCursor: response.data.pageInfo?.nextCursor || null,
       });
 
       return true;
@@ -52,6 +59,59 @@ export const useMessageStore = create((set, get) => ({
         set({
           isLoadingMessages: false,
         });
+      }
+    }
+  },
+
+  loadOlderMessages: async (conversationId) => {
+    const state = get();
+    if (
+      !conversationId ||
+      state.activeConversationId !== conversationId ||
+      state.isLoadingMessages ||
+      state.isLoadingOlderMessages ||
+      !state.hasMoreMessages ||
+      !state.nextMessageCursor
+    ) {
+      return false;
+    }
+
+    const requestedCursor = state.nextMessageCursor;
+    set({ isLoadingOlderMessages: true });
+
+    try {
+      const response = await axiosInstance.get(
+        `/conversations/${conversationId}/messages`,
+        { params: { cursor: requestedCursor } },
+      );
+
+      if (
+        get().activeConversationId !== conversationId ||
+        get().nextMessageCursor !== requestedCursor
+      ) {
+        return false;
+      }
+
+      const olderMessages = response.data.messages || [];
+      set((current) => {
+        const existingIds = new Set(current.messages.map(({ _id }) => _id));
+        return {
+          messages: [
+            ...olderMessages.filter(({ _id }) => !existingIds.has(_id)),
+            ...current.messages,
+          ],
+          hasMoreMessages: Boolean(response.data.pageInfo?.hasMore),
+          nextMessageCursor: response.data.pageInfo?.nextCursor || null,
+        };
+      });
+
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to load older messages.");
+      return false;
+    } finally {
+      if (get().activeConversationId === conversationId) {
+        set({ isLoadingOlderMessages: false });
       }
     }
   },
@@ -266,6 +326,9 @@ export const useMessageStore = create((set, get) => ({
       messages: [],
       activeConversationId: null,
       isLoadingMessages: false,
+      isLoadingOlderMessages: false,
+      hasMoreMessages: false,
+      nextMessageCursor: null,
       isSendingAttachment: false,
       isSendingExternalMedia: false,
       attachmentUploadProgress: 0,
@@ -274,7 +337,7 @@ export const useMessageStore = create((set, get) => ({
 
   handleConversationCleared: (conversationId) => {
     if (get().activeConversationId === conversationId) {
-      set({ messages: [] });
+      set({ messages: [], hasMoreMessages: false, nextMessageCursor: null });
     }
   },
 

@@ -161,7 +161,7 @@ flowchart TD
 
 | Area | Limitation | Impact |
 | --- | --- | --- |
-| Message history | Only latest 50 messages are returned | Older history is inaccessible |
+| Message history | Cursor-based pages load while scrolling upward | History remains efficient for long conversations |
 | Unread state | Counts are fixed at zero in the UI | Users cannot identify unseen conversations |
 | Read receipts | Sender receipt is stored, but no complete update/event/UI workflow exists | Delivery/read state is not visible |
 | Replies | Schema, API, and bubble display exist; composer selection does not | Users cannot initiate replies through the current UI |
@@ -192,11 +192,10 @@ flowchart LR
 
 ### P1 — Messaging fundamentals
 
-1. Cursor-based older-message pagination with scroll-position preservation.
-2. Per-conversation unread counts.
-3. Complete read-receipt API, events, and UI.
-4. Complete reply selection, composer preview, and reply navigation.
-5. Optimistic send state, client IDs, retry, and reconnection resynchronization.
+1. Per-conversation unread counts.
+2. Complete read-receipt API, events, and UI.
+3. Complete reply selection, composer preview, and reply navigation.
+4. Optimistic send state, client IDs, retry, and reconnection resynchronization.
 
 ### P2 — Conversation features
 

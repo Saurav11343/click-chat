@@ -177,7 +177,11 @@ export const translateMessageContent = async ({
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ q: content, target: targetLanguage, format: "text" }),
+      body: JSON.stringify({
+        q: content,
+        target: targetLanguage,
+        format: "text",
+      }),
     });
     const payload = await response.json();
 

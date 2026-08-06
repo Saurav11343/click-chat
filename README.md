@@ -256,7 +256,7 @@ click-chat/
 
 ## Current limitations
 
-- Message retrieval is limited to the latest 50 messages; older-message pagination is next.
+- Message history loads in cursor-based pages of 50 as users scroll upward.
 - Unread counts and complete read receipts are not implemented.
 - Reply storage/rendering exists, but reply selection in the composer is incomplete.
 - Attachments are limited to one file and 10 MB per message; cancellation and retry are not yet implemented.
@@ -269,10 +269,9 @@ click-chat/
 ## Next priorities
 
 1. Automated integration and Socket.IO tests
-2. Cursor-based message-history pagination
-3. Per-user upload/message quotas and authenticated attachment delivery
-4. Unread counts and read receipts
-5. Blocking/reporting, complete reply interactions, and multi-file attachment galleries
+2. Per-user upload/message quotas and authenticated attachment delivery
+3. Unread counts and read receipts
+4. Blocking/reporting, complete reply interactions, and multi-file attachment galleries
 
 See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritized plan.
 
