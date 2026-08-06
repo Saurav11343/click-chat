@@ -418,6 +418,8 @@ classDiagram
         String messageType
         ObjectId replyTo
         ReadReceiptArray readBy
+        DeliveryReceiptArray deliveredBy
+        ReactionArray reactions
         Boolean isEdited
         Boolean isDeleted
         Attachment attachment
@@ -449,6 +451,9 @@ erDiagram
     CONVERSATION o|--o| MESSAGE : latest
     MESSAGE o|--o{ MESSAGE : replies
     USER }o--o{ MESSAGE : reads
+    USER }o--o{ MESSAGE : reacts
+    USER ||--o{ CONVERSATION_READ_STATE : owns
+    CONVERSATION ||--o{ CONVERSATION_READ_STATE : tracks
     MESSAGE ||--o{ MESSAGE_TRANSLATION : translated
     USER ||--o{ TRANSLATION_USAGE : consumes
 
@@ -483,8 +488,19 @@ erDiagram
         ObjectId sender FK
         String content
         String messageType
+        ObjectId replyTo FK
+        ReactionArray reactions
+        DeliveryReceiptArray deliveredBy
+        ReadReceiptArray readBy
         Boolean isEdited
         Boolean isDeleted
+    }
+    CONVERSATION_READ_STATE {
+        ObjectId id PK
+        ObjectId conversation FK
+        ObjectId user FK
+        Number unreadCount
+        Date lastReadAt
     }
     MESSAGE_TRANSLATION {
         ObjectId id PK
@@ -761,8 +777,8 @@ flowchart LR
         TypingUI["Typing indicator"]
     end
 
-    MessageAPI -->|"message:new, message:updated, message:deleted"| Rooms
-    ConversationAPI -->|"conversation:created, conversation:updated, conversation:removed, messages:cleared"| Rooms
+    MessageAPI -->|"message:new, message:updated, message:deleted, message:reaction, message:receipts"| Rooms
+    ConversationAPI -->|"conversation:created, conversation:updated, conversation:removed, conversation:unread, messages:cleared"| Rooms
     InviteAPI -->|"invitation:new, invitation:responded"| Rooms
     SocketHandlers -->|"presence:update"| Rooms
     Composer -->|"typing:start, typing:stop"| SocketHandlers

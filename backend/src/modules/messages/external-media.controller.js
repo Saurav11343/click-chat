@@ -1,9 +1,10 @@
 import Message from "./message.model.js";
-import { sendMessagePushNotifications } from "../notifications/push-notification.service.js";
-import { populateMessage } from "./message.presenter.js";
-import { publishToOtherParticipants } from "../../realtime/event-publisher.js";
 import { findConversationForParticipant } from "../conversations/conversation-access.service.js";
 import { incrementUnreadForRecipients } from "../conversations/conversation-read-state.service.js";
+import {
+  presentAndPublishNewMessage,
+  validateReplyTarget,
+} from "./message-command.service.js";
 
 export const sendExternalMedia = async (req, res) => {
   try {
@@ -32,20 +33,7 @@ export const sendExternalMedia = async (req, res) => {
       });
     }
 
-    if (replyTo) {
-      const repliedMessage = await Message.findOne({
-        _id: replyTo,
-        conversation: conversationId,
-        isDeleted: false,
-      }).select("_id");
-
-      if (!repliedMessage) {
-        return res.status(400).json({
-          success: false,
-          message: "Reply message was not found in this conversation.",
-        });
-      }
-    }
+    await validateReplyTarget({ conversationId, replyTo });
 
     const externalMedia = {
       provider: "giphy",
@@ -69,25 +57,11 @@ export const sendExternalMedia = async (req, res) => {
     conversation.lastMessage = message._id;
     await conversation.save();
     await incrementUnreadForRecipients({ conversation, senderId });
-    await populateMessage(message);
-
-    const payload = message.toObject({ flattenObjectIds: true });
-    publishToOtherParticipants({
+    const payload = await presentAndPublishNewMessage({
       conversation,
       senderId,
-      event: "message:new",
-      payload,
-    });
-
-    void sendMessagePushNotifications({
-      conversation,
-      sender: message.sender,
       message,
-    }).catch((pushError) => {
-      console.error(
-        "External media push notification failed:",
-        pushError.message,
-      );
+      logContext: "External media message",
     });
 
     return res.status(201).json({

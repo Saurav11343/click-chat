@@ -5,11 +5,12 @@ import {
   deleteCloudinaryFile,
   uploadChatAttachment,
 } from "../../integrations/cloudinary/cloudinary.service.js";
-import { sendMessagePushNotifications } from "../notifications/push-notification.service.js";
-import { populateMessage } from "../messages/message.presenter.js";
-import { publishToOtherParticipants } from "../../realtime/event-publisher.js";
 import { findConversationForParticipant } from "../conversations/conversation-access.service.js";
 import { incrementUnreadForRecipients } from "../conversations/conversation-read-state.service.js";
+import {
+  presentAndPublishNewMessage,
+  validateReplyTarget,
+} from "../messages/message-command.service.js";
 
 const removeUploadedAttachment = async (attachment) => {
   if (!attachment?.publicId) {
@@ -50,20 +51,7 @@ export const sendAttachment = async (req, res) => {
       });
     }
 
-    if (replyTo) {
-      const repliedMessage = await Message.findOne({
-        _id: replyTo,
-        conversation: conversationId,
-        isDeleted: false,
-      }).select("_id");
-
-      if (!repliedMessage) {
-        return res.status(400).json({
-          success: false,
-          message: "Reply message was not found in this conversation.",
-        });
-      }
-    }
+    await validateReplyTarget({ conversationId, replyTo });
 
     const uploadResult = await uploadChatAttachment({
       buffer,
@@ -97,29 +85,11 @@ export const sendAttachment = async (req, res) => {
 
     isPersisted = true;
 
-    await populateMessage(createdMessage);
-
-    const messagePayload = createdMessage.toObject({
-      flattenObjectIds: true,
-    });
-
-    try {
-      publishToOtherParticipants({
-        conversation,
-        senderId,
-        event: "message:new",
-        payload: messagePayload,
-      });
-    } catch (socketError) {
-      console.error("Attachment socket emission failed:", socketError);
-    }
-
-    void sendMessagePushNotifications({
+    const messagePayload = await presentAndPublishNewMessage({
       conversation,
-      sender: createdMessage.sender,
+      senderId,
       message: createdMessage,
-    }).catch((pushError) => {
-      console.error("Attachment push notification failed:", pushError.message);
+      logContext: "Attachment message",
     });
 
     return res.status(201).json({
@@ -142,6 +112,13 @@ export const sendAttachment = async (req, res) => {
       }
 
       await removeUploadedAttachment(uploadedAttachment);
+    }
+
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
     }
 
     if (error?.name === "ValidationError") {

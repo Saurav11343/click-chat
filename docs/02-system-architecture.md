@@ -77,6 +77,10 @@ Translation is REST-only. It produces a derived view of existing message content
 
 Attachment upload is a compound mutation: membership and reply checks run before the Cloudinary upload, metadata is persisted with the message, the conversation's `lastMessage` is updated, and only then is `message:new` emitted. If persistence fails before completion, the controller attempts to remove the new Cloudinary asset.
 
+Reply references are populated with sender and preview fields for REST responses and real-time delivery. Reaction changes use a validated REST toggle and the `message:reaction` event; the controller enforces membership, rejects reactions to the caller's own message, and moves the caller between emoji groups so one user cannot retain multiple reactions on one message.
+
+`message-command.service.js` owns cross-controller message commands: reply-target validation, new-message presentation/publication, non-critical Socket.IO and Push side effects, and the one-reaction-per-user mutation. Text, attachment, and external-media controllers retain transport-specific parsing and persistence while sharing these rules. Once persistence succeeds, a temporary realtime or Push failure is logged and does not turn the successful REST mutation into a false failure response.
+
 Group mutations follow the same persistence-first boundary. Administrators mutate membership, roles, names, and images through REST; Socket.IO then emits `conversation:created`, `conversation:updated`, or `conversation:removed` to affected private user rooms.
 
 After a message is persisted, the push-notification service resolves recipient subscriptions and submits encrypted payloads to browser push endpoints. Push failure does not roll back a saved message. Expired endpoints are removed asynchronously.

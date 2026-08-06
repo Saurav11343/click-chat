@@ -13,12 +13,15 @@ erDiagram
     CONVERSATION o|--o| MESSAGE : references_as_last
     MESSAGE o|--o| MESSAGE : replies_to
     USER }o--o{ MESSAGE : reads
+    USER }o--o{ MESSAGE : reacts_to
+    USER ||--o{ CONVERSATION_READ_STATE : owns
+    CONVERSATION ||--o{ CONVERSATION_READ_STATE : tracks
     MESSAGE ||--o{ MESSAGE_TRANSLATION : caches
     USER ||--o{ TRANSLATION_USAGE : consumes_monthly
     USER ||--o{ TRANSLATION_DAILY_USAGE : consumes_daily
 ```
 
-MongoDB collection names are Mongoose’s pluralized forms: `users`, `invitations`, `conversations`, and `messages`.
+Core MongoDB collection names are Mongoose's pluralized forms: `users`, `invitations`, `conversations`, `messages`, and `conversationreadstates`. Translation and usage collections are documented separately below.
 
 ## Users collection
 
@@ -135,9 +138,15 @@ The send controller rejects self-invitations and searches both user directions f
 | `externalMedia.width`, `externalMedia.height` | Number | Media display dimensions |
 | `gif` | Embedded object or null | Legacy compatibility field for GIF messages created before `externalMedia` |
 | `replyTo` | ObjectId or null → Message | Optional reference to a non-deleted message in the same conversation |
-| `readBy` | Embedded receipt[] | Prepared read-receipt list; sender receipt is inserted on creation |
+| `reactions` | Embedded reaction[] | Emoji groups with the participants currently using each emoji |
+| `reactions[].emoji` | String | One validated emoji grapheme, maximum 32 UTF-16 code units |
+| `reactions[].users` | ObjectId[] → User | Reacting participants; application logic permits one reaction per user per message |
+| `readBy` | Embedded receipt[] | Users who have read the message; sender receipt is inserted on creation |
 | `readBy[].user` | ObjectId → User | User who read the message |
 | `readBy[].readAt` | Date | Receipt time, defaulting to creation time |
+| `deliveredBy` | Embedded receipt[] | Users whose authenticated client acknowledged delivery |
+| `deliveredBy[].user` | ObjectId → User | Delivery recipient |
+| `deliveredBy[].deliveredAt` | Date | Delivery acknowledgement time |
 | `isEdited` | Boolean | Whether content was edited; defaults to `false` |
 | `editedAt` | Date or null | Most recent edit time |
 | `isDeleted` | Boolean | Soft-deletion marker; defaults to `false` |
@@ -149,9 +158,23 @@ The send controller rejects self-invitations and searches both user directions f
 
 | Index | Purpose |
 | --- | --- |
-| `{ conversation: 1, createdAt: -1 }` | Retrieves recent messages within a conversation |
+| `{ conversation: 1, createdAt: -1, _id: -1 }` | Retrieves stable cursor-ordered message pages within a conversation |
 | `{ sender: 1, createdAt: -1 }` | Supports sender history/moderation-style queries |
 | Single-field `conversation` index | Added by `index: true` on the field; overlaps with the compound prefix |
+
+Soft deletion clears the message's reactions. A participant can react only to another participant's non-deleted message. Choosing the same emoji again removes the reaction; choosing a different emoji moves the participant to the new emoji group.
+
+## Conversation read states collection
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `conversation` | ObjectId → Conversation | Conversation whose unread state is tracked |
+| `user` | ObjectId → User | Participant owning this state |
+| `unreadCount` | Number | Non-negative persisted unread-message count |
+| `lastReadAt` | Date or null | Most recent conversation read reset |
+| `createdAt`, `updatedAt` | Date | Mongoose timestamps |
+
+The unique compound index `{ conversation: 1, user: 1 }` guarantees one read-state document per participant and conversation.
 
 ## Additional translation collections
 

@@ -35,6 +35,7 @@ The project is being developed as a Master’s project and as a practical demons
 - Open another user's public profile by selecting their avatar.
 - Choose a preferred language for message translation.
 - Manage appearance, language, notifications, and password security from centralized Settings.
+- Switch directly between Profile and Settings through shared responsive account navigation.
 
 ### Contacts and invitations
 
@@ -48,8 +49,8 @@ The project is being developed as a Master’s project and as a practical demons
 ### Direct conversations
 
 - Exchange persistent one-to-one messages.
-- Clear every message and shared upload from a direct chat while retaining the connection.
-- Delete a direct conversation and its associated connection.
+- Clear every message and Cloudinary-backed shared upload for both direct-chat participants while retaining the connection.
+- Delete a direct conversation, its history/uploads, and its accepted connection for both participants.
 - View the other participant's online or last-seen status.
 - Open the other participant's public profile from the chat header or conversation list.
 
@@ -72,6 +73,12 @@ The project is being developed as a Master’s project and as a practical demons
 - Receive new messages instantly through Socket.IO.
 - Edit sent messages and display their edited state in real time.
 - Soft-delete sent messages and display a deleted-message placeholder.
+- Reply to text, uploaded attachments, GIFs, and stickers with a composer preview and a clickable reference that loads older history when necessary and jumps to the original message.
+- Show "Original message was deleted" when a referenced message has been soft-deleted.
+- React to received messages with any single emoji from the composer picker; each participant has at most one reaction per message, matching emojis aggregate into counts, and reaction membership updates in real time.
+- Load older messages in cursor-based pages while preserving the user's scroll position.
+- Focus the first unread incoming message when opening a conversation, or the latest message when everything is read.
+- Persist sent, delivered, and read states, including group participant counts and group-only receipt details.
 - Copy message text from the contextual message menu.
 - Upload one image, video, audio file, PDF, Office document, text file, or CSV file per message.
 - Add an optional caption to an attachment and monitor upload progress.
@@ -106,6 +113,8 @@ The project is being developed as a Master’s project and as a practical demons
 ### Notifications
 
 - Deliver background Web Push notifications for text, attachments, GIFs, and stickers.
+- Keep each incoming message as a distinct notification instead of replacing earlier messages from the same conversation.
+- Show the group name plus sender for group notifications and deep-link every notification to its conversation.
 - Enable or disable notifications independently in each browser.
 - Show a dismissible notification-discovery prompt.
 - Open the relevant conversation from notification deep links.
@@ -146,7 +155,7 @@ ClickChat retains MVC within a feature-based modular monolith: Mongoose provides
 | Frontend | React 19, Vite, React Router, Zustand, Axios, React Hook Form, Zod, Tailwind CSS, shadcn/ui, Radix UI, Socket.IO Client |
 | Backend | Node.js, Express 5, Socket.IO, Mongoose, JWT, bcrypt, Zod, Multer |
 | Data and cloud | MongoDB Atlas, Cloudinary, Gmail REST API with Google OAuth 2.0, Google Cloud Translation Basic v2, Web Push/VAPID, GIPHY API/CDN |
-| Deployment | Vercel frontend and Railway backend |
+| Deployment | Vercel frontend and Render backend; Railway retained as an inactive historical endpoint |
 
 ## Quick start
 
@@ -256,9 +265,7 @@ click-chat/
 
 ## Current limitations
 
-- Message history loads in cursor-based pages of 50 as users scroll upward.
-- Per-conversation unread counts and sent/delivered/read receipts persist and synchronize across tabs and devices.
-- Reply storage/rendering exists, but reply selection in the composer is incomplete.
+- Message history uses pages of up to 50 messages; conversation and cross-conversation search are not yet implemented.
 - Attachments are limited to one file and 10 MB per message; cancellation and retry are not yet implemented.
 - Uploads and normal message creation do not yet have per-user storage/traffic quotas; public deployments should add them before broad access.
 - Cloudinary attachment delivery URLs are stored with messages; stronger private delivery is recommended for sensitive files.
@@ -270,8 +277,8 @@ click-chat/
 
 1. Automated integration and Socket.IO tests
 2. Per-user upload/message quotas and authenticated attachment delivery
-3. Complete reply interactions and optimistic send retry
-4. Blocking/reporting and multi-file attachment galleries
+3. Conversation and cross-conversation message search
+4. Optimistic send retry, pinned messages, blocking/reporting, and multi-file attachment galleries
 
 See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritized plan.
 

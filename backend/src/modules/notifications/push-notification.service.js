@@ -20,6 +20,28 @@ const getMessagePreview = (message) => {
   return labels[message.messageType] || "Sent a message";
 };
 
+const createNotificationPayload = ({ conversation, sender, message }) => {
+  const senderName = [sender.firstName, sender.lastName]
+    .filter(Boolean)
+    .join(" ") || "Someone";
+  const isGroup = conversation.type === "group";
+  const conversationId = conversation._id.toString();
+  const messageId = message._id.toString();
+  const preview = getMessagePreview(message);
+
+  return JSON.stringify({
+    title: isGroup ? conversation.groupName || "Group message" : senderName,
+    body: isGroup ? `${senderName}: ${preview}` : preview,
+    conversationId,
+    messageId,
+    messageType: message.messageType,
+    senderName,
+    isGroup,
+    timestamp: new Date(message.createdAt || Date.now()).getTime(),
+    url: `/chat?conversation=${encodeURIComponent(conversationId)}`,
+  });
+};
+
 export const sendMessagePushNotifications = async ({
   conversation,
   sender,
@@ -38,14 +60,7 @@ export const sendMessagePushNotifications = async ({
     "pushSubscriptions.0": { $exists: true },
   }).select("pushSubscriptions");
 
-  const senderName = [sender.firstName, sender.lastName]
-    .filter(Boolean)
-    .join(" ");
-  const payload = JSON.stringify({
-    title: senderName || "ClickChat",
-    body: getMessagePreview(message),
-    conversationId: conversation._id.toString(),
-  });
+  const payload = createNotificationPayload({ conversation, sender, message });
 
   await Promise.all(
     recipients.map(async (recipient) => {

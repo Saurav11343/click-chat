@@ -77,7 +77,9 @@ sequenceDiagram
 
 The browser creates the endpoint and encryption values. ClickChat stores multiple subscriptions per user so separate browsers and devices can receive notifications. The VAPID public key is exposed to the frontend; the private key remains backend-only.
 
-The backend sends a short sender/message preview after text, attachment, GIF, or sticker persistence. HTTP `404` and `410` responses remove expired subscriptions. The service worker suppresses the system notification while a visible ClickChat window exists and deep-links notification clicks to the relevant conversation.
+The backend sends a short sender/message preview after text, attachment, GIF, or sticker persistence. Direct notifications use the sender as the title. Group notifications use the group name as the title and prefix the preview with the sender. Every payload carries its message ID, conversation ID, message type, timestamp, and deep link.
+
+The service worker uses a message-level notification tag, so consecutive messages—including several from one conversation—remain distinct instead of replacing the previous notification. It suppresses redundant system notifications while a visible ClickChat window exists, focuses or opens the relevant conversation when selected, activates updated worker logic immediately, and refreshes its registration without relying on the browser's HTTP cache. HTTP `404` and `410` delivery responses remove expired subscriptions.
 
 ## Notification preference behavior
 
