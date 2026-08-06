@@ -8,7 +8,10 @@ import {
 } from "../../utils/email-verification.js";
 import { sendVerificationEmail } from "../../integrations/email/email.service.js";
 import { sendPasswordResetEmail } from "../../integrations/email/email.service.js";
-import { createActionToken, hashActionToken } from "../../utils/action-token.js";
+import {
+  createActionToken,
+  hashActionToken,
+} from "../../utils/action-token.js";
 import { google } from "googleapis";
 
 const googleAuthClient = new google.auth.OAuth2(ENV.GOOGLE_AUTH_CLIENT_ID);
@@ -381,7 +384,8 @@ export const changePassword = async (req, res) => {
     if (!user?.password) {
       return res.status(400).json({
         success: false,
-        message: "Use password reset first to create a password for this account.",
+        message:
+          "Use password reset first to create a password for this account.",
       });
     }
 

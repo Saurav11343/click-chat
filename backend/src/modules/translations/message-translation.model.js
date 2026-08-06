@@ -8,7 +8,12 @@ const messageTranslationSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    targetLanguage: { type: String, required: true, lowercase: true, trim: true },
+    targetLanguage: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+    },
     contentHash: { type: String, required: true },
     translatedText: { type: String, required: true },
     detectedSourceLanguage: { type: String, default: "" },

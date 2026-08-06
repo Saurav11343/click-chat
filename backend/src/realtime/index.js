@@ -30,4 +30,3 @@ export const initializeSocket = (httpServer) => {
 };
 
 export const getIO = getSocketServer;
-

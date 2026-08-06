@@ -26,8 +26,26 @@ export const updateProfileValidation = z
       .optional(),
     preferredLanguage: z
       .enum([
-        "en", "hi", "es", "fr", "de", "it", "pt", "ru", "ja", "ko",
-        "zh", "ar", "bn", "gu", "mr", "pa", "ta", "te", "ur", "ne",
+        "en",
+        "hi",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "ru",
+        "ja",
+        "ko",
+        "zh",
+        "ar",
+        "bn",
+        "gu",
+        "mr",
+        "pa",
+        "ta",
+        "te",
+        "ur",
+        "ne",
       ])
       .optional(),
     appearance: z

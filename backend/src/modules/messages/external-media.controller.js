@@ -65,7 +65,10 @@ export const sendExternalMedia = async (req, res) => {
       sender: message.sender,
       message,
     }).catch((pushError) => {
-      console.error("External media push notification failed:", pushError.message);
+      console.error(
+        "External media push notification failed:",
+        pushError.message,
+      );
     });
 
     return res.status(201).json({

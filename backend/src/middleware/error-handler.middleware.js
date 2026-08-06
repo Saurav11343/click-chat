@@ -16,4 +16,3 @@ export const errorHandler = (error, req, res, next) => {
     ...(error.period ? { period: error.period } : {}),
   });
 };
-

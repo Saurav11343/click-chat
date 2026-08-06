@@ -7,6 +7,31 @@ import {
 } from "./message.presenter.js";
 import { publishToOtherParticipants } from "../../realtime/event-publisher.js";
 import { findConversationForParticipant } from "../conversations/conversation-access.service.js";
+import mongoose from "mongoose";
+
+const encodeMessageCursor = (message) =>
+  Buffer.from(
+    `${new Date(message.createdAt).toISOString()}|${message._id}`,
+  ).toString("base64url");
+
+const decodeMessageCursor = (cursor) => {
+  if (!cursor) return null;
+
+  try {
+    const [createdAtValue, id] = Buffer.from(cursor, "base64url")
+      .toString("utf8")
+      .split("|");
+    const createdAt = new Date(createdAtValue);
+
+    if (Number.isNaN(createdAt.getTime()) || !mongoose.isValidObjectId(id)) {
+      return null;
+    }
+
+    return { createdAt, id };
+  } catch {
+    return null;
+  }
+};
 
 export const sendMessage = async (req, res) => {
   try {
@@ -95,6 +120,15 @@ export const getMessages = async (req, res) => {
   try {
     const userId = req.user._id;
     const { conversationId } = req.params;
+    const { cursor, limit } = req.validatedQuery;
+    const decodedCursor = decodeMessageCursor(cursor);
+
+    if (cursor && !decodedCursor) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid message history cursor.",
+      });
+    }
 
     const conversation = await findConversationForParticipant({
       conversationId,
@@ -108,23 +142,41 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    const messages = await Message.find({
-      conversation: conversationId,
-    })
+    const historyFilter = { conversation: conversationId };
+
+    if (decodedCursor) {
+      historyFilter.$or = [
+        { createdAt: { $lt: decodedCursor.createdAt } },
+        {
+          createdAt: decodedCursor.createdAt,
+          _id: { $lt: decodedCursor.id },
+        },
+      ];
+    }
+
+    const messages = await Message.find(historyFilter)
       .populate(messagePopulateOptions)
       .sort({
         createdAt: -1,
+        _id: -1,
       })
-      .limit(50)
+      .limit(limit + 1)
       .lean();
 
+    const hasMore = messages.length > limit;
+    if (hasMore) messages.pop();
+
     messages.reverse();
+
+    const nextCursor =
+      hasMore && messages.length > 0 ? encodeMessageCursor(messages[0]) : null;
 
     return res.status(200).json({
       success: true,
       message: "Messages retrieved successfully.",
       count: messages.length,
       messages,
+      pageInfo: { hasMore, nextCursor },
     });
   } catch (error) {
     console.error("Get messages error:", error);

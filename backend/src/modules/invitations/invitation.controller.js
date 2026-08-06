@@ -197,7 +197,7 @@ export const respondToInvitation = async (req, res) => {
         "_id firstName lastName email profilePic bio isOnline lastSeen",
       );
     }
-    
+
     invitation.status = action;
 
     await invitation.save();

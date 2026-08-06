@@ -11,4 +11,3 @@ export const getSocketServer = () => {
 
   return io;
 };
-

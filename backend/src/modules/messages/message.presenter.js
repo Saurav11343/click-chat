@@ -28,4 +28,3 @@ export const messagePopulateOptions = [
   },
   { path: "readBy.user", select: "_id firstName lastName" },
 ];
-
