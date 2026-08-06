@@ -3,12 +3,18 @@ import EmojiPicker, { EmojiStyle, Theme } from "emoji-picker-react";
 import { Smile } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function EmojiPickerPopover({
   disabled,
   isOpen,
   onEmojiClick,
   onOpenChange,
+  className,
+  pickerClassName,
+  buttonClassName,
+  iconClassName,
+  ariaLabel,
 }) {
   const pickerRef = useRef(null);
 
@@ -26,9 +32,9 @@ export function EmojiPickerPopover({
   }, [isOpen, onOpenChange]);
 
   return (
-    <div ref={pickerRef} className="relative shrink-0">
+    <div ref={pickerRef} className={cn("relative shrink-0", className)}>
       {isOpen && (
-        <div className="absolute bottom-full left-0 z-50 mb-2">
+        <div className={cn("absolute bottom-full left-0 z-50 mb-2", pickerClassName)}>
           <EmojiPicker
             onEmojiClick={onEmojiClick}
             emojiStyle={EmojiStyle.NATIVE}
@@ -47,11 +53,11 @@ export function EmojiPickerPopover({
         variant="ghost"
         disabled={disabled}
         onClick={() => onOpenChange(!isOpen)}
-        aria-label={isOpen ? "Close emoji picker" : "Open emoji picker"}
+        aria-label={ariaLabel || (isOpen ? "Close emoji picker" : "Open emoji picker")}
         aria-expanded={isOpen}
-        className="rounded-xl"
+        className={cn("rounded-xl", buttonClassName)}
       >
-        <Smile className="size-5" />
+        <Smile className={cn("size-5", iconClassName)} />
       </Button>
     </div>
   );

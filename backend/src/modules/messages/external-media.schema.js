@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const objectIdSchema = z
+  .string()
+  .trim()
+  .regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ID");
+
 const giphyUrlSchema = z.url("Invalid GIPHY media URL").refine((value) => {
   const url = new URL(value);
   return (
@@ -16,4 +21,5 @@ export const sendExternalMediaSchema = z.object({
   width: z.number().int().min(1).max(4000),
   height: z.number().int().min(1).max(4000),
   description: z.string().trim().max(300).optional().default("GIF"),
+  replyTo: objectIdSchema.nullable().optional(),
 });

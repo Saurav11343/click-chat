@@ -62,6 +62,9 @@ export function ChatWindow({
   const openingConversationRef = useRef(null);
   const initializedConversationIdRef = useRef(null);
   const [firstUnreadMessageId, setFirstUnreadMessageId] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [reactionTarget, setReactionTarget] = useState(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState(null);
 
   const handleLatestMediaLoad = () => {
     requestAnimationFrame(() => {
@@ -79,6 +82,9 @@ export function ChatWindow({
     initializedConversationIdRef.current = conversationId;
     previousLastMessageIdRef.current = null;
     setFirstUnreadMessageId(null);
+    setReplyingTo(null);
+    setReactionTarget(null);
+    setHighlightedMessageId(null);
 
     if (conversationId) {
       openingConversationRef.current = {
@@ -238,6 +244,34 @@ export function ChatWindow({
     };
     const loaded = await loadOlderMessages(conversationId);
     if (!loaded) prependSnapshotRef.current = null;
+  };
+
+  const handleReply = (message) => {
+    setReplyingTo(message);
+  };
+
+  const handleReplyClick = async (messageId) => {
+    if (!messageId) return;
+
+    let target = messageElementsRef.current.get(messageId);
+    while (!target) {
+      const state = useMessageStore.getState();
+      if (state.messages.some((message) => message._id === messageId)) break;
+      if (!state.hasMoreMessages || state.isLoadingOlderMessages) break;
+      const loaded = await state.loadOlderMessages(conversationId);
+      if (!loaded) break;
+      target = messageElementsRef.current.get(messageId);
+    }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const element = messageElementsRef.current.get(messageId);
+        if (!element) return;
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightedMessageId(messageId);
+        window.setTimeout(() => setHighlightedMessageId(null), 1600);
+      });
+    });
   };
 
   if (!selectedConversation) {
@@ -405,6 +439,10 @@ export function ChatWindow({
                           ? handleLatestMediaLoad
                           : undefined
                       }
+                      onReply={handleReply}
+                      onReplyClick={handleReplyClick}
+                      onReact={setReactionTarget}
+                      isHighlighted={highlightedMessageId === message._id}
                     />
                   </div>
                 );
@@ -430,6 +468,10 @@ export function ChatWindow({
           key={conversationId}
           conversationId={conversationId}
           onTypingChange={onTypingChange}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+          reactionTarget={reactionTarget}
+          onCancelReaction={() => setReactionTarget(null)}
         />
       </footer>
     </section>

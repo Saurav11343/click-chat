@@ -17,6 +17,8 @@ export const populateMessage = async (message) => {
     });
   }
 
+  await message.populate("reactions.users", SENDER_FIELDS);
+
   return message;
 };
 
@@ -29,4 +31,5 @@ export const messagePopulateOptions = [
   },
   { path: "readBy.user", select: "_id firstName lastName" },
   { path: "deliveredBy.user", select: "_id firstName lastName" },
+  { path: "reactions.users", select: SENDER_FIELDS },
 ];

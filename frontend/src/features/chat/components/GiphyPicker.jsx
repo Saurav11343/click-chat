@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useMessageStore } from "@/features/chat/store/useMessageStore";
 
-export function GiphyPicker({ conversationId, disabled }) {
+export function GiphyPicker({ conversationId, disabled, replyTo = null, onSent }) {
   const [isOpen, setIsOpen] = useState(false);
   const [mediaType, setMediaType] = useState("gif");
   const [query, setQuery] = useState("");
@@ -102,12 +102,14 @@ export function GiphyPicker({ conversationId, disabled }) {
     const wasSent = await sendExternalMedia({
       conversationId,
       media: gif,
+      replyTo,
     });
 
     if (wasSent) {
       registerGiphyAction(gif.analytics?.onsent);
       setIsOpen(false);
       setQuery("");
+      onSent?.();
     }
   };
 

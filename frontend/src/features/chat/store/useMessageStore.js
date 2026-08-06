@@ -20,6 +20,7 @@ export const useMessageStore = create((set, get) => ({
 
   editingMessageId: null,
   deletingMessageId: null,
+  reactingMessageId: null,
 
   getMessages: async (conversationId) => {
     set({
@@ -239,7 +240,7 @@ export const useMessageStore = create((set, get) => ({
     }
   },
 
-  sendExternalMedia: async ({ conversationId, media }) => {
+  sendExternalMedia: async ({ conversationId, media, replyTo = null }) => {
     if (!conversationId || !media?.providerId) {
       return false;
     }
@@ -249,7 +250,7 @@ export const useMessageStore = create((set, get) => ({
     try {
       const response = await axiosInstance.post(
         `/conversations/${conversationId}/media`,
-        media,
+        { ...media, replyTo },
       );
       const newMessage = response.data.data;
 
@@ -303,20 +304,29 @@ export const useMessageStore = create((set, get) => ({
       const messageExists = state.messages.some(
         (message) => message._id === incomingMessage._id,
       );
+      const messageIsReferenced = state.messages.some(
+        (message) => message.replyTo?._id === incomingMessage._id,
+      );
 
-      if (!messageExists) {
+      if (!messageExists && !messageIsReferenced) {
         return {};
       }
 
       return {
-        messages: state.messages.map((message) =>
-          message._id === incomingMessage._id
-            ? {
-                ...message,
-                ...incomingMessage,
-              }
-            : message,
-        ),
+        messages: state.messages.map((message) => {
+          if (message._id === incomingMessage._id) {
+            return { ...message, ...incomingMessage };
+          }
+
+          if (message.replyTo?._id === incomingMessage._id) {
+            return {
+              ...message,
+              replyTo: { ...message.replyTo, ...incomingMessage },
+            };
+          }
+
+          return message;
+        }),
       };
     });
   },
@@ -448,6 +458,24 @@ export const useMessageStore = create((set, get) => ({
       set({
         deletingMessageId: null,
       });
+    }
+  },
+
+  toggleReaction: async (conversationId, messageId, emoji) => {
+    set({ reactingMessageId: messageId });
+
+    try {
+      const response = await axiosInstance.post(
+        `/conversations/${conversationId}/messages/${messageId}/reactions`,
+        { emoji },
+      );
+      get().replaceMessage(response.data.data);
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to update reaction.");
+      return false;
+    } finally {
+      set({ reactingMessageId: null });
     }
   },
 }));
