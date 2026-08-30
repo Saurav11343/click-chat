@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -19,14 +17,34 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { socket } from "@/shared/realtime/socket-client";
-import { useAuthStore } from "@/features/auth/store/useAuthStore";
-
-const VideoCallContext = createContext(null);
+import { VideoCallContext } from "@/features/chat/contexts/video-call-context";
 
 const ICE_SERVERS = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
 ];
+
+const waitForIceGathering = (peer, timeoutMs = 5000) =>
+  new Promise((resolve) => {
+    if (peer.iceGatheringState === "complete") {
+      resolve();
+      return;
+    }
+
+    const timeout = window.setTimeout(finish, timeoutMs);
+
+    function finish() {
+      window.clearTimeout(timeout);
+      peer.removeEventListener("icegatheringstatechange", handleStateChange);
+      resolve();
+    }
+
+    function handleStateChange() {
+      if (peer.iceGatheringState === "complete") finish();
+    }
+
+    peer.addEventListener("icegatheringstatechange", handleStateChange);
+  });
 
 const getDisplayName = (person) =>
   [person?.firstName, person?.lastName].filter(Boolean).join(" ") ||
@@ -47,8 +65,6 @@ const getInitials = (person) => {
 };
 
 export function VideoCallProvider({ children }) {
-  const authUser = useAuthStore((state) => state.authUser);
-
   const [call, setCall] = useState(null);
   const [callState, setCallState] = useState("idle");
   const [isMuted, setIsMuted] = useState(false);
@@ -60,6 +76,7 @@ export function VideoCallProvider({ children }) {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
+  const earlyCandidatesRef = useRef(new Map());
   const pendingOfferRef = useRef(null);
   const acceptedIncomingRef = useRef(false);
   const callRef = useRef(null);
@@ -100,6 +117,7 @@ export function VideoCallProvider({ children }) {
     }
 
     pendingCandidatesRef.current = [];
+    earlyCandidatesRef.current.clear();
     pendingOfferRef.current = null;
     acceptedIncomingRef.current = false;
     callRef.current = null;
@@ -209,12 +227,29 @@ export function VideoCallProvider({ children }) {
       );
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
-    });
+    let stream;
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+    } catch (error) {
+      if (!["NotReadableError", "AbortError"].includes(error.name)) {
+        throw error;
+      }
+
+      // Some operating systems only allow one browser to own the webcam.
+      // Keep the call usable when testing two accounts on the same computer.
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+      toast.warning("Camera is in use. Joining this call with audio only.");
+    }
 
     localStreamRef.current = stream;
+    setIsCameraOff(stream.getVideoTracks().length === 0);
 
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
@@ -263,26 +298,24 @@ export function VideoCallProvider({ children }) {
       };
 
       try {
+        callRef.current = currentCall;
         setCall(currentCall);
         setCallState("calling");
 
         await getLocalMedia();
         const peer = createPeerConnection(currentCall);
 
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        await waitForIceGathering(peer);
+
+        // Keep invitation and offer atomic so an offer cannot arrive before
+        // the receiver has initialized its incoming-call state.
         socket.emit("call:invite", {
           callId: currentCall.callId,
           conversationId: currentCall.conversationId,
           targetUserId: currentCall.targetUserId,
-        });
-
-        const offer = await peer.createOffer();
-        await peer.setLocalDescription(offer);
-
-        socket.emit("call:offer", {
-          callId: currentCall.callId,
-          conversationId: currentCall.conversationId,
-          targetUserId: currentCall.targetUserId,
-          offer,
+          offer: peer.localDescription.toJSON(),
         });
       } catch (error) {
         console.error("Unable to start video call:", error);
@@ -310,7 +343,7 @@ export function VideoCallProvider({ children }) {
 
       const offer = pendingOfferRef.current;
       if (!offer) {
-        return;
+        throw new Error("The caller did not provide a WebRTC offer.");
       }
 
       await peer.setRemoteDescription(new RTCSessionDescription(offer));
@@ -318,6 +351,7 @@ export function VideoCallProvider({ children }) {
 
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
+      await waitForIceGathering(peer);
 
       socket.emit("call:accept", {
         callId: currentCall.callId,
@@ -329,7 +363,7 @@ export function VideoCallProvider({ children }) {
         callId: currentCall.callId,
         conversationId: currentCall.conversationId,
         targetUserId: currentCall.targetUserId,
-        answer,
+        answer: peer.localDescription.toJSON(),
       });
 
       pendingOfferRef.current = null;
@@ -376,7 +410,10 @@ export function VideoCallProvider({ children }) {
         direction: "incoming",
       };
 
-      pendingOfferRef.current = null;
+      pendingOfferRef.current = payload.offer || null;
+      pendingCandidatesRef.current =
+        earlyCandidatesRef.current.get(payload.callId) || [];
+      earlyCandidatesRef.current.delete(payload.callId);
       acceptedIncomingRef.current = false;
       setCall(incomingCall);
       setCallState("incoming");
@@ -422,12 +459,13 @@ export function VideoCallProvider({ children }) {
 
         const answer = await peer.createAnswer();
         await peer.setLocalDescription(answer);
+        await waitForIceGathering(peer);
 
         socket.emit("call:answer", {
           callId: currentCall.callId,
           conversationId: currentCall.conversationId,
           targetUserId: currentCall.targetUserId,
-          answer,
+          answer: peer.localDescription.toJSON(),
         });
 
         pendingOfferRef.current = null;
@@ -466,11 +504,18 @@ export function VideoCallProvider({ children }) {
       const currentCall = callRef.current;
       const peer = peerRef.current;
 
-      if (
-        !currentCall ||
-        currentCall.callId !== payload?.callId ||
-        !payload.candidate
-      ) {
+      if (!payload?.callId || !payload.candidate) {
+        return;
+      }
+
+      if (!currentCall || currentCall.callId !== payload.callId) {
+        const earlyCandidates =
+          earlyCandidatesRef.current.get(payload.callId) || [];
+
+        if (earlyCandidates.length < 32) {
+          earlyCandidates.push(payload.candidate);
+          earlyCandidatesRef.current.set(payload.callId, earlyCandidates);
+        }
         return;
       }
 
@@ -593,7 +638,6 @@ export function VideoCallProvider({ children }) {
     </VideoCallContext.Provider>
   );
 }
-
 function IncomingCall({ call, onAccept, onReject }) {
   const person = call.peerUser;
 
@@ -640,7 +684,6 @@ function IncomingCall({ call, onAccept, onReject }) {
     </div>
   );
 }
-
 function ActiveCall({
   call,
   callState,
@@ -729,14 +772,4 @@ function ActiveCall({
       </div>
     </div>
   );
-}
-
-export function useVideoCall() {
-  const context = useContext(VideoCallContext);
-
-  if (!context) {
-    throw new Error("useVideoCall must be used inside VideoCallProvider");
-  }
-
-  return context;
 }
