@@ -4,6 +4,7 @@ import ENV from "../config/env.js";
 import { userRoom } from "./event-publisher.js";
 import { registerPresenceHandlers } from "./handlers/presence.handler.js";
 import { registerTypingHandlers } from "./handlers/typing.handler.js";
+import { registerCallHandlers } from "./handlers/call.handler.js";
 import { authenticateSocket } from "./socket-auth.middleware.js";
 import { getSocketServer, setSocketServer } from "./socket-server.js";
 
@@ -21,6 +22,7 @@ export const initializeSocket = (httpServer) => {
   io.on("connection", async (socket) => {
     socket.join(userRoom(socket.user._id));
     registerTypingHandlers(socket);
+    registerCallHandlers(socket);
     await registerPresenceHandlers(socket);
 
     console.log(`${socket.user.firstName} connected with socket ${socket.id}`);

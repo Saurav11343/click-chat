@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   EllipsisVertical,
   SendHorizontal,
+  Video,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,6 +22,7 @@ import { MessageListSkeleton } from "@/features/chat/components/MessageListSkele
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { useMessageStore } from "@/features/chat/store/useMessageStore";
 import { useConversationStore } from "@/features/chat/store/useConversationStore";
+import { useVideoCall } from "@/features/chat/components/VideoCall.jsx";
 
 export function ChatWindow({
   selectedConversation,
@@ -29,11 +31,14 @@ export function ChatWindow({
   onTypingChange,
 }) {
   const authUser = useAuthStore((state) => state.authUser);
+  const { startVideoCall, isVideoCallActive } = useVideoCall();
 
   const messages = useMessageStore((state) => state.messages);
 
   const isLoadingMessages = useMessageStore((state) => state.isLoadingMessages);
-  const isLoadingOlderMessages = useMessageStore((state) => state.isLoadingOlderMessages);
+  const isLoadingOlderMessages = useMessageStore(
+    (state) => state.isLoadingOlderMessages,
+  );
   const hasMoreMessages = useMessageStore((state) => state.hasMoreMessages);
 
   const getMessages = useMessageStore((state) => state.getMessages);
@@ -124,21 +129,16 @@ export function ChatWindow({
       return senderId !== authUser?._id;
     });
 
-    if (
-      opening.unreadCount > incomingMessages.length &&
-      hasMoreMessages
-    ) {
+    if (opening.unreadCount > incomingMessages.length && hasMoreMessages) {
       void loadOlderMessages(conversationId);
       return;
     }
 
-    const unreadCount = Math.min(
-      opening.unreadCount,
-      incomingMessages.length,
-    );
-    const firstUnreadId = unreadCount > 0
-      ? incomingMessages[incomingMessages.length - unreadCount]?._id || null
-      : null;
+    const unreadCount = Math.min(opening.unreadCount, incomingMessages.length);
+    const firstUnreadId =
+      unreadCount > 0
+        ? incomingMessages[incomingMessages.length - unreadCount]?._id || null
+        : null;
 
     opening.positioned = true;
     previousLastMessageIdRef.current = messages.at(-1)?._id || null;
@@ -191,11 +191,7 @@ export function ChatWindow({
       window.removeEventListener("focus", markReadWhenFocused);
       document.removeEventListener("visibilitychange", markReadWhenFocused);
     };
-  }, [
-    conversationId,
-    markConversationRead,
-    selectedConversation?.unreadCount,
-  ]);
+  }, [conversationId, markConversationRead, selectedConversation?.unreadCount]);
 
   // Scroll only when the latest message changes. Prepending history should not
   // pull the user back to the bottom.
@@ -221,8 +217,8 @@ export function ChatWindow({
     const snapshot = prependSnapshotRef.current;
     if (!container || !snapshot || isLoadingOlderMessages) return;
 
-    container.scrollTop = snapshot.scrollTop +
-      (container.scrollHeight - snapshot.scrollHeight);
+    container.scrollTop =
+      snapshot.scrollTop + (container.scrollHeight - snapshot.scrollHeight);
     prependSnapshotRef.current = null;
   }, [messages, isLoadingOlderMessages]);
 
@@ -341,20 +337,35 @@ export function ChatWindow({
               </Button>
             </GroupDetailsDialog>
           ) : (
-            <DirectConversationMenu
-              conversationId={conversationId}
-              onDeleted={onBack}
-            >
+            <>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="rounded-xl"
-                aria-label="Conversation options"
+                aria-label="Start video call"
+                title="Start video call"
+                disabled={isVideoCallActive || !selectedConversation.userId}
+                onClick={() => startVideoCall(selectedConversation)}
               >
-                <EllipsisVertical className="size-5" />
+                <Video className="size-5" />
               </Button>
-            </DirectConversationMenu>
+
+              <DirectConversationMenu
+                conversationId={conversationId}
+                onDeleted={onBack}
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-xl"
+                  aria-label="Conversation options"
+                >
+                  <EllipsisVertical className="size-5" />
+                </Button>
+              </DirectConversationMenu>
+            </>
           )}
         </div>
       </header>
@@ -419,7 +430,10 @@ export function ChatWindow({
                     )}
 
                     {message._id === firstUnreadMessageId && (
-                      <div className="my-3 flex items-center gap-3" role="separator">
+                      <div
+                        className="my-3 flex items-center gap-3"
+                        role="separator"
+                      >
                         <span className="h-px flex-1 bg-primary/40" />
                         <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary">
                           Unread messages
@@ -433,7 +447,9 @@ export function ChatWindow({
                       isMyMessage={isMyMessage}
                       conversationId={conversationId}
                       showSender={selectedConversation.isGroup}
-                      participantCount={selectedConversation.participants?.length || 0}
+                      participantCount={
+                        selectedConversation.participants?.length || 0
+                      }
                       onMediaLoad={
                         index === messages.length - 1
                           ? handleLatestMediaLoad
