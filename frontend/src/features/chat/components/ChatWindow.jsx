@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   EllipsisVertical,
+  Phone,
   SendHorizontal,
   Video,
 } from "lucide-react";
@@ -31,7 +32,7 @@ export function ChatWindow({
   onTypingChange,
 }) {
   const authUser = useAuthStore((state) => state.authUser);
-  const { startVideoCall, isVideoCallActive } = useVideoCall();
+  const { startAudioCall, startVideoCall, isCallActive } = useVideoCall();
 
   const messages = useMessageStore((state) => state.messages);
 
@@ -343,9 +344,22 @@ export function ChatWindow({
                 variant="ghost"
                 size="icon"
                 className="rounded-xl"
+                aria-label="Start voice call"
+                title="Start voice call"
+                disabled={isCallActive || !selectedConversation.userId}
+                onClick={() => startAudioCall(selectedConversation)}
+              >
+                <Phone className="size-5" />
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-xl"
                 aria-label="Start video call"
                 title="Start video call"
-                disabled={isVideoCallActive || !selectedConversation.userId}
+                disabled={isCallActive || !selectedConversation.userId}
                 onClick={() => startVideoCall(selectedConversation)}
               >
                 <Video className="size-5" />
