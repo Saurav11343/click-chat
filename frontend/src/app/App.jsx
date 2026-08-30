@@ -4,7 +4,7 @@ import AppRoutes from "./AppRoutes";
 import { Toaster } from "@/components/ui/sonner";
 import { NativeAppNavigation } from "@/platform/capacitor/NativeAppNavigation";
 import { registerPushServiceWorker } from "@/shared/notifications/push-notifications";
-
+import { VideoCallProvider } from "./features/chat/components/VideoCall";
 function App() {
   useEffect(() => {
     void registerPushServiceWorker().catch((error) => {
@@ -14,9 +14,11 @@ function App() {
 
   return (
     <BrowserRouter>
-      <NativeAppNavigation />
-      <Toaster richColors position="top-center" />
-      <AppRoutes />
+      <VideoCallProvider>
+        <NativeAppNavigation />
+        <Toaster richColors position="top-center" />
+        <AppRoutes />
+      </VideoCallProvider>
     </BrowserRouter>
   );
 }
