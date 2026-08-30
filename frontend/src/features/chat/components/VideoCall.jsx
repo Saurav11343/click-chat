@@ -69,12 +69,14 @@ export function VideoCallProvider({ children }) {
   const [callState, setCallState] = useState("idle");
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
+  const [isRemoteAudioBlocked, setIsRemoteAudioBlocked] = useState(false);
 
   const peerRef = useRef(null);
   const localStreamRef = useRef(null);
   const remoteStreamRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const remoteAudioRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
   const earlyCandidatesRef = useRef(new Map());
   const pendingOfferRef = useRef(null);
@@ -95,6 +97,7 @@ export function VideoCallProvider({ children }) {
 
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
   }, []);
 
   const closePeer = useCallback(() => {
@@ -125,7 +128,26 @@ export function VideoCallProvider({ children }) {
     setCallState("idle");
     setIsMuted(false);
     setIsCameraOff(false);
+    setIsRemoteAudioBlocked(false);
   }, [closePeer, stopMedia]);
+
+  const playRemoteAudio = useCallback(async () => {
+    const audio = remoteAudioRef.current;
+    if (!audio) return;
+
+    audio.muted = false;
+    audio.volume = 1;
+
+    try {
+      await audio.play();
+      setIsRemoteAudioBlocked(false);
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.warn("Remote audio playback was blocked:", error);
+        setIsRemoteAudioBlocked(true);
+      }
+    }
+  }, []);
 
   const emitCallEnd = useCallback((currentCall) => {
     if (!currentCall || !socket.connected) return;
@@ -183,13 +205,24 @@ export function VideoCallProvider({ children }) {
       };
 
       peer.ontrack = (event) => {
-        const [stream] = event.streams;
-        if (!stream) return;
+        let [stream] = event.streams;
+
+        if (!stream) {
+          stream = remoteStreamRef.current || new MediaStream();
+          if (!stream.getTracks().some((track) => track.id === event.track.id)) {
+            stream.addTrack(event.track);
+          }
+        }
 
         remoteStreamRef.current = stream;
 
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = stream;
+        }
+
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = stream;
+          void playRemoteAudio();
         }
       };
 
@@ -203,7 +236,7 @@ export function VideoCallProvider({ children }) {
         ) {
           endCall({
             notifyPeer: peer.connectionState !== "closed",
-            message: "Video call ended.",
+            message: "Call ended.",
           });
         }
       };
@@ -215,10 +248,10 @@ export function VideoCallProvider({ children }) {
 
       return peer;
     },
-    [closePeer, endCall],
+    [closePeer, endCall, playRemoteAudio],
   );
 
-  const getLocalMedia = useCallback(async () => {
+  const getLocalMedia = useCallback(async (callType) => {
     if (localStreamRef.current) return localStreamRef.current;
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -232,10 +265,13 @@ export function VideoCallProvider({ children }) {
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: true,
+        video: callType === "video",
       });
     } catch (error) {
-      if (!["NotReadableError", "AbortError"].includes(error.name)) {
+      if (
+        callType !== "video" ||
+        !["NotReadableError", "AbortError"].includes(error.name)
+      ) {
         throw error;
       }
 
@@ -258,12 +294,10 @@ export function VideoCallProvider({ children }) {
     return stream;
   }, []);
 
-  const startVideoCall = useCallback(
-    async (conversation) => {
+  const startCall = useCallback(
+    async (conversation, callType) => {
       if (!conversation?.conversationId || conversation.isGroup) {
-        toast.error(
-          "Video calls are currently available for direct chats only.",
-        );
+        toast.error("Calls are currently available for direct chats only.");
         return;
       }
 
@@ -278,7 +312,7 @@ export function VideoCallProvider({ children }) {
       }
 
       if (callRef.current) {
-        toast.error("A video call is already active.");
+        toast.error("A call is already active.");
         return;
       }
 
@@ -295,6 +329,7 @@ export function VideoCallProvider({ children }) {
           profilePic: conversation.image,
         },
         direction: "outgoing",
+        callType,
       };
 
       try {
@@ -302,7 +337,7 @@ export function VideoCallProvider({ children }) {
         setCall(currentCall);
         setCallState("calling");
 
-        await getLocalMedia();
+        await getLocalMedia(callType);
         const peer = createPeerConnection(currentCall);
 
         const offer = await peer.createOffer();
@@ -315,19 +350,30 @@ export function VideoCallProvider({ children }) {
           callId: currentCall.callId,
           conversationId: currentCall.conversationId,
           targetUserId: currentCall.targetUserId,
+          callType,
           offer: peer.localDescription.toJSON(),
         });
       } catch (error) {
-        console.error("Unable to start video call:", error);
+        console.error(`Unable to start ${callType} call:`, error);
         endCall({ notifyPeer: false });
         toast.error(
           error.name === "NotAllowedError"
-            ? "Camera and microphone permission was denied."
-            : error.message || "Unable to start video call.",
+            ? `${callType === "video" ? "Camera and microphone" : "Microphone"} permission was denied.`
+            : error.message || "Unable to start the call.",
         );
       }
     },
     [createPeerConnection, endCall, getLocalMedia],
+  );
+
+  const startAudioCall = useCallback(
+    (conversation) => startCall(conversation, "audio"),
+    [startCall],
+  );
+
+  const startVideoCall = useCallback(
+    (conversation) => startCall(conversation, "video"),
+    [startCall],
   );
 
   const acceptIncomingCall = useCallback(async () => {
@@ -338,7 +384,7 @@ export function VideoCallProvider({ children }) {
       acceptedIncomingRef.current = true;
       setCallState("connecting");
 
-      await getLocalMedia();
+      await getLocalMedia(currentCall.callType);
       const peer = createPeerConnection(currentCall);
 
       const offer = pendingOfferRef.current;
@@ -368,9 +414,9 @@ export function VideoCallProvider({ children }) {
 
       pendingOfferRef.current = null;
     } catch (error) {
-      console.error("Unable to accept video call:", error);
+      console.error("Unable to accept call:", error);
       endCall({ notifyPeer: true });
-      toast.error("Unable to accept the video call.");
+      toast.error("Unable to accept the call.");
     }
   }, [createPeerConnection, endCall, flushCandidates, getLocalMedia]);
 
@@ -408,6 +454,7 @@ export function VideoCallProvider({ children }) {
         targetUserId: payload.callerUserId,
         peerUser: payload.caller,
         direction: "incoming",
+        callType: payload.callType === "audio" ? "audio" : "video",
       };
 
       pendingOfferRef.current = payload.offer || null;
@@ -470,7 +517,7 @@ export function VideoCallProvider({ children }) {
 
         pendingOfferRef.current = null;
       } catch (error) {
-        console.error("Unable to process video call offer:", error);
+        console.error("Unable to process call offer:", error);
         endCall({ notifyPeer: true });
       }
     };
@@ -495,7 +542,7 @@ export function VideoCallProvider({ children }) {
         await flushCandidates(peer);
         setCallState("connecting");
       } catch (error) {
-        console.error("Unable to process video call answer:", error);
+        console.error("Unable to process call answer:", error);
         endCall({ notifyPeer: true });
       }
     };
@@ -533,12 +580,12 @@ export function VideoCallProvider({ children }) {
 
     const handleRejected = (payload) => {
       if (callRef.current?.callId !== payload?.callId) return;
-      endCall({ notifyPeer: false, message: "The video call was declined." });
+      endCall({ notifyPeer: false, message: "The call was declined." });
     };
 
     const handleEnded = (payload) => {
       if (callRef.current?.callId !== payload?.callId) return;
-      endCall({ notifyPeer: false, message: "The video call ended." });
+      endCall({ notifyPeer: false, message: "The call ended." });
     };
 
     const handleAccepted = (payload) => {
@@ -575,7 +622,12 @@ export function VideoCallProvider({ children }) {
     if (remoteVideoRef.current && remoteStreamRef.current) {
       remoteVideoRef.current.srcObject = remoteStreamRef.current;
     }
-  }, [callState]);
+
+    if (remoteAudioRef.current && remoteStreamRef.current) {
+      remoteAudioRef.current.srcObject = remoteStreamRef.current;
+      void playRemoteAudio();
+    }
+  }, [callState, playRemoteAudio]);
 
   const toggleMute = useCallback(() => {
     const track = localStreamRef.current?.getAudioTracks()[0];
@@ -604,8 +656,9 @@ export function VideoCallProvider({ children }) {
   );
 
   const contextValue = {
+    startAudioCall,
     startVideoCall,
-    isVideoCallActive: Boolean(call),
+    isCallActive: Boolean(call),
   };
 
   return (
@@ -626,10 +679,13 @@ export function VideoCallProvider({ children }) {
               callState={callState}
               localVideoRef={localVideoRef}
               remoteVideoRef={remoteVideoRef}
+              remoteAudioRef={remoteAudioRef}
               isMuted={isMuted}
               isCameraOff={isCameraOff}
+              isRemoteAudioBlocked={isRemoteAudioBlocked}
               onToggleMute={toggleMute}
               onToggleCamera={toggleCamera}
+              onEnableAudio={playRemoteAudio}
               onEnd={() => endCall({ notifyPeer: true })}
             />
           )}
@@ -653,7 +709,9 @@ function IncomingCall({ call, onAccept, onReject }) {
           </Avatar>
         </div>
 
-        <p className="text-sm text-white/60">Incoming video call</p>
+        <p className="text-sm text-white/60">
+          Incoming {call.callType === "audio" ? "voice" : "video"} call
+        </p>
         <h2 className="mt-2 text-3xl font-semibold">
           {getDisplayName(person)}
         </h2>
@@ -665,7 +723,7 @@ function IncomingCall({ call, onAccept, onReject }) {
             variant="destructive"
             className="size-16 rounded-full"
             onClick={onReject}
-            aria-label="Decline video call"
+            aria-label="Decline call"
           >
             <PhoneOff className="size-7" />
           </Button>
@@ -675,9 +733,13 @@ function IncomingCall({ call, onAccept, onReject }) {
             size="lg"
             className="size-16 rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
             onClick={onAccept}
-            aria-label="Accept video call"
+            aria-label="Accept call"
           >
-            <Video className="size-7" />
+            {call.callType === "audio" ? (
+              <PhoneCall className="size-7" />
+            ) : (
+              <Video className="size-7" />
+            )}
           </Button>
         </div>
       </div>
@@ -689,27 +751,65 @@ function ActiveCall({
   callState,
   localVideoRef,
   remoteVideoRef,
+  remoteAudioRef,
   isMuted,
   isCameraOff,
+  isRemoteAudioBlocked,
   onToggleMute,
   onToggleCamera,
+  onEnableAudio,
   onEnd,
 }) {
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
-      <video
-        ref={remoteVideoRef}
-        autoPlay
-        playsInline
-        className="h-full w-full object-contain"
-      />
+      {call.callType === "video" ? (
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          muted
+          playsInline
+          className="h-full w-full object-contain"
+        />
+      ) : (
+        <div className="flex h-full flex-col items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+          <Avatar className="size-36 ring-4 ring-white/10 shadow-2xl sm:size-44">
+            <AvatarImage
+              src={call.peerUser?.profilePic?.url || call.peerUser?.profilePic}
+            />
+            <AvatarFallback className="text-4xl">
+              {getInitials(call.peerUser)}
+            </AvatarFallback>
+          </Avatar>
+          <h2 className="mt-6 text-2xl font-semibold">
+            {getDisplayName(call.peerUser)}
+          </h2>
+          <p className="mt-2 text-sm text-white/60">Voice call</p>
+        </div>
+      )}
+
+      <audio ref={remoteAudioRef} autoPlay playsInline />
+
+      {isRemoteAudioBlocked && (
+        <Button
+          type="button"
+          variant="secondary"
+          className="absolute left-1/2 top-20 -translate-x-1/2 rounded-full"
+          onClick={onEnableAudio}
+        >
+          Enable call audio
+        </Button>
+      )}
 
       <div className="absolute left-4 top-4 rounded-full bg-black/50 px-4 py-2 text-sm backdrop-blur">
         <div className="flex items-center gap-2">
           {callState === "connected" ? (
             <PhoneCall className="size-4 text-emerald-400" />
           ) : (
-            <Video className="size-4" />
+            call.callType === "audio" ? (
+              <PhoneCall className="size-4" />
+            ) : (
+              <Video className="size-4" />
+            )
           )}
           <span>
             {callState === "calling"
@@ -721,20 +821,22 @@ function ActiveCall({
         </div>
       </div>
 
-      <div className="absolute right-4 top-4 h-36 w-28 overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-white/20 shadow-2xl sm:h-44 sm:w-36">
-        <video
-          ref={localVideoRef}
-          autoPlay
-          muted
-          playsInline
-          className="h-full w-full object-cover"
-        />
-        {isCameraOff && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
-            <VideoOff className="size-7 text-white/70" />
-          </div>
-        )}
-      </div>
+      {call.callType === "video" && (
+        <div className="absolute right-4 top-4 h-36 w-28 overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-white/20 shadow-2xl sm:h-44 sm:w-36">
+          <video
+            ref={localVideoRef}
+            autoPlay
+            muted
+            playsInline
+            className="h-full w-full object-cover"
+          />
+          {isCameraOff && (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+              <VideoOff className="size-7 text-white/70" />
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full bg-black/60 p-3 backdrop-blur-xl ring-1 ring-white/10">
         <Button
@@ -748,16 +850,18 @@ function ActiveCall({
           {isMuted ? <MicOff /> : <Mic />}
         </Button>
 
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          className="size-12 rounded-full"
-          onClick={onToggleCamera}
-          aria-label={isCameraOff ? "Turn camera on" : "Turn camera off"}
-        >
-          {isCameraOff ? <VideoOff /> : <Video />}
-        </Button>
+        {call.callType === "video" && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="size-12 rounded-full"
+            onClick={onToggleCamera}
+            aria-label={isCameraOff ? "Turn camera on" : "Turn camera off"}
+          >
+            {isCameraOff ? <VideoOff /> : <Video />}
+          </Button>
+        )}
 
         <Button
           type="button"
@@ -765,7 +869,7 @@ function ActiveCall({
           size="icon"
           className="size-12 rounded-full"
           onClick={onEnd}
-          aria-label="End video call"
+          aria-label="End call"
         >
           <PhoneOff />
         </Button>
