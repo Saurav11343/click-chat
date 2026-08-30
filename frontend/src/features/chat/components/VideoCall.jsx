@@ -568,7 +568,7 @@ export function VideoCallProvider({ children }) {
       {children}
 
       {call && (
-        <div className="fixed inset-0 z-[100] bg-black text-white">
+        <div className="fixed inset-0 z-100 bg-black text-white">
           {callState === "incoming" ? (
             <IncomingCall
               call={call}
@@ -598,7 +598,7 @@ function IncomingCall({ call, onAccept, onReject }) {
   const person = call.peerUser;
 
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-black p-6">
+    <div className="flex h-full flex-col items-center justify-center bg-linear-to-b from-slate-950 via-slate-900 to-black p-6">
       <div className="text-center">
         <div className="mx-auto mb-6 flex size-28 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
           <Avatar className="size-24">
