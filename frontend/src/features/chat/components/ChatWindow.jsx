@@ -22,7 +22,7 @@ import { MessageListSkeleton } from "@/features/chat/components/MessageListSkele
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { useMessageStore } from "@/features/chat/store/useMessageStore";
 import { useConversationStore } from "@/features/chat/store/useConversationStore";
-import { useVideoCall } from "@/features/chat/components/VideoCall.jsx";
+import { useVideoCall } from "@/features/chat/contexts/video-call-context";
 
 export function ChatWindow({
   selectedConversation,
