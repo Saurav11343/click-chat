@@ -85,7 +85,7 @@ The service worker uses a message-level notification tag, so consecutive message
 
 - The chat sidebar shows an enable prompt only when notifications are supported, not already enabled, and not dismissed recently.
 - **Not now** is remembered per account for seven days in local storage.
-- Profile settings provide a permanent per-browser enable/disable control.
+- The Settings page provides a permanent per-browser enable/disable control.
 - A denied permission is controlled by browser site settings; application code cannot override it.
 - Production requires HTTPS. Localhost is treated as a secure development context by supported browsers.
 

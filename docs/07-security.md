@@ -16,6 +16,7 @@
 | Socket authentication | Independently parses and verifies the same cookie during handshake |
 | Conversation authorization | Message operations require authenticated user membership |
 | Typing authorization | Server validates conversation membership before forwarding typing state |
+| Call authorization | Server requires a direct conversation containing both the authenticated sender and a different target user |
 | Message ownership | Edit/delete queries require current user as sender |
 | Invitation authorization | Only pending invitation recipient can accept/decline |
 | Upload filtering | Multer hard size/count limits; image-only profile filter; Zod MIME/metadata validation for chat attachments |
@@ -100,7 +101,13 @@ MIME types are client-provided metadata and are not a complete content-security 
 
 The VAPID public key is intentionally exposed to the browser. `VAPID_PRIVATE_KEY` is a backend-only secret and must never use a `VITE_*` name or enter a client bundle. Push endpoints and encryption keys are user-associated delivery credentials and are not returned by ordinary profile or search queries.
 
-Backend credentials belong only in `backend/.env` locally and in Railway environment variables in production. Vite exposes every `VITE_*` value to browsers, so secrets such as the Translation key, Cloudinary secret, MongoDB URI, JWT secret, Gmail client secret, and refresh token must never use that prefix. The GIPHY client key is intentionally public and should be restricted in the provider dashboard where supported.
+Backend credentials belong only in `backend/.env` locally and in the active backend host's environment variables in production. Vite exposes every `VITE_*` value to browsers, so secrets such as the Translation key, Cloudinary secret, MongoDB URI, JWT secret, Gmail client secret, and refresh token must never use that prefix. The GIPHY client key is intentionally public and should be restricted in the provider dashboard where supported.
+
+## Calling and attachment access boundaries
+
+Call signaling authenticates the socket and checks direct-conversation membership on each forwarded event. It has no server-owned call session, signaling-specific rate limit, or SDP/ICE schema validation. Browser media permission and a secure context are required. Media uses WebRTC between peers; the application does not store recordings. Multi-tab acceptance, offline calling, and relay support remain incomplete.
+
+The attachment access endpoint checks membership and a non-deleted attachment message, then redirects to a signed Cloudinary download URL valid for five minutes. This provides an authenticated access path, but uploads still use Cloudinary's `upload` delivery type and message payloads retain their delivery URLs. Fully private media storage/delivery remains future work.
 
 Application Translation caps cannot stop direct use of a leaked key or usage by another application in the same Google project. Restrict the key to Cloud Translation and, when Railway provides stable egress, to the production outbound IP. Google Cloud budgets are notification mechanisms rather than spending caps.
 

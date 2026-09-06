@@ -4,7 +4,7 @@
 
 | Path | Access | Component | Purpose |
 | --- | --- | --- | --- |
-| `/` | Public | `Welcome` | Landing page and links to login/registration |
+| `/` | Public-only | `Welcome` | Landing page; authenticated users redirect to `/chat` |
 | `/login` | Public-only | `Login` | Authenticates verified users |
 | `/register` | Public-only | `Register` | Creates an account and begins verification |
 | `/check-email` | Public-only | `CheckEmail` | Displays delivery state and supports resend cooldown |
@@ -45,6 +45,8 @@ The shadcn CLI contract is intentionally stable: generated primitives remain und
 flowchart TD
     APP["App"] --> TP["ThemeProvider"]
     APP --> RT["AppRoutes"]
+    APP --> CALL["VideoCallProvider: voice/video UI and signaling"]
+    CALL --> RT
     RT --> LOAD["AppLoadingScreen"]
     RT --> PUB["Welcome / AuthShell / Verification"]
     RT --> CHAT["Chat"]
@@ -94,7 +96,7 @@ flowchart TD
 | `useInvitationStore` | Received/sent invitations and action flags | Fetch, send, respond, insert socket invitations, remove responses, delegate accepted conversation insertion |
 | `useConversationStore` | Conversation array and loading flag | Fetch list, add conversation, synchronize latest message, update participant presence |
 | `useMessageStore` | Active messages, pagination cursors, and mutation flags | Fetch/prepend history, send replies/media, replace edits/deletes/reactions/receipts, and clear on selection change |
-| `useUserStore` | Profile-picture mutation flag | Upload a selected profile picture and refresh the authenticated user |
+| `useUserStore` | Profile and profile-picture mutation flags | Update profile/preferences, replace auth user state, upload a profile picture and refresh authentication |
 
 ## Chat data flow
 
@@ -133,6 +135,12 @@ flowchart LR
 - A preview changes on edit/delete only when that message is the current `lastMessage`.
 - Accepted invitations insert the returned conversation rather than refetching the whole list.
 - Presence updates modify populated participant objects without activating a loading skeleton.
+
+## Voice and video call UI
+
+`App` mounts `VideoCallProvider` around `AppRoutes`, so incoming-call listeners and the full-screen call overlay remain mounted across chat, profile, and settings navigation. `ChatWindow` uses `useVideoCall()` to start audio/video calls from direct-chat header buttons; group calls are unavailable and buttons are disabled while a call is active.
+
+The provider owns call state (`idle`, `calling`, `incoming`, `connecting`, `connected`), media streams, pending signaling, and `RTCPeerConnection` refs outside Zustand. Controls include accept/decline, microphone mute, camera toggle for video calls, and hang-up. Remote sound uses a separate audio element; blocked autoplay exposes **Enable call audio**. Video capture falls back to audio-only for `NotReadableError` or `AbortError`, but permission denial fails the call. Cleanup closes the peer and stops tracks. See [Call signaling](05-realtime-events.md#call-signaling) for timers and current limitations.
 
 ## Message rendering
 
@@ -219,4 +227,4 @@ In chat, only explicit avatar buttons open `PublicProfileDialog`; the entire con
 ## Current frontend gaps
 
 - Message search, pinning, forwarding, and optimistic failed-send retry.
-- Multi-file galleries, upload cancellation/retry, voice recording, and calling interfaces.
+- Multi-file galleries, upload cancellation/retry, voice recording, and group calling interfaces.

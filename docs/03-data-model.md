@@ -11,17 +11,17 @@ erDiagram
     USER ||--o{ MESSAGE : sends
     CONVERSATION ||--o{ MESSAGE : contains
     CONVERSATION o|--o| MESSAGE : references_as_last
-    MESSAGE o|--o| MESSAGE : replies_to
+    MESSAGE o|--o{ MESSAGE : replies_to
     USER }o--o{ MESSAGE : reads
     USER }o--o{ MESSAGE : reacts_to
     USER ||--o{ CONVERSATION_READ_STATE : owns
     CONVERSATION ||--o{ CONVERSATION_READ_STATE : tracks
     MESSAGE ||--o{ MESSAGE_TRANSLATION : caches
-    USER ||--o{ TRANSLATION_USAGE : consumes_monthly
-    USER ||--o{ TRANSLATION_DAILY_USAGE : consumes_daily
 ```
 
 Core MongoDB collection names are Mongoose's pluralized forms: `users`, `invitations`, `conversations`, `messages`, and `conversationreadstates`. Translation and usage collections are documented separately below.
+
+Translation usage counters are application-wide daily/monthly records with no user foreign key. Calls are ephemeral: there is no call collection, recording, or persisted call history.
 
 ## Users collection
 
@@ -31,6 +31,8 @@ Core MongoDB collection names are Mongoose's pluralized forms: `users`, `invitat
 | `firstName` | String | Required, trimmed, 2–30 letters at API registration validation |
 | `lastName` | String | Required, trimmed, 2–30 letters at API registration validation |
 | `email` | String | Required, unique, lowercase, trimmed login identifier |
+| `googleId` | String | Google subject identifier; unique sparse index; excluded from normal queries |
+| `authProvider` | String enum | `local` (default) or `google` |
 | `isEmailVerified` | Boolean | Whether the account completed email verification; defaults to `false` |
 | `emailVerificationToken` | String or null | SHA-256 hash of the active token; excluded from normal queries |
 | `emailVerificationExpiresAt` | Date or null | Token expiry, currently 24 hours after creation; excluded from normal queries |
@@ -39,8 +41,8 @@ Core MongoDB collection names are Mongoose's pluralized forms: `users`, `invitat
 | `passwordResetExpiresAt` | Date or null | Reset-token expiry; excluded from normal queries |
 | `passwordResetSentAt` | Date or null | Reset request timestamp; excluded from normal queries |
 | `passwordChangedAt` | Date or null | Invalidates JWTs issued before the password change |
-| `dateOfBirth` | Date | Required; registration validation requires age 18 or older |
-| `password` | String | Required bcrypt hash; never returned by protected-route user lookup |
+| `dateOfBirth` | Date | Required for local accounts; password registration requires age 18 or older; Google onboarding does not collect it |
+| `password` | String | Bcrypt hash required for local accounts; optional for Google accounts; excluded by protected-route user lookup |
 | `profilePic.url` | String | Public Cloudinary URL |
 | `profilePic.publicId` | String | Cloudinary deletion/replacement identifier; excluded from normal queries |
 | `profilePic.resourceType` | String | Cloudinary resource type; excluded from normal queries |

@@ -39,7 +39,7 @@ The UI offers translation only on received messages containing non-empty text. T
 
 ## Preferred language
 
-Each user has a `preferredLanguage` field. The profile page exposes a controlled language selector and saves the selection through the existing profile update endpoint. The translation controller uses this server-loaded user value as the target language, rather than accepting an arbitrary target from the request body.
+Each user has a `preferredLanguage` field. The Settings page exposes a controlled language selector and saves the selection through the profile update endpoint. The translation controller uses this server-loaded user value as the target language, rather than accepting an arbitrary target from the request body.
 
 Supported values currently include English, Hindi, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese, Arabic, Bengali, Gujarati, Marathi, Punjabi, Tamil, Telugu, Urdu, and Nepali.
 
@@ -64,7 +64,7 @@ The service contains non-overridable source-code caps:
 | Daily | 12,000 characters | `TRANSLATION_DAILY_CHARACTER_LIMIT=12000` |
 | Monthly | 400,000 characters | `TRANSLATION_MONTHLY_CHARACTER_LIMIT=400000` |
 
-Environment values are clamped to these constants. A larger deployment value cannot raise the effective limit without a code change. A missing, non-numeric, zero, or negative configured limit results in a zero effective allowance and therefore suspends new external translations.
+Environment values are clamped to these constants. A larger deployment value cannot raise the effective limit without a code change. Missing or empty environment values use the defaults in `config/env.js`. Explicit non-numeric, zero, or negative values produce a zero effective allowance and suspend new external translations.
 
 Quota periods use the `America/Los_Angeles` calendar boundary so the application's accounting aligns with Google Cloud quota timing. Spaces and Unicode code points are included in the character reservation.
 

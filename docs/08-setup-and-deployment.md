@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js 22 or newer
+- Node.js 22.12 or newer (Vite 8 requires at least 22.12 on the Node 22 line)
 - npm
 - MongoDB or MongoDB Atlas
 - Cloudinary account
@@ -31,6 +31,7 @@ Create `backend/.env`.
 | `CLOUDINARY_API_SECRET` | For profile uploads | Cloudinary API secret |
 | `GMAIL_USER` | For verification email | Sender Gmail address |
 | `GOOGLE_CLIENT_ID` | For verification email | Google OAuth client ID |
+| `GOOGLE_AUTH_CLIENT_ID` | For Google Sign-In | Web OAuth client ID used to verify ID-token audience; falls back to `GOOGLE_CLIENT_ID` |
 | `GOOGLE_CLIENT_SECRET` | For verification email | Google OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | For token generation | OAuth redirect URI |
 | `GOOGLE_REFRESH_TOKEN` | For verification email | Sender account refresh token with `gmail.send` scope |
@@ -56,6 +57,7 @@ CLOUDINARY_API_KEY=api_key
 CLOUDINARY_API_SECRET=api_secret
 GMAIL_USER=sender@example.com
 GOOGLE_CLIENT_ID=oauth_client_id
+GOOGLE_AUTH_CLIENT_ID=web_oauth_client_id
 GOOGLE_CLIENT_SECRET=oauth_client_secret
 GOOGLE_REDIRECT_URI=http://localhost:3000/oauth2callback
 GOOGLE_REFRESH_TOKEN=oauth_refresh_token
@@ -75,14 +77,22 @@ Create `frontend/.env`.
 | Name | Required | Description |
 | --- | --- | --- |
 | `VITE_API_URL` | Yes | Backend origin without `/api`, used by Axios and Socket.IO |
+| `VITE_GOOGLE_CLIENT_ID` | For Google Sign-In | Web OAuth client ID matching the backend's `GOOGLE_AUTH_CLIENT_ID`; also used as the native server client ID |
 | `VITE_GIPHY_API_KEY` | For GIF search | GIPHY developer API key used by the client-side picker as required by GIPHY |
 | `VITE_VAPID_PUBLIC_KEY` | For Web Push | Same public VAPID key configured on the backend; safe for browser exposure |
 
 ```env
 VITE_API_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=web_oauth_client_id
 VITE_GIPHY_API_KEY=giphy_api_key
 VITE_VAPID_PUBLIC_KEY=generated_public_key
 ```
+
+## Calling setup
+
+Direct voice/video calls need a browser secure context (HTTPS in deployment, or localhost for local development), microphone permission, and camera permission for video. Both participants need an authenticated live Socket.IO connection. `VideoCall.jsx` configures `stun:stun.l.google.com:19302` and `stun:stun1.l.google.com:19302` directly; there are no TURN or call-specific environment variables. Connectivity on restrictive networks is not guaranteed without a TURN implementation.
+
+The Android manifest declares `CAMERA` and `RECORD_AUDIO` alongside `INTERNET`. Verify permission prompts and WebView media behavior on a real device; declaration alone does not establish a tested native calling flow. Incoming calls use foreground Socket.IO listeners and have no background call push integration.
 
 ## Web Push setup
 

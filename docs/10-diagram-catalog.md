@@ -4,10 +4,40 @@ This page collects the principal analysis and design diagrams for the current Cl
 
 ## Rendering guidance
 
+The [direct-call sequence](#direct-voicevideo-call-sequence) distinguishes Socket.IO signaling from WebRTC media. Calls do not add a MongoDB collection.
+
 - Render this file in GitHub, VS Code Markdown Preview, or another Mermaid-compatible viewer.
 - Each concern is intentionally presented as a separate, compact diagram to reduce crossing lines and overlapping nodes.
 - Short labels and one-direction layouts are used so the diagrams remain readable on ordinary screens.
 - If a viewer still compresses a diagram, open that diagram by itself or widen the preview pane.
+
+## Direct voice/video call sequence
+
+```mermaid
+sequenceDiagram
+    participant A as Caller provider
+    participant IO as Socket.IO server
+    participant DB as MongoDB
+    participant B as Recipient provider
+    A->>A: Acquire media and create offer
+    A->>IO: call:invite with IDs, callType, offer
+    IO->>DB: Verify direct conversation and both participants
+    IO-->>B: call:incoming with authenticated caller
+    B->>B: Accept, acquire media, apply offer, create answer
+    B->>IO: call:accept and call:answer
+    IO->>DB: Verify participants for each signal
+    IO-->>A: call:accepted and call:answer
+    A->>IO: call:ice-candidate
+    IO-->>B: call:ice-candidate
+    B->>IO: call:ice-candidate
+    IO-->>A: call:ice-candidate
+    A<<->>B: WebRTC audio/video media
+    A->>IO: call:end
+    IO-->>B: call:ended
+    Note over A,B: Close peer and stop media tracks
+```
+
+This shows the successful flow. The server validates membership on every signal and stores no call session. See [Call signaling](05-realtime-events.md#call-signaling) for timeout, multi-device, and STUN-only limitations.
 
 ## 1. System context diagram
 
@@ -455,7 +485,6 @@ erDiagram
     USER ||--o{ CONVERSATION_READ_STATE : owns
     CONVERSATION ||--o{ CONVERSATION_READ_STATE : tracks
     MESSAGE ||--o{ MESSAGE_TRANSLATION : translated
-    USER ||--o{ TRANSLATION_USAGE : consumes
 
     USER {
         ObjectId id PK
@@ -510,9 +539,13 @@ erDiagram
     }
     TRANSLATION_USAGE {
         ObjectId id PK
-        ObjectId user FK
-        Number characters
-        String period
+        String monthKey UK
+        Number charactersUsed
+    }
+    TRANSLATION_DAILY_USAGE {
+        ObjectId id PK
+        String dayKey UK
+        Number charactersUsed
     }
 ```
 

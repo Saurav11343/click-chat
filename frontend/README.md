@@ -1,16 +1,50 @@
-# React + Vite
+# ClickChat frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 and Vite 8 client with React Router, Zustand, Tailwind CSS 4, shadcn/Radix UI, Axios, and Socket.IO. Capacitor 8 packages the same build for Android.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Use Node.js 22.12 or newer. Start the backend using the [setup guide](../docs/08-setup-and-deployment.md), then create `frontend/.env`:
 
-## React Compiler
+```env
+VITE_API_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=your_web_oauth_client_id
+VITE_GIPHY_API_KEY=your_giphy_api_key
+VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`VITE_API_URL` is the backend origin without `/api`. The other variables enable Google Sign-In, GIF/sticker discovery, and browser push respectively. The Google client ID must match the backend's configured audience; the VAPID public key must match its key pair. Vite embeds these public values at build time. Keep backend secrets out of frontend environment variables.
 
-## Expanding the ESLint configuration
+Run from `frontend`:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. Set the backend's `CLIENT_URL` to that exact origin; REST and Socket.IO use the authentication cookie.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Vite development server |
+| `npm run build` | Production assets in `dist` |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | ESLint checks |
+
+No frontend application test script is configured.
+
+## Code organization
+
+- `src/app`: application providers and lazy routes.
+- `src/features`: authentication, chat, invitations, landing, profile, and settings.
+- `src/shared`: API/socket clients, notifications, themes, constants, and formatting.
+- `src/components/ui`: shared shadcn/Radix primitives.
+- `src/platform/capacitor`: Android navigation integration.
+- `public/sw.js`: Web Push service worker.
+- `android`: native Android project; `capacitor.config.json` points to `dist`.
+
+`VideoCallProvider` wraps the routes and owns direct WebRTC audio/video calls. Calling requires media permission and a secure context; current STUN-only connectivity and call lifecycle limitations are described in [Real-time events](../docs/05-realtime-events.md#call-signaling).
+
+See [Frontend design](../docs/06-frontend-design.md) for routes, stores, and UI behavior. See [Android APK setup](../docs/08-setup-and-deployment.md#android-apk) for build commands, JDK/SDK requirements, and native Google Sign-In configuration.

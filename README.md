@@ -67,6 +67,15 @@ The project is being developed as a Master’s project and as a practical demons
 - Permanently delete a group when authorized.
 - Synchronize group creation, updates, membership changes, leaving, and deletion in real time.
 
+### Voice and video calls
+
+- Start direct voice or video calls with WebRTC and authenticated Socket.IO signaling.
+- Accept or decline incoming calls, mute the microphone, toggle the camera, and hang up.
+- Keep call controls available across application routes.
+- Use audio-only fallback when the camera is busy and enable remote audio manually when autoplay is blocked.
+
+Calling is an initial implementation. See [Call signaling](docs/05-realtime-events.md#call-signaling) for current timeout, multi-device, and connectivity limitations.
+
 ### Messages and rich media
 
 - Send persistent text and emoji messages up to 5,000 characters.
@@ -161,7 +170,7 @@ ClickChat retains MVC within a feature-based modular monolith: Mongoose provides
 
 ### Prerequisites
 
-- Node.js 22 or newer
+- Node.js 22.12 or newer
 - npm
 - MongoDB connection
 - Cloudinary credentials
@@ -186,6 +195,7 @@ Create `frontend/.env`:
 
 ```env
 VITE_API_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=your_web_oauth_client_id
 VITE_GIPHY_API_KEY=your_giphy_api_key
 VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
 ```
@@ -215,6 +225,7 @@ Detailed technical documentation lives in [`docs/`](docs/README.md).
 | [Security](docs/07-security.md) | Authentication, authorization, uploads, privacy, risks, and recommendations |
 | [Setup and deployment](docs/08-setup-and-deployment.md) | Environment variables, commands, Gmail setup, and cloud deployment |
 | [Testing and roadmap](docs/09-testing-and-roadmap.md) | Acceptance checks, limitations, test strategy, and prioritized future work |
+| [Diagram catalog](docs/10-diagram-catalog.md) | Architecture, data, messaging, and WebRTC call sequence diagrams |
 | [Translation and cost controls](docs/11-translation-and-cost-controls.md) | Translation request flow, caching, quotas, failure modes, billing boundaries, and deployment safeguards |
 | [Groups and Web Push](docs/12-groups-and-web-push.md) | Group lifecycle, authorization, socket synchronization, subscriptions, service workers, and notification delivery |
 
@@ -270,7 +281,8 @@ click-chat/
 - Uploads and normal message creation do not yet have per-user storage/traffic quotas; public deployments should add them before broad access.
 - Cloudinary attachment delivery URLs are stored with messages; stronger private delivery is recommended for sensitive files.
 - Presence and Socket.IO currently assume one backend instance.
-- Automated test coverage has not yet been configured.
+- Application test coverage has not yet been configured; the Android wrapper contains only generated example tests.
+- Calls support direct chats with STUN only; group calls, TURN relay, call history, background call notifications, and server-managed call sessions are not implemented. Incoming-call timer cleanup and offline outgoing timeouts remain open issues.
 - Web Push requires browser permission and HTTPS in production; regular browser notifications retain browser/origin attribution unless the site is installed as a PWA.
 
 ## Next priorities

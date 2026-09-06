@@ -56,7 +56,7 @@ flowchart LR
 
 #### Authentication and profile
 
-- Account registration for users aged 18 or older.
+- Email/password registration for users aged 18 or older; Google Sign-In creates or links verified accounts without collecting date of birth.
 - Password hashing with bcrypt.
 - Email verification using a 64-character token whose SHA-256 hash is stored in MongoDB.
 - Verification expiry after 24 hours and resend cooldown of 60 seconds.
@@ -107,7 +107,11 @@ flowchart LR
 - Background browser notifications for text, attachments, GIFs, and stickers through Web Push and VAPID.
 - Per-browser notification enable/disable controls and a seven-day dismissible discovery prompt.
 
-#### Presence
+#### Voice and video calls
+
+Direct voice and video calls are implemented through WebRTC and authenticated Socket.IO signaling. Users can start calls from the direct-chat header, accept or decline, mute the microphone, toggle an existing camera track, and end calls. An application-level provider keeps call controls available across route changes. See [Call signaling](05-realtime-events.md#call-signaling) for the protocol and limitations.
+
+#### Presence tracking
 
 - Authenticated Socket.IO connections and private per-user rooms.
 - Active-socket counting across multiple browser tabs or devices.
@@ -131,7 +135,8 @@ flowchart LR
 
 - Multi-file attachment galleries and recorded voice messages.
 - Per-user upload/storage quotas and private Cloudinary delivery for sensitive attachments.
-- Message search, pinning, forwarding, and calling.
+- Message search, pinning, forwarding, group calling, call history, and background incoming-call notifications.
+- TURN relay support and server-managed call sessions; current calls use STUN only and may fail on restrictive networks.
 - Redis-backed multi-instance presence and Socket.IO fan-out.
 
 ## Maintained platforms

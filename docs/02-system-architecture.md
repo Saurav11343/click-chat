@@ -69,7 +69,9 @@ sequenceDiagram
     Note over F,IO: Typing and presence are ephemeral Socket.IO flows and are not message REST mutations
 ```
 
-REST is authoritative for mutations. Socket.IO distributes changes only after persistence for message operations. The sender normally updates from the REST response; other participants update from socket events.
+REST is authoritative for persisted domain mutations. Socket.IO distributes changes only after persistence for message operations. The sender normally updates from the REST response; other participants update from socket events.
+
+Direct voice/video calls are another ephemeral Socket.IO flow. `realtime/handlers/call.handler.js` checks direct-conversation membership for the sender and target, then forwards signaling to the target's private user room. `VideoCallProvider` in `app/App.jsx` owns the WebRTC connection, media streams, and call UI across route changes. Audio/video media flows between peers, not through Express or Socket.IO. The client configures two Google STUN servers; no TURN relay or persistent server call session is implemented. See [Call signaling](05-realtime-events.md#call-signaling).
 
 Typing state is an exception because it is ephemeral. The composer emits `typing:start` and `typing:stop` directly through Socket.IO. The server verifies conversation membership and forwards `typing:update` only to the other participants; no typing state is written to MongoDB.
 

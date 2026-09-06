@@ -37,6 +37,8 @@ These documents describe the maintained web frontend, backend, and Capacitor And
 
 The documented messaging baseline includes cursor pagination, persisted unread/delivery/read state, direct and group replies with jump navigation, one-per-user emoji reactions, direct-chat clearing/deletion semantics, rich media, translation, and Web Push.
 
+Direct voice/video calls are implemented with WebRTC and Socket.IO signaling. [Real-time events](05-realtime-events.md#call-signaling) documents the call contract and known limitations; [Frontend design](06-frontend-design.md#voice-and-video-call-ui) explains provider ownership and controls. Google account fields, application-wide translation usage, and the authenticated attachment-access path are also covered in the detailed pages.
+
 The current implementation uses a feature-based modular MVC architecture: backend domains own their routes, controllers, and Mongoose models under `backend/src/modules`, while the React View layer uses feature-owned pages, components, and stores under `frontend/src/features`. Cross-cutting backend integrations and realtime handlers are separated from domain modules; shadcn UI primitives remain under `frontend/src/components/ui`.
 
 ## Documentation rule
