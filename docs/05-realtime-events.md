@@ -25,7 +25,7 @@ sequenceDiagram
     IO->>IO: Parse cookie and verify JWT
     IO->>DB: Load socket user
     DB-->>IO: User identity
-    IO->>IO: Register typing handlers and join user:userId room
+    IO->>IO: Register typing/call handlers and join user:userId room
     IO-->>F: Connected
     IO->>DB: Persist online state after handlers are ready
 ```
@@ -54,6 +54,26 @@ sequenceDiagram
 Message, invitation, presence, and `typing:update` events are server-to-client events. `typing:start` and `typing:stop` are client-to-server events. Persisted message and invitation mutations continue to originate as REST requests.
 
 Uploaded attachments and GIPHY GIF/sticker messages use the same `message:new` event as ordinary text. The payload's `messageType`, `attachment`, and `externalMedia` fields determine rendering; no provider-specific socket event is required. Translation produces recipient-local derived text through REST and intentionally emits no socket event because it does not alter the source message.
+
+## Call signaling
+
+All client call events carry `{ callId, conversationId, targetUserId }`. The server requires string IDs, valid MongoDB conversation/target IDs, a direct conversation containing the authenticated sender and target, and a target different from the sender. It forwards the payload with `callerUserId` set from the authenticated socket. This field identifies the sender of each signal, including the callee when sending an answer. Invalid requests are silently ignored; there is no acknowledgement/error response contract.
+
+| Client → server | Server → target user room | Additional payload |
+| --- | --- | --- |
+| `call:invite` | `call:incoming` | `callType` (`audio` or `video`), `offer`; server adds authenticated `caller` profile (`_id`, `firstName`, `lastName`, `profilePic`) |
+| `call:offer` | `call:offer` | `offer` session description; supported separately, although initial invitation already includes it |
+| `call:answer` | `call:answer` | `answer` session description |
+| `call:ice-candidate` | `call:ice-candidate` | `candidate` from WebRTC ICE gathering |
+| `call:accept` | `call:accepted` | Common IDs only |
+| `call:reject` | `call:rejected` | Common IDs only |
+| `call:end` | `call:ended` | Common IDs only |
+
+The caller acquires media, creates an offer, and waits for ICE gathering to complete or five seconds before emitting the invitation with the offer. The recipient queues early candidates, accepts with local media, applies the offer, and sends acceptance and an answer. Further candidates are forwarded as they arrive. WebRTC carries media between peers.
+
+`VideoCallProvider` owns these listeners at application level, independently of `useChatRealtime`. It permits one active call per provider instance and rejects new incoming calls while busy. An incoming invitation starts a 30-second rejection timer; the timer is cleared on reset, but currently is not cleared on acceptance, so it can also interrupt an accepted call. There is no outgoing timeout for an offline recipient.
+
+The relay has no call registry, call-specific rate limiter, SDP/candidate schema validation, offline push, or multi-device winner coordination. Every target tab/device receives the signal. There is no stored call history or recording, and no TURN server is configured. These are implementation limits, not delivery guarantees.
 
 ## Typing indicator flow
 
@@ -164,7 +184,7 @@ stateDiagram-v2
 
 ## Client listener ownership
 
-`useChatRealtime` registers all domain event handlers while the protected chat interface is mounted and removes the same handler references during cleanup. `ChatLayout` consumes the hook and remains responsible for URL selection and layout composition. Domain state is delegated to stores:
+`useChatRealtime` registers messaging, invitation, presence, and typing event handlers while the protected chat interface is mounted and removes the same handler references during cleanup. `ChatLayout` consumes the hook and remains responsible for URL selection and layout composition. Call listeners belong to the application-level `VideoCallProvider`. Domain state is delegated to stores:
 
 | Event family | Store |
 | --- | --- |

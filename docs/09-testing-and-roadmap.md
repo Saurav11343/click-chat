@@ -5,7 +5,7 @@
 - Frontend ESLint through `npm run lint`.
 - Frontend production compilation through `npm run build`.
 - Node syntax checking can be run against backend files with `node --check`.
-- No automated unit, integration, end-to-end, or Socket.IO test suite is currently configured.
+- No application unit, integration, end-to-end, or Socket.IO test suite is currently configured. The Android wrapper includes generated example unit/instrumentation tests, which do not verify ClickChat workflows.
 
 ## Manual acceptance matrix
 
@@ -175,6 +175,24 @@ flowchart TD
 
 ## Known limitations
 
+### Calling verification checklist
+
+These are manual acceptance checks, not results from an executed call test:
+
+| Scenario | Check |
+| --- | --- |
+| Direct audio/video call between two accounts | Incoming overlay, accept/decline, peer media, mute, camera toggle, and hang-up |
+| Profile/settings navigation during a call | Application-level provider retains call controls |
+| Permission denied, busy webcam, or blocked autoplay | Clear failure, supported audio-only fallback, or Enable call audio control |
+| Invalid IDs, group conversation, outsider, or self target | Server does not forward signaling |
+| Unanswered incoming call | Recipient rejects after 30 seconds |
+| Accepted call lasting over 30 seconds | Known issue: acceptance does not clear the incoming rejection timer |
+| Offline recipient | Known issue: caller has no outgoing timeout |
+| Multiple recipient tabs/devices | All receive signaling; no server-managed winner arbitration |
+| Restrictive networks and Android devices | Verify actual connectivity and media permissions; no TURN relay is configured |
+
+### Feature and operational limits
+
 | Area | Limitation | Impact |
 | --- | --- | --- |
 | Message history | Cursor-based pages load while scrolling upward | History remains efficient for long conversations |
@@ -182,6 +200,7 @@ flowchart TD
 | Read receipts | Sent, delivered, and read states persist and synchronize in real time | Group messages display participant totals |
 | Attachments | One file up to 10 MB per message; no cancellation, retry, signature inspection, or malware scan | Rich media works, but production hardening and multi-file UX remain |
 | Presence scale | Counts/timers are process-local | Single backend instance only |
+| Calling | Direct WebRTC calls with STUN only; incoming timer remains armed after acceptance, no outgoing timeout or multi-device coordination | Calls need lifecycle fixes and relay support for reliable deployment |
 | Testing | No automated suite | Regression risk grows with new features |
 | Platform packaging | Capacitor Android wrapper and debug APK build are maintained | Store publication still requires release signing, store assets, and native OAuth validation |
 | Security | Upload/message quotas, login throttling, private attachment delivery, blocking/reporting, and security headers remain incomplete | Not ready for untrusted broad public traffic |
@@ -192,7 +211,7 @@ flowchart TD
 flowchart LR
     P0["P0 Automated reliability and Socket.IO tests"] --> P1["P1 Messaging resilience and search"]
     P1 --> P2["P2 Quotas, private media, pinning, and multi-file galleries"]
-    P2 --> P3["P3 Blocking, reporting, search, voice recording, and calls"]
+    P2 --> P3["P3 Blocking, reporting, voice recording, and call resilience"]
     P3 --> P4["P4 Redis-backed scale, observability, backup, and recovery"]
 ```
 
@@ -200,7 +219,8 @@ flowchart LR
 
 - Add automated backend integration and Socket.IO tests.
 - Add frontend store/component tests and a CI workflow.
-- Add centralized error handling, structured logging, and health checks.
+- Extend the existing centralized error middleware and `/health` process check with structured logging and dependency-readiness checks.
+- Fix incoming-call timer cleanup on acceptance and add outgoing timeout, signaling validation/rate limits, and multi-device call coordination.
 - Add login rate limiting and security headers.
 - Add per-user upload-byte/message quotas and socket typing-event throttling.
 - Move sensitive attachments to authenticated/private Cloudinary delivery.
@@ -221,7 +241,7 @@ flowchart LR
 - Multi-file attachment galleries, cancellation, retry, signature inspection, and malware scanning.
 - Group system messages and membership audit history.
 - Voice messages.
-- Voice and video calling.
+- TURN relay support, group calling, call history, and background incoming-call notifications.
 
 ### P4 — Scale and operations
 

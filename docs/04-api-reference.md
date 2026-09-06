@@ -1,5 +1,7 @@
 # REST API reference
 
+Voice/video calling uses Socket.IO signaling rather than REST endpoints. Its event contracts are documented under [Call signaling](05-realtime-events.md#call-signaling).
+
 ## Conventions
 
 - Base path: `${VITE_API_URL}/api` from the frontend.
