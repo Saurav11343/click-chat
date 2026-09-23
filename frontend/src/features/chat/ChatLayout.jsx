@@ -1,9 +1,10 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { ChatWindow } from "./components/ChatWindow";
 import { ConversationSidebar } from "./components/ConversationSidebar";
+import { AssistantDialog } from "./components/AssistantDialog";
 import {
   useChatBootstrap,
   useChatRealtime,
@@ -14,6 +15,12 @@ import { useConversationStore } from "./store/useConversationStore";
 export function ChatLayout() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedConversationId = searchParams.get("conversation");
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantSession, setAssistantSession] = useState(0);
+  const openAssistant = () => { setAssistantSession((value) => value + 1); setAssistantOpen(true); };
+  const clearMessageTarget = useCallback(() => {
+    setSearchParams((current) => { const next = new URLSearchParams(current); next.delete("message"); return next; }, { replace: true });
+  }, [setSearchParams]);
 
   const authUser = useAuthStore((state) => state.authUser);
   const conversations = useConversationStore((state) => state.conversations);
@@ -53,6 +60,7 @@ export function ChatLayout() {
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams);
       nextParams.set("conversation", conversation.id);
+      nextParams.delete("message");
       return nextParams;
     });
   };
@@ -62,6 +70,7 @@ export function ChatLayout() {
       (currentParams) => {
         const nextParams = new URLSearchParams(currentParams);
         nextParams.delete("conversation");
+        nextParams.delete("message");
         return nextParams;
       },
       { replace: true },
@@ -86,6 +95,7 @@ export function ChatLayout() {
             selectedConversation={selectedConversation}
             onSelectConversation={handleSelectConversation}
             onOpenConversationId={handleOpenConversationId}
+            onOpenAssistant={openAssistant}
           />
         </div>
 
@@ -103,9 +113,20 @@ export function ChatLayout() {
                 : null
             }
             onTypingChange={emitTyping}
+            onOpenAssistant={openAssistant}
+            targetMessageId={searchParams.get("message")}
+            onMessageTargetHandled={clearMessageTarget}
           />
         </div>
       </main>
+      {assistantOpen && <AssistantDialog
+        key={`${authUser?._id}-${assistantSession}`}
+        open={assistantOpen}
+        onOpenChange={setAssistantOpen}
+        conversations={sidebarConversations}
+        initialConversationId={selectedConversationId}
+        onOpenSource={(conversationId, messageId) => setSearchParams({ conversation: conversationId, message: messageId })}
+      />}
     </div>
   );
 }

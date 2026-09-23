@@ -6,6 +6,7 @@ import {
   Phone,
   SendHorizontal,
   Video,
+  Sparkles,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,12 +25,16 @@ import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { useMessageStore } from "@/features/chat/store/useMessageStore";
 import { useConversationStore } from "@/features/chat/store/useConversationStore";
 import { useVideoCall } from "@/features/chat/contexts/video-call-context";
+import { toast } from "sonner";
 
 export function ChatWindow({
   selectedConversation,
   onBack,
   typingUser,
   onTypingChange,
+  onOpenAssistant,
+  targetMessageId,
+  onMessageTargetHandled,
 }) {
   const authUser = useAuthStore((state) => state.authUser);
   const { startAudioCall, startVideoCall, isCallActive } = useVideoCall();
@@ -71,6 +76,37 @@ export function ChatWindow({
   const [replyingTo, setReplyingTo] = useState(null);
   const [reactionTarget, setReactionTarget] = useState(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState(null);
+
+  useEffect(() => {
+    if (!targetMessageId || !conversationId || isLoadingMessages || isLoadingOlderMessages) return;
+    if (useMessageStore.getState().activeConversationId !== conversationId) return;
+    const element = messageElementsRef.current.get(targetMessageId);
+    if (element) {
+      const frame = requestAnimationFrame(() => {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightedMessageId(targetMessageId);
+        onMessageTargetHandled();
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+    if (hasMoreMessages) {
+      void loadOlderMessages(conversationId).then((loaded) => {
+        if (!loaded && useMessageStore.getState().activeConversationId === conversationId) {
+          toast.error("Unable to load the original message. Please try again.");
+          onMessageTargetHandled();
+        }
+      });
+    } else {
+      toast.error("This message is no longer available.");
+      onMessageTargetHandled();
+    }
+  }, [targetMessageId, conversationId, isLoadingMessages, isLoadingOlderMessages, hasMoreMessages, loadOlderMessages, messages, onMessageTargetHandled]);
+
+  useEffect(() => {
+    if (!highlightedMessageId) return;
+    const timer = setTimeout(() => setHighlightedMessageId(null), 2500);
+    return () => clearTimeout(timer);
+  }, [highlightedMessageId]);
 
   const handleLatestMediaLoad = () => {
     requestAnimationFrame(() => {
@@ -322,6 +358,7 @@ export function ChatWindow({
         </div>
 
         <div className="flex shrink-0 items-center">
+          <Button type="button" variant="ghost" size="icon" aria-label="Open chat assistant" onClick={onOpenAssistant}><Sparkles className="size-5" /></Button>
           {selectedConversation.isGroup ? (
             <GroupDetailsDialog
               conversation={selectedConversation}

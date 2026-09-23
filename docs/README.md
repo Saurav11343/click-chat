@@ -21,6 +21,8 @@ This directory contains the detailed technical documentation for ClickChat. The 
 
 ## Suggested academic report mapping
 
+The [Chat assistant](13-chat-assistant.md) guide covers Gemini/Tavily configuration, summaries, chat and web search, source navigation, privacy, limits, and verification.
+
 | Report chapter | Documentation sources |
 | --- | --- |
 | Introduction and objectives | Project overview |

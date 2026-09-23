@@ -26,6 +26,9 @@ Create `backend/.env`.
 | `JWT_SECRET` | Yes | Secret used to sign and verify session JWTs |
 | `JWT_EXPIRE` | No | JWT expiry string; defaults to `7d` |
 | `NODE_ENV` | Recommended | Controls production cookie security settings |
+| `GEMINI_API_KEY` | For the assistant | Backend-only Gemini key for summaries and answers |
+| `GEMINI_MODEL` | No | Defaults to `gemini-3.5-flash-lite`; must support text generation and JSON output |
+| `TAVILY_API_KEY` | For assistant web search | Backend-only Tavily key; basic search returns up to five results |
 | `CLOUDINARY_CLOUD_NAME` | For profile uploads | Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | For profile uploads | Cloudinary API key |
 | `CLOUDINARY_API_SECRET` | For profile uploads | Cloudinary API secret |

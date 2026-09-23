@@ -7,6 +7,7 @@ import authRoute from "./modules/auth/auth.route.js";
 import userRoute from "./modules/users/user.route.js";
 import invitationRoute from "./modules/invitations/invitation.route.js";
 import conversationRoute from "./routes/conversation.route.js";
+import assistantRoute from "./modules/assistant/assistant.route.js";
 import { notFoundHandler } from "./middleware/not-found.middleware.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
 
@@ -38,6 +39,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/invitations", invitationRoute);
 app.use("/api/conversations", conversationRoute);
+app.use("/api/assistant", assistantRoute);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

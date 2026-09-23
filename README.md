@@ -14,6 +14,15 @@ The project is being developed as a Master’s project and as a practical demons
 
 ## Features
 
+### Chat assistant
+
+- Summarize a selected conversation and period with Gemini, including decisions and action items.
+- Ask questions across your own chats with AI-assisted keyword search and links to original messages.
+- Search the web with Tavily and read AI answers, citations, and result cards inside the app.
+- Keep provider keys on the backend, exclude deleted/inaccessible messages, and enforce per-user request limits.
+
+See [Chat assistant](docs/13-chat-assistant.md) for setup, privacy, coverage limits, and verification.
+
 ### Authentication and account security
 
 - Register an account with age validation.
@@ -276,12 +285,12 @@ click-chat/
 
 ## Current limitations
 
-- Message history uses pages of up to 50 messages; conversation and cross-conversation search are not yet implemented.
+- Message history uses pages of up to 50 messages. Assistant chat search uses keywords and returns up to 30 matches; vector search is not implemented.
 - Attachments are limited to one file and 10 MB per message; cancellation and retry are not yet implemented.
 - Uploads and normal message creation do not yet have per-user storage/traffic quotas; public deployments should add them before broad access.
 - Cloudinary attachment delivery URLs are stored with messages; stronger private delivery is recommended for sensitive files.
 - Presence and Socket.IO currently assume one backend instance.
-- Application test coverage has not yet been configured; the Android wrapper contains only generated example tests.
+- Assistant backend tests cover authorization, retrieval boundaries, validation, and provider failures; broader application coverage remains incomplete.
 - Calls support direct chats with STUN only; group calls, TURN relay, call history, background call notifications, and server-managed call sessions are not implemented. Incoming-call timer cleanup and offline outgoing timeouts remain open issues.
 - Web Push requires browser permission and HTTPS in production; regular browser notifications retain browser/origin attribution unless the site is installed as a PWA.
 
@@ -289,7 +298,7 @@ click-chat/
 
 1. Automated integration and Socket.IO tests
 2. Per-user upload/message quotas and authenticated attachment delivery
-3. Conversation and cross-conversation message search
+3. Expand assistant retrieval with semantic search and full-history summaries
 4. Optimistic send retry, pinned messages, blocking/reporting, and multi-file attachment galleries
 
 See [Testing and roadmap](docs/09-testing-and-roadmap.md) for the full prioritized plan.
