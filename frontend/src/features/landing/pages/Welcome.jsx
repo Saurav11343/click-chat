@@ -191,8 +191,8 @@ function Welcome() {
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_20%,color-mix(in_oklab,var(--primary)_10%,transparent),transparent_28%),radial-gradient(circle_at_82%_35%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_25%)]" />
           <div className="mx-auto grid max-w-7xl items-center gap-14 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1fr_0.92fr] lg:px-8 lg:py-28">
             <div className="max-w-2xl">
-              <Badge variant="secondary" className="mb-6 h-7 gap-1.5 px-3">
-                <Sparkles data-icon="inline-start" />
+              <Badge variant="secondary" className="mb-6 h-7 gap-1.5 px-3.5 shadow-xs backdrop-blur-md">
+                <Sparkles data-icon="inline-start" className="size-3.5 text-primary" />
                 Direct chats, groups, and rich media
               </Badge>
 
@@ -205,12 +205,12 @@ function Welcome() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button size="lg" asChild className="h-12 rounded-xl px-6 text-base">
+                <Button size="lg" asChild className="h-12 rounded-xl px-6 text-base shadow-md transition-transform duration-200 hover:scale-[1.02]">
                   <Link to="/register">
                     Start chatting free <ArrowRight className="size-4" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild className="h-12 rounded-xl px-6 text-base">
+                <Button size="lg" variant="outline" asChild className="h-12 rounded-xl px-6 text-base transition-transform duration-200 hover:scale-[1.02]">
                   <Link to="/login">I already have an account</Link>
                 </Button>
               </div>

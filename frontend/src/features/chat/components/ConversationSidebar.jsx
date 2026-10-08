@@ -151,7 +151,7 @@ export function ConversationSidebar({
       </div>
 
       <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="px-3 pt-3"><Button variant="outline" className="w-full justify-start gap-2 rounded-xl" onClick={onOpenAssistant}><Sparkles className="size-4 text-primary" /> Ask ClickChat Assistant</Button></div>
+        <div className="px-3 pt-3"><Button variant="outline" className="w-full justify-start gap-2 rounded-xl transition-colors hover:bg-primary/5 hover:text-primary" onClick={onOpenAssistant}><Sparkles className="size-4 text-primary" /> Ask ClickChat Assistant</Button></div>
         <PushNotificationPrompt />
         <div className="w-full min-w-0 space-y-1.5 overflow-hidden p-3">
           {isLoading ? (

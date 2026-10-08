@@ -202,7 +202,7 @@ The debug fingerprint is machine/signing-key specific. Recalculate it if the deb
 | `frontend` | `npx cap sync android` | Copy the current web build and plugins into Android |
 | `frontend/android` | `./gradlew.bat assembleDebug` | Compile an installable debug APK |
 
-The backend currently has no automated test or lint script.
+Automated backend assistant unit tests are run using `npm run test:assistant` inside `backend/`.
 
 ## Startup sequence
 

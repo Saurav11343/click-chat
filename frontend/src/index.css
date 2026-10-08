@@ -402,7 +402,7 @@
 .chat-skeleton-sent {
   --skeleton-base: color-mix(
     in oklab,
-    ocean var(--message-sent) 28%,
+    var(--message-sent) 28%,
     var(--background)
   );
   --skeleton-highlight: color-mix(
