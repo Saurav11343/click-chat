@@ -380,6 +380,11 @@ export function VideoCallProvider({ children }) {
     const currentCall = callRef.current;
     if (!currentCall || currentCall.direction !== "incoming") return;
 
+    if (incomingTimeoutRef.current) {
+      window.clearTimeout(incomingTimeoutRef.current);
+      incomingTimeoutRef.current = null;
+    }
+
     try {
       acceptedIncomingRef.current = true;
       setCallState("connecting");

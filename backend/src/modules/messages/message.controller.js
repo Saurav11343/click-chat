@@ -384,7 +384,7 @@ export const toggleMessageReaction = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Reaction updated.",
-      data: payload,
+      data: message,
     });
   } catch (error) {
     console.error("Toggle message reaction error:", error);

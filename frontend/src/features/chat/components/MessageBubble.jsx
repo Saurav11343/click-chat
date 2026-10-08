@@ -240,12 +240,12 @@ export function MessageBubble({
                   variant="ghost"
                   size="icon-sm"
                   disabled={isDeleting}
-                  className={`size-7 rounded-lg shadow-none ${
+                  className={`size-7 rounded-lg shadow-sm backdrop-blur-md transition-all ${
                     isBareMedia
-                      ? "bg-black/35 text-white hover:bg-black/55 hover:text-white"
+                      ? "bg-black/40 text-white hover:bg-black/60 hover:text-white"
                       : isMyMessage && !isSticker
-                      ? "text-primary-foreground/75 hover:bg-primary-foreground/15 hover:text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "bg-primary-foreground/10 text-primary-foreground/90 hover:bg-primary-foreground/20 hover:text-primary-foreground"
+                      : "bg-background/80 text-muted-foreground hover:bg-muted hover:text-foreground ring-1 ring-border/50"
                   }`}
                   aria-label="Message options"
                 >
